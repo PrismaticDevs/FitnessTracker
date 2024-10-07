@@ -4,40 +4,54 @@ import UIKit
 struct WeightInput: View {
     let Exercise: String
     var defaults = UserDefaults.standard
-    @State var Weight: String
+    @State var WeightLeft: String
+    @State var WeightRight: String
     @State var Note: String
 
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
-                // Exercise name and weight input horizontally aligned
                 Text(Exercise)
-                    .font(.headline) // You can adjust the font style
-                    .frame(minWidth: 100, alignment: .leading) // Control the size/alignment of the exercise label
+                    .font(.headline)
+                    .frame(minWidth: 100, alignment: .leading)
+                    .scaledToFit()
                 Spacer()
-                TextField("Weight", text: $Weight)
-                    .onChange(of: Weight) {
-                        defaults.set(Weight, forKey: Exercise + "Weight")
+                HStack {
+                    VStack {
+                        Text("Left")
+                            .font(.system(size: 14))
+                        TextField("Weight", text: $WeightLeft)
+                            .onChange(of: WeightLeft) {
+                                defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
+                            }
+                            .textFieldStyle(.roundedBorder)
+                            .shadow(color: .gray, radius: 2, x: 0, y: 2)
                     }
-                    .textFieldStyle(.roundedBorder)
-                    .shadow(color: .gray, radius: 2, x: 0, y: 2)
-
-
+                    VStack {
+                        Text("Right")
+                            .font(.system(size: 14))
+                        TextField("Weight", text: $WeightRight)
+                            .onChange(of: WeightRight) {
+                                defaults.set(WeightRight, forKey: Exercise + "WeightRight")
+                            }
+                            .textFieldStyle(.roundedBorder)
+                            .shadow(color: .gray, radius: 2, x: 0, y: 2)
+                    }
+                }
             }
-            .padding(.vertical, 5) // Add padding between elements
-            
-            // Note input field below
-            TextField("Note", text: $Note)
+            .padding(.vertical, 5)
+            TextField("Note", text: $Note, axis: .vertical)
                 .onChange(of: Note){
                     defaults.set(Note, forKey: Exercise + "Note")
             }
                 .textFieldStyle(.roundedBorder)
                 .shadow(color: .gray, radius: 2, x: 0, y: 2)
+                .lineLimit(1...4)
         }
         .padding()
     }
 }
 
 #Preview {
-    WeightInput(Exercise: "Deadlift", Weight: "", Note: "")
+    WeightInput(Exercise: "Deadlift", WeightLeft: "", WeightRight: "",Note: "")
 }

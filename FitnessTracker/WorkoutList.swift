@@ -9,7 +9,6 @@ import SwiftUI
 
 struct WorkoutList: View {
     var body: some View {
-        @State var menuOpened: Bool = false
         NavigationView {
             ZStack {
                 VStack {
@@ -21,7 +20,7 @@ struct WorkoutList: View {
                             Image(systemName: "figure.strengthtraining.traditional")
                                 .foregroundColor(.cyan)
                                 .font(.system(size: 36))
-                            Text("1.0")
+                            Text("0.1")
                                 .font(.system(size: 18))
                                 .foregroundColor(.cyan)
                         }
@@ -30,17 +29,37 @@ struct WorkoutList: View {
                             NavigationLink("Chest & Side Delts", destination: One())
                                 .bold()
                                 .padding()
+                                .listRowBackground(Color.blue)
+                                .foregroundStyle(.white, .white)
+                                .font(.system(size: 24))
+
                             NavigationLink("Upper Back & Rear Delts", destination: Two())
                                 .bold()
                                 .padding()
+                                .listRowBackground(Color.blue)
+                                .foregroundStyle(.white, .white)
+                                .font(.system(size: 24))
+
                             NavigationLink("Arms & Abs", destination: Three())
                                 .bold()
                                 .padding()
+                                .listRowBackground(Color.blue)
+                                .foregroundStyle(.white, .white)
+                                .font(.system(size: 24))
+
                             NavigationLink("Legs", destination: Four())
                                 .bold()
                                 .padding()
+                                .listRowBackground(Color.blue)
+                                .foregroundStyle(.white, .white)
+                                .font(.system(size: 24))
+
                         }
+                        .background(Color.cyan)
+                        .ignoresSafeArea()
                     }
+                    .scrollContentBackground(.hidden)
+                    .toolbarBackground(.cyan, for: .navigationBar)
                 }
             }
         }
