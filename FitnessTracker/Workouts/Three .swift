@@ -41,7 +41,7 @@ struct Three: View {
                 .background(Color.cyan)
             }
         }
-        .padding(.top, -150)
+        .padding(.top, -120)
     }
 }
 

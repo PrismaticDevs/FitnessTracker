@@ -24,6 +24,9 @@ struct WeightInput: View {
                             .onChange(of: WeightLeft) {
                                 defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                             }
+                            .padding()
+//                            .background(Color.blue)
+                            .cornerRadius(8)
                             .textFieldStyle(.roundedBorder)
                             .shadow(color: .gray, radius: 2, x: 0, y: 2)
                     }

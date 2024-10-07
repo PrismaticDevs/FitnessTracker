@@ -13,6 +13,7 @@ struct WorkoutList: View {
             ZStack {
                 VStack {
                     NavigationStack {
+                        List {
                         HStack {
                             Text("Weight Tracker")
                                 .foregroundColor(.cyan)
@@ -25,7 +26,7 @@ struct WorkoutList: View {
                                 .foregroundColor(.cyan)
                         }
                         .padding()
-                        List {
+                        
                             NavigationLink("Chest & Side Delts", destination: One())
                                 .bold()
                                 .padding()
@@ -60,8 +61,9 @@ struct WorkoutList: View {
                     }
                     .scrollContentBackground(.hidden)
 //                    .toolbarBackground(.cyan, for: .navigationBar)
-//                    .background(Color.cyan)
+                    
                 }
+                
             }
         }
 
