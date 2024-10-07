@@ -59,7 +59,8 @@ struct WorkoutList: View {
                         .ignoresSafeArea()
                     }
                     .scrollContentBackground(.hidden)
-                    .toolbarBackground(.cyan, for: .navigationBar)
+//                    .toolbarBackground(.cyan, for: .navigationBar)
+//                    .background(Color.cyan)
                 }
             }
         }

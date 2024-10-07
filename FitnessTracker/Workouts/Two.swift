@@ -9,6 +9,9 @@ import SwiftUI
 
 struct Two: View {
     var defaults = UserDefaults.standard
+    init() {
+        UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+    }
     var body: some View {
             NavigationView {
                 ZStack{
@@ -23,13 +26,14 @@ struct Two: View {
                             WeightInput(Exercise: "Dumbell Shrug", WeightLeft: defaults.string(forKey: "Dumbell ShrugWeightLeft") ?? "", WeightRight: defaults.string(forKey: "Dumbell ShrugWeightRight") ?? "", Note:  defaults.string(forKey: "Dumbell ShrugNote") ?? "")
                             
                         }
+                        .frame(maxWidth: .infinity)
                     }
                     .padding(.top, 1)
                     .navigationTitle("Upper Back & Rear Delts")
                     .background(Color.cyan)
                 }
         }
-        .padding(.top, -100)
+        .padding(.top, -150)
     }
     
 }

@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct Four: View {
+    init() {
+        UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+    }
     var defaults = UserDefaults.standard
     var body: some View {
         
@@ -26,7 +29,7 @@ struct Four: View {
                 .background(Color.cyan)
             }
         }
-        .padding(.top, -100)
+        .padding(.top, -150)
     }
 }
 

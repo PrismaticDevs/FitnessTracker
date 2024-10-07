@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct Three: View {
+    init() {
+        UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+    }
 //    var bckGrdGradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     let defaults = UserDefaults.standard
     var body: some View {
@@ -38,7 +41,7 @@ struct Three: View {
                 .background(Color.cyan)
             }
         }
-        .padding(.top, -100)
+        .padding(.top, -150)
     }
 }
 
