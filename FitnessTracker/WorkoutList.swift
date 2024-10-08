@@ -25,7 +25,7 @@ struct WorkoutList: View {
                                 .font(.system(size: 18))
                                 .foregroundColor(.cyan)
                         }
-                        .padding()
+                        .padding(5)
                         
                             NavigationLink("Chest & Side Delts", destination: One())
                                 .bold()
@@ -57,10 +57,8 @@ struct WorkoutList: View {
 
                         }
                         .background(Color.cyan)
-                        .ignoresSafeArea()
                     }
                     .scrollContentBackground(.hidden)
-//                    .toolbarBackground(.cyan, for: .navigationBar)
                     
                 }
                 
