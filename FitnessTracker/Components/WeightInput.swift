@@ -23,6 +23,7 @@ struct WeightInput: View {
                             Expand = true
                         } label: {
                             Image(systemName: "arrow.left.and.line.vertical.and.arrow.right")
+                                .foregroundColor(Color.black)
                         }
                     }
                     if (Expand == true) {
@@ -30,6 +31,7 @@ struct WeightInput: View {
                             Expand = false
                         } label: {
                             Image(systemName: "arrow.right.and.line.vertical.and.arrow.left")
+                                .foregroundColor(Color.white)
                         }
                     }
                     if (Expand == true) {
