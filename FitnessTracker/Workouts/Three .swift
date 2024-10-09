@@ -38,7 +38,7 @@ struct Three: View {
                 }
                 .padding(.top, 1)
                 .navigationTitle("Arms & Abs")
-                .background(Color.cyan)
+//                .background(Color.cyan)
             }
         }
         .padding(.top, -10)

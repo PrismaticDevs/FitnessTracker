@@ -26,7 +26,7 @@ struct Four: View {
                 }
                 .padding(.top, 1)
                 .navigationTitle("Chest & Side Delts")
-                .background(Color.cyan)
+//                .background(Color.cyan)
             }
         }
         .padding(.top, -120)

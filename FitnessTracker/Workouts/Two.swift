@@ -30,7 +30,7 @@ struct Two: View {
                     }
                     .padding(.top, 1)
                     .navigationTitle("Upper Back & Rear Delts")
-                    .background(Color.cyan)
+//                    .background(Color.cyan)
                 }
         }
         .padding(.top, -120)

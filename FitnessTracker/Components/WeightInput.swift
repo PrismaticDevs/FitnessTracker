@@ -8,7 +8,7 @@ struct WeightInput: View {
     @State var WeightRight: String
     @State var Weight: String
     @State var Note: String
-    @State private var Expand: Bool = false
+    @State private var Expand: Bool = true
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -23,7 +23,7 @@ struct WeightInput: View {
                             Expand = true
                         } label: {
                             Image(systemName: "arrow.left.and.line.vertical.and.arrow.right")
-                                .foregroundColor(Color.black)
+                                .foregroundColor(Color.secondary)
                         }
                     }
                     if (Expand == true) {
@@ -31,7 +31,7 @@ struct WeightInput: View {
                             Expand = false
                         } label: {
                             Image(systemName: "arrow.right.and.line.vertical.and.arrow.left")
-                                .foregroundColor(Color.white)
+                                .foregroundColor(Color.secondary)
                         }
                     }
                     if (Expand == true) {
@@ -39,51 +39,55 @@ struct WeightInput: View {
                             Text("Left")
                                 .font(.system(size: 14))
                                 .fixedSize(horizontal: false, vertical: true)
-                                .padding(-8)
-                            TextField("Weight", text: $WeightLeft)
+                                .padding(-5)
+                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.5)))
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                                 }
-                                .cornerRadius(8)
-                                .textFieldStyle(.roundedBorder)
-                                .shadow(color: .gray, radius: 2, x: 0, y: 2)
+                                .lineLimit(1...4)
+                                .padding(10)
+                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .padding(-3)
                         }
                         .padding(0)
                         VStack {
                             Text("Right")
                                 .font(.system(size: 14))
                                 .fixedSize(horizontal: false, vertical: true)
-                                .padding(-8)
-                            TextField("Weight", text: $WeightRight)
+                                .padding(-5)
+                            TextField("Weight", text: $WeightRight, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
                                 }
-                                .textFieldStyle(.roundedBorder)
-                                .shadow(color: .gray, radius: 2, x: 0, y: 2)
+                                .lineLimit(1...4)
+                                .padding(10)
+                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .padding(-3)
                         }
                     }
                     if (Expand == false) {
                         VStack {
-                            TextField("Weight", text: $Weight)
+                            TextField("Weight", text: $Weight, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
-                                .cornerRadius(8)
-                                .textFieldStyle(.roundedBorder)
-                                .shadow(color: .gray, radius: 2, x: 0, y: 2)
+                                .lineLimit(1...4)
+                                .padding(10)
+                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .padding(-3)
                         }
                         .padding(0)
                     }
                 }
                 .padding(0)
             }
-            TextField("Note", text: $Note, axis: .vertical)
+            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.primary.opacity(0.3)))
                 .onChange(of: Note){
                     defaults.set(Note, forKey: Exercise + "Note")
             }
-                .textFieldStyle(.roundedBorder)
-                .shadow(color: .gray, radius: 2, x: 0, y: 2)
                 .lineLimit(1...4)
+                .padding(10)
+                .background(Color.blue.opacity(0.8).cornerRadius(10))
                 .padding(-3)
         }
         .padding()

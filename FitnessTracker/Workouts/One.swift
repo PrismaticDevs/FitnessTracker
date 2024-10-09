@@ -28,7 +28,7 @@ struct One: View {
                     }
                 }
                 .padding(.top, 1)
-                .background(Color.cyan)
+//                .background(Color.cyan)
                 .navigationBarTitle(Text("Chest and Side Delts"))
         }
         .padding(.top, -120)

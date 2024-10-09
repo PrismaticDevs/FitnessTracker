@@ -13,9 +13,8 @@ struct WorkoutList: View {
             ZStack {
                 VStack {
                     NavigationStack {
-                        List {
                         HStack {
-                            Text("Weight Tracker")
+                            Text("Fitness Tracker")
                                 .foregroundColor(.cyan)
                                 .font(.title )
                             Image(systemName: "figure.strengthtraining.traditional")
@@ -26,7 +25,7 @@ struct WorkoutList: View {
                                 .foregroundColor(.cyan)
                         }
                         .padding(5)
-                        
+                        List {
                             NavigationLink("Chest & Side Delts", destination: One())
                                 .bold()
                                 .padding()
@@ -56,7 +55,7 @@ struct WorkoutList: View {
                                 .font(.system(size: 24))
 
                         }
-                        .background(Color.cyan)
+//                        .background(Color.cyan)
                     }
                     .scrollContentBackground(.hidden)
                     
