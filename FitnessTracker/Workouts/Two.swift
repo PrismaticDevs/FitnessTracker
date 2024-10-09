@@ -8,31 +8,32 @@
 import SwiftUI
 
 struct Two: View {
+    var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     var defaults = UserDefaults.standard
     init() {
         UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
     }
     var body: some View {
             NavigationView {
-                ZStack{
+                ZStack {
+                    gradient.edgesIgnoringSafeArea(.all)
                     ScrollView {
-                        VStack {
-                            WeightInput(Exercise: "Shoulder Press", WeightLeft: defaults.string(forKey: "Shoulder PressWeightLeft") ?? "", WeightRight: defaults.string(forKey: "Shoulder PressWeightRight") ?? "", Weight: defaults.string(forKey: "Shoulder PressWeight") ?? "", Note: defaults.string(forKey: "Shoulder PressNote") ?? "")
-                            WeightInput(Exercise: "Pulldown", WeightLeft: defaults.string(forKey:  "PulldownWeightLeft") ?? "", WeightRight: defaults.string(forKey: "PulldownWeightRight") ?? "", Weight: defaults.string(forKey: "PulldownWeight") ?? "", Note: defaults.string(forKey: "PulldownNote") ?? "")
-                            WeightInput(Exercise: "Row", WeightLeft: defaults.string(forKey: "RowWeightLeft") ?? "", WeightRight: defaults.string(forKey: "RowWeightRight") ?? "", Weight: defaults.string(forKey: "RowWeight") ?? "", Note: defaults.string(forKey: "RowNote") ?? "")
-                            WeightInput(Exercise: "Dumbell Rear Delt Fly", WeightLeft: defaults.string(forKey: "Dumbell Rear Delt FlyWeightLeft") ?? "", WeightRight: defaults.string(forKey: "Dumbell Rear Delt FlyWeightRight") ?? "", Weight: defaults.string(forKey: "Dumbell Rear Delt FlyWeight") ?? "", Note: defaults.string(forKey: "Dumbell Rear Felt FlyNote") ?? "")
-                            WeightInput(Exercise: "Rear Delt Machine", WeightLeft: defaults.string(forKey: "Rear Delt MachineWeightLeft") ?? "", WeightRight: defaults.string(forKey: "Rear Delt MachineWeightRight") ?? "", Weight: defaults.string(forKey: "Rear Delt MachineWeight") ?? "", Note: defaults.string(forKey: "Rear Delt MachineNote") ?? "")
-                            WeightInput(Exercise: "Dumbell Shrug", WeightLeft: defaults.string(forKey: "Dumbell ShrugWeightLeft") ?? "", WeightRight: defaults.string(forKey: "Dumbell ShrugWeightRight") ?? "", Weight: defaults.string(forKey: "Dumbell ShrugWeight") ?? "", Note:  defaults.string(forKey: "Dumbell ShrugNote") ?? "")
+                        VStack(spacing: 15) {
+                            WeightInput(Exercise: "Shoulder Press", WeightLeft: defaults.integer(forKey: "Shoulder PressWeightLeft"), WeightRight: defaults.integer(forKey: "Shoulder PressWeightRight"), Weight: defaults.integer(forKey: "Shoulder PressWeight"), Note: defaults.string(forKey: "Shoulder PressNote") ?? "")
+                            WeightInput(Exercise: "Pulldown", WeightLeft: defaults.integer(forKey:  "PulldownWeightLeft"), WeightRight: defaults.integer(forKey: "PulldownWeightRight"), Weight: defaults.integer(forKey: "PulldownWeight"), Note: defaults.string(forKey: "PulldownNote") ?? "")
+                            WeightInput(Exercise: "Row", WeightLeft: defaults.integer(forKey: "RowWeightLeft"), WeightRight: defaults.integer(forKey: "RowWeightRight"), Weight: defaults.integer(forKey: "RowWeight"), Note: defaults.string(forKey: "RowNote") ?? "")
+                            WeightInput(Exercise: "Dumbell Rear Delt Fly", WeightLeft: defaults.integer(forKey: "Dumbell Rear Delt FlyWeightLeft"), WeightRight: defaults.integer(forKey: "Dumbell Rear Delt FlyWeightRight"), Weight: defaults.integer(forKey: "Dumbell Rear Delt FlyWeight"), Note: defaults.string(forKey: "Dumbell Rear Felt FlyNote") ?? "")
+                            WeightInput(Exercise: "Rear Delt Machine", WeightLeft: defaults.integer(forKey: "Rear Delt MachineWeightLeft"), WeightRight: defaults.integer(forKey: "Rear Delt MachineWeightRight"), Weight: defaults.integer(forKey: "Rear Delt MachineWeight"), Note: defaults.string(forKey: "Rear Delt MachineNote") ?? "")
+                            WeightInput(Exercise: "Dumbell Shrug", WeightLeft: defaults.integer(forKey: "Dumbell ShrugWeightLeft"), WeightRight: defaults.integer(forKey: "Dumbell ShrugWeightRight"), Weight: defaults.integer(forKey: "Dumbell ShrugWeight"), Note:  defaults.string(forKey: "Dumbell ShrugNote") ?? "")
                             
                         }
-                        .frame(maxWidth: .infinity)
+                        .padding(.top)
                     }
-                    .padding(.top, 1)
+                    .padding(.top, -30)
                     .navigationTitle("Upper Back & Rear Delts")
-//                    .background(Color.cyan)
                 }
         }
-        .padding(.top, -120)
+        .padding(.top, -105)
     }
     
 }

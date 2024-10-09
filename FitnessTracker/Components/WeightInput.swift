@@ -4,9 +4,9 @@ import UIKit
 struct WeightInput: View {
     let Exercise: String
     var defaults = UserDefaults.standard
-    @State var WeightLeft: String
-    @State var WeightRight: String
-    @State var Weight: String
+    @State var WeightLeft: Int
+    @State var WeightRight: Int
+    @State var Weight: Int
     @State var Note: String
     @State private var Expand: Bool = true
 
@@ -40,7 +40,7 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
-                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $WeightLeft, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                                 }
@@ -55,7 +55,7 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
-                            TextField("Weight", text: $WeightRight, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $WeightRight, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
                                 }
@@ -67,7 +67,7 @@ struct WeightInput: View {
                     }
                     if (Expand == false) {
                         VStack {
-                            TextField("Weight", text: $Weight, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $Weight, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
@@ -105,5 +105,5 @@ struct WeightInput: View {
 }
 
 #Preview {
-    WeightInput(Exercise: "Deadlift", WeightLeft: "", WeightRight: "", Weight: "", Note: "")
+    WeightInput(Exercise: "Deadlift", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
 }

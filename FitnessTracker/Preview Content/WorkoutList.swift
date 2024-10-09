@@ -14,7 +14,7 @@ struct WorkoutList: View {
                 VStack {
                     NavigationStack {
                         HStack {
-                            Text("Fitness Tracker")
+                            Text("FitnessTracker")
                                 .foregroundColor(.cyan)
                                 .font(.title )
                             Image(systemName: "figure.strengthtraining.traditional")
