@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct WorkoutList: View {
+    var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     var body: some View {
         NavigationView {
             ZStack {
+                gradient.edgesIgnoringSafeArea(.all)
                 VStack {
-                    NavigationStack {
                         HStack {
                             Text("FitnessTracker")
                                 .foregroundColor(.cyan)
@@ -53,17 +54,13 @@ struct WorkoutList: View {
                                 .listRowBackground(Color.blue)
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
-
-                        }
-//                        .background(Color.cyan)
                     }
-                    .scrollContentBackground(.hidden)
-                    
+                        .scrollContentBackground(.hidden)
+
                 }
-                
             }
         }
-
+        .accentColor(Color.white)
     }
 }
 

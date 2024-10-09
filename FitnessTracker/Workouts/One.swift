@@ -10,6 +10,7 @@ import SwiftUI
 struct One: View {
     init() {
         UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
     }
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     let defaults = UserDefaults.standard
@@ -31,6 +32,7 @@ struct One: View {
                 }
                 .padding(.top, -30)
                 .navigationBarTitle(Text("Chest and Side Delts"))
+                .foregroundColor(Color.white)
         }
         .padding(.top, -105)
     }

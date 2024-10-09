@@ -12,6 +12,7 @@ struct Two: View {
     var defaults = UserDefaults.standard
     init() {
         UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
     }
     var body: some View {
             NavigationView {

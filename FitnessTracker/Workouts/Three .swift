@@ -3,6 +3,7 @@ import SwiftUI
 struct Three: View {
     init() {
         UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
     }
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     let defaults = UserDefaults.standard
@@ -39,6 +40,7 @@ struct Three: View {
                 }
                 .padding(.top, -30)
                 .navigationTitle("Arms & Abs")
+                .foregroundColor(Color.white)
             }
         }
         .padding(.top, -105)

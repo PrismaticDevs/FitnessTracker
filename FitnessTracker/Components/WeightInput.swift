@@ -14,6 +14,7 @@ struct WeightInput: View {
         VStack(alignment: .leading) {
             HStack {
                 Text(Exercise)
+                    .foregroundColor(Color.white)
                     .font(.headline)
                     .frame(minWidth: 100, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
@@ -23,7 +24,7 @@ struct WeightInput: View {
                             Expand = true
                         } label: {
                             Image(systemName: "arrow.left.and.line.vertical.and.arrow.right")
-                                .foregroundColor(Color.secondary)
+                                .foregroundColor(Color.white)
                         }
                     }
                     if (Expand == true) {
@@ -31,16 +32,17 @@ struct WeightInput: View {
                             Expand = false
                         } label: {
                             Image(systemName: "arrow.right.and.line.vertical.and.arrow.left")
-                                .foregroundColor(Color.secondary)
+                                .foregroundColor(Color.white)
                         }
                     }
                     if (Expand == true) {
                         VStack {
                             Text("Left")
                                 .font(.system(size: 14))
+                                .foregroundColor(Color.white)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
-                            TextField("Weight", value: $WeightLeft, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $WeightLeft, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                                 }
@@ -53,9 +55,10 @@ struct WeightInput: View {
                         VStack {
                             Text("Right")
                                 .font(.system(size: 14))
+                                .foregroundColor(Color.white)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
-                            TextField("Weight", value: $WeightRight, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $WeightRight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
                                 }
@@ -67,7 +70,7 @@ struct WeightInput: View {
                     }
                     if (Expand == false) {
                         VStack {
-                            TextField("Weight", value: $Weight, format: .number, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
+                            TextField("Weight", value: $Weight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
@@ -81,7 +84,7 @@ struct WeightInput: View {
                 }
                 .padding(0)
             }
-            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.primary.opacity(0.3)), axis: .vertical)
+            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
                 .onChange(of: Note){
                     defaults.set(Note, forKey: Exercise + "Note")
             }

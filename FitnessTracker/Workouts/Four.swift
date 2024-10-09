@@ -4,6 +4,7 @@ struct Four: View {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     init() {
         UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
+        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
     }
     var defaults = UserDefaults.standard
     var body: some View {
@@ -28,6 +29,7 @@ struct Four: View {
                 }
                 .padding(.top, -30)
                 .navigationTitle("Chest & Side Delts")
+                .foregroundColor(Color.white)
             }
         }
         .padding(.top, -105)
