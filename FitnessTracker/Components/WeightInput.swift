@@ -89,6 +89,16 @@ struct WeightInput: View {
                 .padding(10)
                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                 .padding(-3)
+                .overlay(
+                            Button(action: {
+                                Note = ""
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .opacity(Note.isEmpty ? 0 : 1).padding()
+                                }
+                                    .padding(),
+                                    alignment: .trailing
+                        )
         }
         .padding()
     }
