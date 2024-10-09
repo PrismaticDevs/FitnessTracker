@@ -8,7 +8,7 @@ struct WeightInput: View {
     @State var WeightRight: Int
     @State var Weight: Int
     @State var Note: String
-    @State private var Expand: Bool = true
+    @State var Expand: Bool = true
 
     var body: some View {
         VStack(alignment: .leading) {
