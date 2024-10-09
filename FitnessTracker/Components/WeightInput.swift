@@ -71,17 +71,17 @@ struct WeightInput: View {
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
-                                .lineLimit(1...4)
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .padding(-3)
+                                .lineLimit(1...4)
                         }
                         .padding(0)
                     }
                 }
                 .padding(0)
             }
-            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.primary.opacity(0.3)))
+            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.primary.opacity(0.3)), axis: .vertical)
                 .onChange(of: Note){
                     defaults.set(Note, forKey: Exercise + "Note")
             }
