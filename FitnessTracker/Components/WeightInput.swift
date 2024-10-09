@@ -40,7 +40,7 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
-                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.5)))
+                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.primary.opacity(0.3)))
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                                 }
