@@ -16,14 +16,14 @@ struct WorkoutList: View {
                 VStack {
                         HStack {
                             Text("FitnessTracker")
-                                .foregroundColor(.cyan)
+                                .foregroundColor(.white)
                                 .font(.title )
                             Image(systemName: "figure.strengthtraining.traditional")
-                                .foregroundColor(.cyan)
+                                .foregroundColor(.white)
                                 .font(.system(size: 36))
                             Text("0.1")
                                 .font(.system(size: 18))
-                                .foregroundColor(.cyan)
+                                .foregroundColor(.white)
                         }
                         .padding(5)
                         List {
