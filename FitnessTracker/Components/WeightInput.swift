@@ -50,7 +50,6 @@ struct WeightInput: View {
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .padding(-3)
-                                .shadow(color: .white, radius: 2, x: 0, y: 2)
 
                         }
                         .padding(0)
@@ -68,7 +67,6 @@ struct WeightInput: View {
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .padding(-3)
-                                .shadow(color: .white, radius: 2, x: 0, y: 2)
 
                         }
                     }
@@ -82,7 +80,6 @@ struct WeightInput: View {
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .padding(-3)
                                 .lineLimit(1...4)
-                                .shadow(color: .white, radius: 2, x: 0, y: 2)
 
                         }
                         .padding(0)
@@ -98,7 +95,6 @@ struct WeightInput: View {
                 .padding(10)
                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                 .padding(-3)
-                .shadow(color: .white, radius: 2, x: 0, y: 2)
                 .overlay(
                             Button(action: {
                                 Note = ""

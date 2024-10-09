@@ -55,7 +55,7 @@ struct WorkoutList: View {
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
                     }
-                    .scrollContentBackground(.hidden)
+                        .scrollContentBackground(.hidden)
 
                 }
             }
