@@ -7,8 +7,9 @@
 
 import SwiftUI
 
-struct WorkoutList: View {
+struct Menu: View {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -27,28 +28,25 @@ struct WorkoutList: View {
                         }
                         .padding(5)
                         List {
-                            NavigationLink("Chest & Side Delts", destination: One())
+                            NavigationLink("Chest & Side Delts", destination: Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false))
                                 .bold()
                                 .padding()
                                 .listRowBackground(Color.blue)
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
-
-                            NavigationLink("Upper Back & Rear Delts", destination: Two())
+                            NavigationLink("Upper Back & Rear Delts", destination: Workouts(Chest: false, Shoulders: true, Abs: false, Legs: false))
                                 .bold()
                                 .padding()
                                 .listRowBackground(Color.blue)
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
-
-                            NavigationLink("Arms & Abs", destination: Three())
+                            NavigationLink("Arms & Abs", destination: Workouts(Chest: false, Shoulders: false, Abs: true, Legs: false))
                                 .bold()
                                 .padding()
                                 .listRowBackground(Color.blue)
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
-
-                            NavigationLink("Legs", destination: Four())
+                            NavigationLink("Legs", destination: Workouts(Chest: false, Shoulders: false, Abs: false, Legs: true))
                                 .bold()
                                 .padding()
                                 .listRowBackground(Color.blue)
@@ -65,5 +63,5 @@ struct WorkoutList: View {
 }
 
 #Preview {
-    WorkoutList()
+    Menu()
 }

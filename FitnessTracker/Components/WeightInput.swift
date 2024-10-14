@@ -2,8 +2,9 @@ import SwiftUI
 import UIKit
 
 struct WeightInput: View {
-    let Exercise: String
     var defaults = UserDefaults.standard
+    var id: UUID = UUID()
+    @State var Exercise: String
     @State var WeightLeft: Int
     @State var WeightRight: Int
     @State var Weight: Int
@@ -111,5 +112,5 @@ struct WeightInput: View {
 }
 
 #Preview {
-    WeightInput(Exercise: "Deadlift", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
+    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
 }
