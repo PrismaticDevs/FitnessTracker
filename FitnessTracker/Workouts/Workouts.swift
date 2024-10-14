@@ -65,7 +65,7 @@ struct Workouts: View  {
                 .foregroundColor(Color.white)
             }
         }
-        .padding(.top, -150)
+        .padding(.top, -100)
     }
 }
 
