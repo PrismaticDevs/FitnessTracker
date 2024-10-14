@@ -54,17 +54,18 @@ struct Workouts: View  {
                             }
                         }
                         else {
-                            Text("No workout Selected")
+                            Text("No Workout Selected")
+                                .padding(.top, 100)
                         }
                     }
                     .padding(.top)
                 }
                 .padding(.top, -30)
-                .navigationTitle("Legs")
+                .navigationTitle(Chest ? "Chest & Side Delts" : Shoulders ? "Upper Back & Rear Delts" : Abs ? "Arms & Abs" : Legs ? "Legs" : "" )
                 .foregroundColor(Color.white)
             }
         }
-        .padding(.top, -105)
+        .padding(.top, -150)
     }
 }
 
