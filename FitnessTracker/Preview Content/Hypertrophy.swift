@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Menu: View {
+struct Hypertrophy: View {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     
     var body: some View {
@@ -27,6 +27,7 @@ struct Menu: View {
                                 .foregroundColor(.white)
                         }
                         .padding(5)
+                        .padding(.top, 10)
                         List {
                             NavigationLink("Chest & Side Delts", destination: Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false))
                                 .bold()
@@ -63,5 +64,5 @@ struct Menu: View {
 }
 
 #Preview {
-    Menu()
+    Hypertrophy()
 }

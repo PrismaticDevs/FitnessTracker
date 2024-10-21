@@ -14,7 +14,7 @@ struct Auth: View {
     var body: some View {
         VStack {
             if isUnlocked {
-                Menu()
+                Hypertrophy()
             } else {
                 Text("Must  Authenticate")
                 Button("Retry", action: { authenticate() })

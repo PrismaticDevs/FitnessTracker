@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 
 @Observable class ExerciseList {
+    var id: UUID = UUID()
     var Chest = ["Close Grip Bench Press",
                  "Converging Chest Press","Incline Barbell Bench Press",
                  "Chest Press",
@@ -57,8 +58,15 @@ struct WorkoutList: View {
                 List {
                     Section(header: Text("Arms")) {
                         ForEach(Arms.indices, id: \.self) { exercise in
-                            Text(Arms[exercise])
+                            Button {
+                                print("\(Arms[exercise])")
+                                      
+                            } label: {
+                                Text(Arms[exercise])
                                 .foregroundColor(Color.white)
+                            }
+                                
+                            
                         }
                     }
                     Section(header: Text("Chest")) {
@@ -89,6 +97,67 @@ struct WorkoutList: View {
                 .background(Color.white)
             }
             .navigationTitle("Workout List")
+            .toolbar {
+                Menu {
+                    Menu {
+                        ForEach(ExerciseList().Abdominals, id: \.self) { exercise in
+                            Button {
+                                print(exercise)
+                            } label: {
+                                Label(exercise, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Label("Abdominals", systemImage: "plus.circle.fill")
+                    }
+                    Menu {
+                        ForEach(ExerciseList().Arms, id: \.self) { exercise in
+                            Button {
+                                print(exercise)
+                            } label: {
+                                Label(exercise, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Label("Arms", systemImage: "plus.circle.fill")
+                    }
+                    Menu {
+                        ForEach(ExerciseList().Chest, id: \.self) { exercise in
+                            Button {
+                                print(exercise)
+                            } label: {
+                                Label(exercise, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Label("Chest", systemImage: "plus.circle.fill")
+                    }
+                    Menu {
+                        ForEach(ExerciseList().Shoulders, id: \.self) { exercise in
+                            Button {
+                                print(exercise)
+                            } label: {
+                                Label(exercise, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Label("Shoulders", systemImage: "plus.circle.fill")
+                    }
+                    Menu {
+                        ForEach(ExerciseList().Legs, id: \.self) { exercise in
+                            Button {
+                                print(exercise)
+                            } label: {
+                                Label(exercise, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Label("Legs", systemImage: "plus.circle.fill")
+                    }
+                } label: {
+                    Label("Add Exercise", systemImage: "plus.circle.fill")
+                }
+            }
         }
     }
 }
@@ -96,3 +165,4 @@ struct WorkoutList: View {
 #Preview {
     WorkoutList()
 }
+
