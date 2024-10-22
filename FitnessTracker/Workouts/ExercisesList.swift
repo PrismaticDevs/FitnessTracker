@@ -46,6 +46,7 @@ import Combine
 }
 
 struct WorkoutList: View {
+    var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     let Arms = ExerciseList().Arms
     let Legs = ExerciseList().Legs
     let Abdominals = ExerciseList().Abdominals
@@ -55,46 +56,56 @@ struct WorkoutList: View {
     var body: some View {
         NavigationView {
             ZStack {
+                gradient.edgesIgnoringSafeArea(.all)
                 List {
-                    Section(header: Text("Arms")) {
+                    Section(header: Text("Arms").font(.system(size: 32, weight: .bold))) {
                         ForEach(Arms.indices, id: \.self) { exercise in
-                            Button {
-                                print("\(Arms[exercise])")
-                                      
-                            } label: {
-                                Text(Arms[exercise])
+                            Text(Arms[exercise])
                                 .foregroundColor(Color.white)
-                            }
-                                
-                            
+                                .listRowBackground(Color.blue)
                         }
                     }
-                    Section(header: Text("Chest")) {
+                    .textCase(nil)
+                    .foregroundStyle(.white)
+                    Section(header: Text("Chest").font(.system(size: 32, weight: .bold))) {
                         ForEach(Chest.indices, id: \.self) { exercise in
                             Text(Chest[exercise])
                                 .foregroundColor(Color.white)
+                                .listRowBackground(Color.blue)
                         }
                     }
-                    Section(header: Text("Shoulders")) {
+                    .textCase(nil)
+                    .foregroundStyle(.white)
+                    Section(header: Text("Shoulders").font(.system(size: 32, weight: .bold))) {
                         ForEach(Shoulders.indices, id: \.self) { exercise in
                             Text(Shoulders[exercise])
                                 .foregroundColor(Color.white)
+                                .listRowBackground(Color.blue)
                         }
                     }
-                    Section(header: Text("Abdominals")) {
+                    .textCase(nil)
+                    .foregroundStyle(.white)
+                    Section(header: Text("Abdominals").font(.system(size: 32, weight: .bold))) {
                         ForEach(Abdominals.indices, id: \.self) { exercise in
                             Text(Abdominals[exercise])
                                 .foregroundColor(Color.white)
+                                .listRowBackground(Color.blue)
                         }
                     }
-                    Section(header: Text("Legs")) {
+                    .textCase(nil)
+                    .foregroundStyle(.white)
+                    Section(header: Text("Legs").font(.system(size: 32, weight: .bold))) {
                         ForEach(Legs, id: \.self) { exercise in
                             Text(exercise)
                                 .foregroundColor(Color.white)
+                                .listRowBackground(Color.blue)
                         }
                     }
+                    .textCase(nil)
+                    .foregroundStyle(.white)
                 }
-                .background(Color.white)
+                .scrollContentBackground(.hidden)
+                .accentColor(Color.white)
             }
             .navigationTitle("Workout List")
             .toolbar {
@@ -159,6 +170,7 @@ struct WorkoutList: View {
                 }
             }
         }
+        .accentColor(.white)
     }
 }
 
