@@ -109,65 +109,7 @@ struct WorkoutList: View {
             }
             .navigationTitle("Workout List")
             .toolbar {
-                Menu {
-                    Menu {
-                        ForEach(ExerciseList().Abdominals, id: \.self) { exercise in
-                            Button {
-                                print(exercise)
-                            } label: {
-                                Label(exercise, systemImage: "plus.circle.fill")
-                            }
-                        }
-                    } label: {
-                        Label("Abdominals", systemImage: "plus.circle.fill")
-                    }
-                    Menu {
-                        ForEach(ExerciseList().Arms, id: \.self) { exercise in
-                            Button {
-                                print(exercise)
-                            } label: {
-                                Label(exercise, systemImage: "plus.circle.fill")
-                            }
-                        }
-                    } label: {
-                        Label("Arms", systemImage: "plus.circle.fill")
-                    }
-                    Menu {
-                        ForEach(ExerciseList().Chest, id: \.self) { exercise in
-                            Button {
-                                print(exercise)
-                            } label: {
-                                Label(exercise, systemImage: "plus.circle.fill")
-                            }
-                        }
-                    } label: {
-                        Label("Chest", systemImage: "plus.circle.fill")
-                    }
-                    Menu {
-                        ForEach(ExerciseList().Shoulders, id: \.self) { exercise in
-                            Button {
-                                print(exercise)
-                            } label: {
-                                Label(exercise, systemImage: "plus.circle.fill")
-                            }
-                        }
-                    } label: {
-                        Label("Shoulders", systemImage: "plus.circle.fill")
-                    }
-                    Menu {
-                        ForEach(ExerciseList().Legs, id: \.self) { exercise in
-                            Button {
-                                print(exercise)
-                            } label: {
-                                Label(exercise, systemImage: "plus.circle.fill")
-                            }
-                        }
-                    } label: {
-                        Label("Legs", systemImage: "plus.circle.fill")
-                    }
-                } label: {
-                    Label("Add Exercise", systemImage: "plus.circle.fill")
-                }
+                NavToolbar()
             }
         }
         .accentColor(.white)
