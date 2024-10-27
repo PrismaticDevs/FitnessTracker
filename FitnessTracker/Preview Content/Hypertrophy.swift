@@ -11,20 +11,13 @@ struct Hypertrophy: View {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     
     var body: some View {
-        NavigationView {
             ZStack {
                 gradient.edgesIgnoringSafeArea(.all)
                 VStack {
                         HStack {
-                            Text("FitnessTracker")
+                            Text("Hypertrophy Mass Building")
                                 .foregroundColor(.white)
                                 .font(.title )
-                            Image(systemName: "figure.strengthtraining.traditional")
-                                .foregroundColor(.white)
-                                .font(.system(size: 36))
-                            Text("0.1")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)
                         }
                         .padding(5)
                         .padding(.top, 10)
@@ -54,11 +47,10 @@ struct Hypertrophy: View {
                                 .foregroundStyle(.white, .white)
                                 .font(.system(size: 24))
                     }
-                        .scrollContentBackground(.hidden)
+                    .scrollContentBackground(.hidden)
 
                 }
             }
-        }
         .accentColor(Color.white)
     }
 }
