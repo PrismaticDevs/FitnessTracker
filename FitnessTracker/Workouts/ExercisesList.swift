@@ -109,7 +109,7 @@ struct WorkoutList: View {
             }
             .navigationTitle("Workout List")
             .toolbar {
-                NavToolbar()
+                ExerciseToolbar()
             }
         }
         .accentColor(.white)

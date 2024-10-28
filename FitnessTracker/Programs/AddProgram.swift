@@ -7,7 +7,14 @@
 
 import SwiftUI
 
+struct Program: Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var exercises: [String]
+}
+
 struct AddProgram: View {
+    var id: UUID = UUID()
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     var body: some View {
         NavigationView {
@@ -25,6 +32,9 @@ struct AddProgram: View {
                         .listRowBackground(Color.clear)
                 }
                 .scrollContentBackground(.hidden)
+                .toolbar {
+                    ExerciseToolbar()
+                }
             }
             .navigationTitle("Add Program")
         }

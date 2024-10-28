@@ -64,7 +64,7 @@ struct Workouts: View  {
                 .navigationTitle(Chest ? "Chest & Side Delts" : Shoulders ? "Upper Back & Rear Delts" : Abs ? "Arms & Abs" : Legs ? "Legs" : "" )
                 .foregroundColor(Color.white)
                 .toolbar {
-                    NavToolbar()
+                    ExerciseToolbar()
                 }
             }
         }

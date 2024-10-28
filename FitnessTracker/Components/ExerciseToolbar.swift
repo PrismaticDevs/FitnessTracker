@@ -1,5 +1,5 @@
 //
-//  NavToolbar.swift
+//  ExerciseToolbar.swift
 //  FitnessTracker
 //
 //  Created by Matt on 10/26/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NavToolbar: View {
+struct ExerciseToolbar: View {
     var body: some View {
         Menu {
             Menu {
@@ -72,5 +72,5 @@ struct NavToolbar: View {
 }
 
 #Preview {
-    NavToolbar()
+    ExerciseToolbar()
 }
