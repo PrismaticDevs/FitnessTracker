@@ -107,6 +107,7 @@ struct WeightInput: View {
                                 Image(systemName: "xmark.circle.fill")
                                     .opacity(Note.isEmpty ? 0 : 1).padding()
                                 }
+                                    .foregroundColor(Color.white)
                                     .padding(),
                                     alignment: .trailing
                         )

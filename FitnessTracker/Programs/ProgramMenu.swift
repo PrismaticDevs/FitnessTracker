@@ -31,6 +31,7 @@ struct ProgramMenu: View {
                     Text("Select a Program")
                         .font(.system(size: 24, weight: .bold))
                         .padding(0)
+                        .foregroundColor(Color.white)
                     List {
                         NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy())
                             .bold()
@@ -42,6 +43,10 @@ struct ProgramMenu: View {
                     .padding()
                 }
             }
+            .background(Image("AppIcon")
+                .scaledToFit()
+                .frame(minWidth: 0)
+                .edgesIgnoringSafeArea(.all))
             .toolbar {
                 ToolbarItem {
                     Button(action: { ShowAddProgram = true}) {
@@ -50,6 +55,9 @@ struct ProgramMenu: View {
                 }
 
             }
+//            .navigationDestination(isPresented: $ShowAddProgram) {
+//                AddProgram()
+//            }
             .background(
                 NavigationLink(destination: AddProgram(), isActive: $ShowAddProgram) {
                     EmptyView()
