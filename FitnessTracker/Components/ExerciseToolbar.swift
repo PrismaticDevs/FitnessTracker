@@ -19,7 +19,7 @@ struct ExerciseToolbar: View {
                     }
                 }
             } label: {
-                Label("Abdominals", systemImage: "plus.circle.fill")
+                Text("Abdominals")
             }
             Menu {
                 ForEach(ExerciseList().Arms, id: \.self) { exercise in
@@ -30,7 +30,7 @@ struct ExerciseToolbar: View {
                     }
                 }
             } label: {
-                Label("Arms", systemImage: "plus.circle.fill")
+                Text("Arms")
             }
             Menu {
                 ForEach(ExerciseList().Chest, id: \.self) { exercise in
@@ -41,7 +41,7 @@ struct ExerciseToolbar: View {
                     }
                 }
             } label: {
-                Label("Chest", systemImage: "plus.circle.fill")
+               Text("Chest")
             }
             Menu {
                 ForEach(ExerciseList().Shoulders, id: \.self) { exercise in
@@ -52,7 +52,7 @@ struct ExerciseToolbar: View {
                     }
                 }
             } label: {
-                Label("Shoulders", systemImage: "plus.circle.fill")
+                Text("Shoulders")
             }
             Menu {
                 ForEach(ExerciseList().Legs, id: \.self) { exercise in
@@ -63,7 +63,7 @@ struct ExerciseToolbar: View {
                     }
                 }
             } label: {
-                Label("Legs", systemImage: "plus.circle.fill")
+                Text("Legs")
             }
         } label: {
             Label("Add Exercise", systemImage: "plus.circle.fill")

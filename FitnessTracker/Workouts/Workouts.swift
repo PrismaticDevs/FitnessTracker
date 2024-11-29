@@ -75,3 +75,16 @@ struct Workouts: View  {
 #Preview {
     Workouts(Chest: false, Shoulders: false, Abs: false, Legs: false)
 }
+
+/*
+ - Create paradigm for naming conventions for saving workout items to userdefaults and then use ForEach loops to iterate through all items within a certain set of keys.
+ - Have parent key with children for each seperate program and then add exercises.
+ - Add conponent for creating custom exercises.
+ - Save these all in lists and use ForEach loops to iterate dynamically
+ - Will cut down on total number of components and files used in apps
+    - have segments aved with key title with program name
+    - then have different days as keys within each segment
+    - then have the individual exercises iterate ForEach loop to create weight input components
+    - presto
+ 
+ */
