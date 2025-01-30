@@ -10,8 +10,21 @@ struct WeightInput: View {
     @State var Weight: Int
     @State var Note: String
     @State var Expand: Bool = true
+    @State var ShowHistory: Bool = false
+    struct WeightEntry: Codable, Identifiable, Hashable {
+        var id = UUID()
+        let date: String
+        let left: Int
+        let right: Int
+    }
+    @State var History: [WeightEntry] = []
 
     var body: some View {
+        let date: String = {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MM/dd/yyyy HH:mm"
+                return dateFormatter.string(from: Date())
+            }()
         VStack(alignment: .leading) {
             HStack {
                 Text(Exercise)
@@ -52,7 +65,7 @@ struct WeightInput: View {
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .foregroundColor(Color.white)
                                 .padding(-3)
-
+                            
                         }
                         .padding(0)
                         VStack {
@@ -70,7 +83,7 @@ struct WeightInput: View {
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .padding(-3)
                                 .foregroundColor(Color.white)
-
+                            
                         }
                     }
                     if (Expand == false) {
@@ -84,35 +97,84 @@ struct WeightInput: View {
                                 .padding(-3)
                                 .foregroundColor(Color.white)
                                 .lineLimit(1...4)
-
+                            
                         }
                         .padding(0)
                     }
                 }
                 .padding(0)
             }
-            TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
-                .onChange(of: Note){
-                    defaults.set(Note, forKey: Exercise + "Note")
+            VStack {
+                TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                    .onChange(of: Note){
+                        defaults.set(Note, forKey: Exercise + "Note")
+                    }
+                    .lineLimit(1...4)
+                    .padding(10)
+                    .background(Color.blue.opacity(0.8).cornerRadius(10))
+                    .padding(-3)
+                    .foregroundColor(Color.white)
+                    .overlay(
+                        Button(action: {
+                            Note = ""
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .opacity(Note.isEmpty ? 0 : 1).padding()
+                        }
+                            .foregroundColor(Color.white)
+                            .padding(),
+                        alignment: .trailing
+                    )
             }
-                .lineLimit(1...4)
-                .padding(10)
-                .background(Color.blue.opacity(0.8).cornerRadius(10))
-                .padding(-3)
-                .foregroundColor(Color.white)
-                .overlay(
-                            Button(action: {
-                                Note = ""
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .opacity(Note.isEmpty ? 0 : 1).padding()
-                                }
-                                    .foregroundColor(Color.white)
-                                    .padding(),
-                                    alignment: .trailing
-                        )
+            .padding(5)
         }
-        .padding()
+        VStack {
+            HStack {
+                HStack {
+                    Text("Save")
+                        .font(.headline)
+                    Button {
+                        History.append(WeightEntry(date: date, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue))
+//                        defaults.set(<#T##value: Any?##Any?#>, forKey: <#T##String#>)
+                        print(Exercise, "Left: ", WeightLeft, "Right: ", WeightRight, date)
+                        
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                    .foregroundStyle(.white)
+                }
+                HStack {
+                    Text("History")
+                        .font(.headline)
+                    if (ShowHistory){
+                        Button {
+                            ShowHistory = !ShowHistory
+                        } label: {
+                            Image(systemName: "rectangle.compress.vertical")
+                        }
+                        .foregroundStyle(.white)
+                    } else {
+                        Button {
+                            ShowHistory = !ShowHistory
+                        } label: {
+                            Image(systemName: "rectangle.expand.vertical")
+                        }
+                        .foregroundStyle(.white)
+                    }
+                }
+            }
+            if (ShowHistory) {
+                Text("History")
+                    .font(.headline)
+                HStack {
+                    ForEach(History, id:\.self) { item in
+                        Text(item.date)
+                        Text("Left: \(item.left)")
+                        Text("Right: \(item.right)")
+                    }
+                }
+            }
+        }
     }
 }
 
