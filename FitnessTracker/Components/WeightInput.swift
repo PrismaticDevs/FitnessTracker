@@ -164,15 +164,17 @@ struct WeightInput: View {
                 }
             }
             if (ShowHistory) {
-                Text("History")
-                    .font(.headline)
-                HStack {
+                VStack {
                     ForEach(History, id:\.self) { item in
-                        Text(item.date)
-                        Text("Left: \(item.left)")
-                        Text("Right: \(item.right)")
+                        VStack(alignment: .leading) {
+                            Text(item.date)
+                            Text("Left: \(item.left)")
+                            Text("Right: \(item.right)")
+                        }
+                        .padding(2.5)
                     }
                 }
+                .padding()
             }
         }
     }

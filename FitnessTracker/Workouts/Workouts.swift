@@ -58,7 +58,8 @@ struct Workouts: View  {
                                 .padding(.top, 100)
                         }
                     }
-                    .padding(.top)
+                    .padding(.horizontal) // Add horizontal padding
+                    .padding(.top) // Add top padding
                 }
                 .padding(.top, -30)
                 .navigationTitle(Chest ? "Chest & Side Delts" : Shoulders ? "Upper Back & Rear Delts" : Abs ? "Arms & Abs" : Legs ? "Legs" : "" )
