@@ -19,6 +19,7 @@ struct WeightEntry: Codable, Identifiable, Hashable {
 struct ProgramMenu: View {
     @State var ShowAddProgram = false
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
+    @State var History: [WeightEntry]
     var body: some View {
         NavigationStack {
             ZStack {
@@ -42,7 +43,7 @@ struct ProgramMenu: View {
                         .padding(0)
                         .foregroundColor(Color.white)
                     List {
-                        NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy())
+                        NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy(History:[]))
                             .bold()
                             .listRowBackground(Color.blue)
                             .foregroundStyle(.white, .white)
@@ -73,5 +74,5 @@ struct ProgramMenu: View {
 }
 
 #Preview {
-    ProgramMenu()
+    ProgramMenu(History:[])
 }

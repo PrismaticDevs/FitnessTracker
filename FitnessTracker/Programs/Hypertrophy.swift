@@ -10,6 +10,8 @@ import SwiftUI
 struct Hypertrophy: View {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     
+    @State var History: [WeightEntry]
+    
     var body: some View {
             ZStack {
                 gradient.edgesIgnoringSafeArea(.all)
@@ -56,5 +58,5 @@ struct Hypertrophy: View {
 }
 
 #Preview {
-    Hypertrophy()
+    Hypertrophy(History: [])
 }
