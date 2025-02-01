@@ -11,14 +11,6 @@ struct WeightInput: View {
     @State var Note: String
     @State var Iso: Bool = false
     @State var ShowHistory: Bool = false
-    struct WeightEntry: Codable, Identifiable, Hashable {
-        var id = UUID()
-        let date: String
-        let weight: Int
-        let left: Int
-        let right: Int
-        let note: String
-    }
     @State var History: [WeightEntry] = []
     @State var Confirmation: Bool = false
 
@@ -189,7 +181,6 @@ struct WeightInput: View {
             if (ShowHistory) {
                 List {
                     ForEach(History, id:\.self) { item in
-                        
                         HStack{
                             VStack(alignment: .leading) {
                                 Text(item.date)
@@ -222,5 +213,5 @@ struct WeightInput: View {
 }
 
 #Preview {
-    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
+    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "", History: [])
 }

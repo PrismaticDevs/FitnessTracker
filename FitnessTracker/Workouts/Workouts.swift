@@ -9,19 +9,20 @@ import SwiftUI
 
 struct Workouts: View  {
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
-//    init() {
-//        UILabel.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).adjustsFontSizeToFitWidth = true
-//        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-//    }
     var defaults = UserDefaults.standard
+    
     var Chest: Bool
     var Shoulders: Bool
     var Abs: Bool
     var Legs: Bool
-    @State private var ChestExercises = ["Chest Press", "Chest Fly", "Flat Dumbell Bench Press", "Seated Lateral Raise", "Lateral Raise Machine", "Single Arm Cable Lateral Raise"]
-    @State private var ShoulderExercises = ["Shoulder Press", "Pulldown", "Row", "Dumbell Rear Delt Fly", "Rear Delt Machine", "Dumbell Shrug"]
-    @State private var ArmsAbsExercises = ["Chest Press", "Tricep Extension Machine", "Triceps Press", "Abdominal Machine", "Hammer Curl", "Preacher Curl Machine", "Biceps Curl Machine"]
-    @State private var LegExercises = ["Deadlift", "Lying Leg Curl", "Walking Lunge", "Hack Squat", "Leg Extension", "Seated Calf Raise", "Hip Abduction", "Standing Calf Raise", "Calf Press", "Leg Press"]
+    
+    @State var History: [WeightEntry]
+    
+    @State var ChestExercises = ["Chest Press", "Chest Fly", "Flat Dumbell Bench Press", "Seated Lateral Raise", "Lateral Raise Machine", "Single Arm Cable Lateral Raise"]
+    @State var ShoulderExercises = ["Shoulder Press", "Pulldown", "Row", "Dumbell Rear Delt Fly", "Rear Delt Machine", "Dumbell Shrug"]
+    @State var ArmsAbsExercises = ["Chest Press", "Tricep Extension Machine", "Triceps Press", "Abdominal Machine", "Hammer Curl", "Preacher Curl Machine", "Biceps Curl Machine"]
+    @State var LegExercises = ["Deadlift", "Lying Leg Curl", "Walking Lunge", "Hack Squat", "Leg Extension", "Seated Calf Raise", "Hip Abduction", "Standing Calf Raise", "Calf Press", "Leg Press"]
+    
     var body: some View {
         
         NavigationView {
@@ -74,7 +75,7 @@ struct Workouts: View  {
 }
 
 #Preview {
-    Workouts(Chest: false, Shoulders: false, Abs: false, Legs: false)
+    Workouts(Chest: false, Shoulders: false, Abs: false, Legs: false, History: [])
 }
 
 /*
