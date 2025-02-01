@@ -11,7 +11,7 @@ struct ProgramMenu: View {
     @State var ShowAddProgram = false
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 gradient.edgesIgnoringSafeArea(.all)
                 VStack {
@@ -55,15 +55,9 @@ struct ProgramMenu: View {
                 }
 
             }
-//            .navigationDestination(isPresented: $ShowAddProgram) {
-//                AddProgram()
-//            }
-            .background(
-                NavigationLink(destination: AddProgram(), isActive: $ShowAddProgram) {
-                    EmptyView()
-                }
-                .hidden()
-            )
+            .navigationDestination(isPresented: $ShowAddProgram) {
+                            AddProgram()
+                        }
         }
         .accentColor(Color.white)
     }

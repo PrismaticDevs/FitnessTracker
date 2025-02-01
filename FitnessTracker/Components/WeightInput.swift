@@ -9,15 +9,18 @@ struct WeightInput: View {
     @State var WeightRight: Int
     @State var Weight: Int
     @State var Note: String
-    @State var Expand: Bool = true
+    @State var Iso: Bool = false
     @State var ShowHistory: Bool = false
     struct WeightEntry: Codable, Identifiable, Hashable {
         var id = UUID()
         let date: String
+        let weight: Int
         let left: Int
         let right: Int
+        let note: String
     }
     @State var History: [WeightEntry] = []
+    @State var Confirmation: Bool = false
 
     var body: some View {
         let date: String = {
@@ -33,23 +36,25 @@ struct WeightInput: View {
                     .frame(minWidth: 100, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
-                    if (Expand == false) {
+                    if (Iso == false) {
                         Button {
-                            Expand = true
+                            Iso = true
+                            defaults.set(Iso, forKey: "Iso \(id)")
                         } label: {
                             Image(systemName: "arrow.left.and.line.vertical.and.arrow.right")
                                 .foregroundColor(Color.white)
                         }
                     }
-                    if (Expand == true) {
+                    if (Iso == true) {
                         Button {
-                            Expand = false
+                            Iso = false
                         } label: {
                             Image(systemName: "arrow.right.and.line.vertical.and.arrow.left")
                                 .foregroundColor(Color.white)
                         }
                     }
-                    if (Expand == true) {
+                    // Isolated Left and Right Weight entries
+                    if (Iso == true) {
                         VStack {
                             Text("Left")
                                 .font(.system(size: 14))
@@ -57,6 +62,7 @@ struct WeightInput: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
                             TextField("Weight", value: $WeightLeft, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                                // Saves Weight entered on change of TextField
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
                                 }
@@ -75,6 +81,7 @@ struct WeightInput: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-5)
                             TextField("Weight", value: $WeightRight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            // Saves Weight entered on change of TextField
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
                                 }
@@ -86,9 +93,11 @@ struct WeightInput: View {
                             
                         }
                     }
-                    if (Expand == false) {
+                    // Singular wright entry
+                    if (Iso == false) {
                         VStack {
                             TextField("Weight", value: $Weight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            // Saves Weight entered on change of TextField
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
@@ -104,8 +113,10 @@ struct WeightInput: View {
                 }
                 .padding(0)
             }
+            // TextField for entering notes
             VStack {
                 TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                // Saves Note entered on change of TextField
                     .onChange(of: Note){
                         defaults.set(Note, forKey: Exercise + "Note")
                     }
@@ -114,6 +125,7 @@ struct WeightInput: View {
                     .background(Color.blue.opacity(0.8).cornerRadius(10))
                     .padding(-3)
                     .foregroundColor(Color.white)
+                // Overlayed Button to clear Note TextField
                     .overlay(
                         Button(action: {
                             Note = ""
@@ -128,21 +140,31 @@ struct WeightInput: View {
             }
             .padding(5)
         }
+        // Saving and displaying Weight and Note history
         VStack {
             HStack {
                 HStack {
                     Text("Save")
                         .font(.headline)
                     Button {
-                        History.append(WeightEntry(date: date, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue))
-//                        defaults.set(<#T##value: Any?##Any?#>, forKey: <#T##String#>)
-                        print(Exercise, "Left: ", WeightLeft, "Right: ", WeightRight, date)
+                        History.append(WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue))
+                        if let encoded = try? JSONEncoder().encode(History) {
+                                            defaults.set(encoded, forKey: "History\(id)")
+                                        }
                         
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
                     .foregroundStyle(.white)
+                    .onAppear {
+                                // Load from UserDefaults
+                                if let data = defaults.data(forKey: "History\(id)"),
+                                   let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
+                                    History = decodedHistory
+                                }
+                            }
                 }
+                // Displays Exercise weight history for weights
                 HStack {
                     Text("History")
                         .font(.headline)
@@ -163,18 +185,37 @@ struct WeightInput: View {
                     }
                 }
             }
+            // History component displays on Expand button click
             if (ShowHistory) {
-                VStack {
+                List {
                     ForEach(History, id:\.self) { item in
-                        VStack(alignment: .leading) {
-                            Text(item.date)
-                            Text("Left: \(item.left)")
-                            Text("Right: \(item.right)")
+                        
+                        HStack{
+                            VStack(alignment: .leading) {
+                                Text(item.date)
+                                Text("Weight: \(item.weight)")
+                                Text("Left Isolated: \(item.left)")
+                                Text("Right Isolated: \(item.right)")
+                            }
+                            .padding(2.5)
+                            
+                            // Encodes JSON and saved to UserDefaults
+                            Button {
+                                History.remove(at: History.firstIndex(of: item)!)
+                                if let encoded = try? JSONEncoder().encode(History) {
+                                    defaults.set(encoded, forKey: "History\(id)")
+                                }
+                            } label: {
+                                Image(systemName: "minus.circle")
+                                    .foregroundStyle(Color.red)
+                            }
+                            //                                Figure out how to make this confirmation modal work
+                            //                                .confirmationDialog("Delete this entry?", isPresented: $Confirmation, actions:
                         }
-                        .padding(2.5)
                     }
+                    .padding()
+                    .listRowBackground(Color.blue.opacity(0.1))
                 }
-                .padding()
             }
         }
     }
