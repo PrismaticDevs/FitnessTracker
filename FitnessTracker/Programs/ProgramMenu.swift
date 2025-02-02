@@ -19,7 +19,7 @@ struct WeightEntry: Codable, Identifiable, Hashable {
 struct ProgramMenu: View {
     @State var ShowAddProgram = false
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
-    @State var History: [WeightEntry]
+    @State var History: [WeightEntry] = []
     var body: some View {
         NavigationStack {
             ZStack {

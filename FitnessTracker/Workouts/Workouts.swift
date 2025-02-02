@@ -16,7 +16,7 @@ struct Workouts: View  {
     var Abs: Bool
     var Legs: Bool
     
-    @State var History: [WeightEntry]
+    @State var History: [WeightEntry] = []
     
     @State var ChestExercises = ["Chest Press", "Chest Fly", "Flat Dumbell Bench Press", "Seated Lateral Raise", "Lateral Raise Machine", "Single Arm Cable Lateral Raise"]
     @State var ShoulderExercises = ["Shoulder Press", "Pulldown", "Row", "Dumbell Rear Delt Fly", "Rear Delt Machine", "Dumbell Shrug"]
@@ -32,25 +32,25 @@ struct Workouts: View  {
                     VStack(spacing: 15) {
                         if Chest {
                             ForEach(ChestExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
                                     
                             }
                         }
                          else if Shoulders {
                             ForEach(ShoulderExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
                                     
                             }
                         }
                         else if Abs {
                             ForEach(ArmsAbsExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
                                     
                             }
                         }
                         else if Legs {
                             ForEach(LegExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
                                     
                             }
                         }
