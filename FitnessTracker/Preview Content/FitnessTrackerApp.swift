@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct FitnessTrackerApp: App {
+    @StateObject private var workoutHistory = WorkoutHistory() // Create the WorkoutHistory instance
 
     var body: some Scene {
         WindowGroup {
             Auth()
+                .environmentObject(workoutHistory) // Provide the WorkoutHistory instance to the environment
         }
     }
 }

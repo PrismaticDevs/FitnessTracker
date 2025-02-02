@@ -16,7 +16,7 @@ struct Workouts: View  {
     var Abs: Bool
     var Legs: Bool
     
-    @State var History: [WeightEntry] = []
+    @EnvironmentObject var workoutHistory: WorkoutHistory
     
     @State var ChestExercises = ["Chest Press", "Chest Fly", "Flat Dumbell Bench Press", "Seated Lateral Raise", "Lateral Raise Machine", "Single Arm Cable Lateral Raise"]
     @State var ShoulderExercises = ["Shoulder Press", "Pulldown", "Row", "Dumbell Rear Delt Fly", "Rear Delt Machine", "Dumbell Shrug"]
@@ -32,25 +32,25 @@ struct Workouts: View  {
                     VStack(spacing: 15) {
                         if Chest {
                             ForEach(ChestExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
                                     
                             }
                         }
                          else if Shoulders {
                             ForEach(ShoulderExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
                                     
                             }
                         }
                         else if Abs {
                             ForEach(ArmsAbsExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
                                     
                             }
                         }
                         else if Legs {
                             ForEach(LegExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false, History: [])
+                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
                                     
                             }
                         }
@@ -75,7 +75,12 @@ struct Workouts: View  {
 }
 
 #Preview {
-    Workouts(Chest: false, Shoulders: false, Abs: false, Legs: false, History: [])
+    let workoutHistory = WorkoutHistory()
+    // Optionally, you can add some sample data to the workoutHistory if needed
+    workoutHistory.addEntry(WeightEntry(date: "01/01/2023", weight: 100, left: 50, right: 50, note: "Sample entry"))
+    
+    return Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false)
+        .environmentObject(workoutHistory) // Provide the WorkoutHistory instance to the preview
 }
 
 /*

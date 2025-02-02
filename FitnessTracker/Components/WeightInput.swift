@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct WeightInput: View {
+    @EnvironmentObject var workoutHistory: WorkoutHistory // Injecting the WorkoutHistory instance
     var defaults = UserDefaults.standard
     var id: UUID = UUID()
     @State var Exercise: String
@@ -141,48 +142,40 @@ struct WeightInput: View {
                     Text("Save")
                         .font(.headline)
                     Button {
-                        History.append(WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue))
-                        if let encoded = try? JSONEncoder().encode(History) {
-                                            defaults.set(encoded, forKey: "History\(id)")
-                                        }
+//                        History.append(WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue))
+//                        if let encoded = try? JSONEncoder().encode(History) {
+//                                            defaults.set(encoded, forKey: "History\(id)")
+//                                        }
+                        let newEntry = WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
                         
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
                     .foregroundStyle(.white)
-                    .onAppear {
-                                // Load from UserDefaults
-                                if let data = defaults.data(forKey: "History\(id)"),
-                                   let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
-                                    History = decodedHistory
-                                }
-                            }
+//                    .onAppear {
+//                                // Load from UserDefaults
+//                                if let data = defaults.data(forKey: "History\(id)"),
+//                                   let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
+//                                    History = decodedHistory
+//                                }
+//                            }
                 }
                 // Displays Exercise weight history for weights
                 HStack {
                     Text("History")
-                        .font(.headline)
-                    if (ShowHistory){
-                        Button {
-                            ShowHistory = !ShowHistory
-                        } label: {
-                            Image(systemName: "rectangle.compress.vertical")
-                        }
-                        .foregroundStyle(.white)
-                    } else {
-                        Button {
-                            ShowHistory = !ShowHistory
-                        } label: {
-                            Image(systemName: "rectangle.expand.vertical")
-                        }
-                        .foregroundStyle(.white)
-                    }
+                                               .font(.headline)
+                                           Button {
+                                               ShowHistory.toggle()
+                                           } label: {
+                                               Image(systemName: ShowHistory ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
+                                           }
+                                           .foregroundStyle(.white)
                 }
             }
             // History component displays on Expand button click
             if (ShowHistory) {
                 List {
-                    ForEach(History, id:\.self) { item in
+                    ForEach(workoutHistory.history, id:\.self) { item in
                         HStack{
                             VStack(alignment: .leading) {
                                 Text(item.date)
@@ -207,28 +200,50 @@ struct WeightInput: View {
                     .padding()
                     .listRowBackground(Color.blue.opacity(0.5))
                 }
+//                .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
+//                            Button("Delete", role: .destructive) {
+//                                if let itemToDelete = itemToDelete {
+//                                    // Perform the deletion
+//                                    let index = workoutHistory.history.firstIndex(of: itemToDelete) {
+//                                        workouthistory.deleteEntry(at: index)
+//                                    }
+//                                }
+//                                // Reset itemToDelete after deletion
+//                                self.itemToDelete = nil
+//                            }
+//                            Button("Cancel", role: .cancel) {
+//                                // Cancel action
+//                                self.itemToDelete = nil
+//                            }
+//                        }
                 .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
-                            Button("Delete", role: .destructive) {
-                                if let itemToDelete = itemToDelete {
-                                    // Perform the deletion
-                                    History.remove(at: History.firstIndex(of: itemToDelete)!)
-                                    if let encoded = try? JSONEncoder().encode(History) {
-                                        defaults.set(encoded, forKey: "History\(id)")
-                                    }
-                                }
-                                // Reset itemToDelete after deletion
-                                self.itemToDelete = nil
-                            }
-                            Button("Cancel", role: .cancel) {
-                                // Cancel action
-                                self.itemToDelete = nil
-                            }
-                        }
+                                       Button("Delete", role: .destructive) {
+                                           if let itemToDelete = itemToDelete,
+                                              let index = workoutHistory.history.firstIndex(of: itemToDelete) {
+                                               workoutHistory.deleteEntry(at: index) // Use the deleteEntry method from WorkoutHistory
+                                           }
+                                           self.itemToDelete = nil
+                                       }
+                                       Button("Cancel", role: .cancel) {
+                                           self.itemToDelete = nil
+                                       }
             }
+        }
+//        .onAppear {
+//            // Load from UserDefaults when the view appears
+//            if let data = defaults.data(forKey: "History\(id)"),
+//               let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
+//                History = decodedHistory
+//            }
         }
     }
 }
 
+//#Preview {
+//    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "", History: [])
+//}
 #Preview {
-    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "", History: [])
+    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
+        .environmentObject(WorkoutHistory()) // Provide the WorkoutHistory instance for preview
 }
+

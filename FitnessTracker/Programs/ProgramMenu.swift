@@ -10,7 +10,7 @@ import SwiftUI
 struct ProgramMenu: View {
     @State var ShowAddProgram = false
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
-    @State var History: [WeightEntry] = []
+    @EnvironmentObject var workoutHistory: WorkoutHistory
     var body: some View {
         NavigationStack {
             ZStack {
@@ -34,7 +34,7 @@ struct ProgramMenu: View {
                         .padding(0)
                         .foregroundColor(Color.white)
                     List {
-                        NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy(History:[]))
+                        NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy().environmentObject(workoutHistory))
                             .bold()
                             .listRowBackground(Color.blue)
                             .foregroundStyle(.white, .white)
@@ -65,5 +65,6 @@ struct ProgramMenu: View {
 }
 
 #Preview {
-    ProgramMenu(History:[])
+    ProgramMenu() // No arguments passed here
+        .environmentObject(WorkoutHistory()) // Provide a WorkoutHistory instance for the preview
 }
