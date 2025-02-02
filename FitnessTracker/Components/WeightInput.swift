@@ -205,7 +205,7 @@ struct WeightInput: View {
                         }
                     }
                     .padding()
-                    .listRowBackground(Color.blue.opacity(0.1))
+                    .listRowBackground(Color.blue.opacity(0.5))
                 }
                 .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
                             Button("Delete", role: .destructive) {
