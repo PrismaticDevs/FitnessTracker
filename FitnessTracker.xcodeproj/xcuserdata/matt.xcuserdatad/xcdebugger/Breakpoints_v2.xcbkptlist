@@ -14,8 +14,13 @@
             filePath = "FitnessTracker/Components/WeightInput.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
+<<<<<<< HEAD
             startingLineNumber = "147"
             endingLineNumber = "147"
+=======
+            startingLineNumber = "145"
+            endingLineNumber = "145"
+>>>>>>> 7e15d4fb5280e374d34d65fdc442d78da7249f91
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>

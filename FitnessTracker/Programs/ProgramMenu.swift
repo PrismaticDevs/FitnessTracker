@@ -7,6 +7,15 @@
 
 import SwiftUI
 
+struct WeightEntry: Codable, Identifiable, Hashable {
+    var id = UUID()
+    let date: String
+    let weight: Int
+    let left: Int
+    let right: Int
+    let note: String
+}
+
 struct ProgramMenu: View {
     @State var ShowAddProgram = false
     var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
