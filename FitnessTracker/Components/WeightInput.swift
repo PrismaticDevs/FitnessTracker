@@ -11,16 +11,10 @@ struct WeightInput: View {
     @State var Note: String
     @State var Iso: Bool = false
     @State var ShowHistory: Bool = false
-    struct WeightEntry: Codable, Identifiable, Hashable {
-        var id = UUID()
-        let date: String
-        let weight: Int
-        let left: Int
-        let right: Int
-        let note: String
-    }
     @State var History: [WeightEntry] = []
     @State var Confirmation: Bool = false
+    @State private var itemToDelete: WeightEntry?
+    @State private var showConfirmationDialog = false
 
     var body: some View {
         let date: String = {
@@ -189,7 +183,6 @@ struct WeightInput: View {
             if (ShowHistory) {
                 List {
                     ForEach(History, id:\.self) { item in
-                        
                         HStack{
                             VStack(alignment: .leading) {
                                 Text(item.date)
@@ -201,13 +194,11 @@ struct WeightInput: View {
                             
                             // Encodes JSON and saved to UserDefaults
                             Button {
-                                History.remove(at: History.firstIndex(of: item)!)
-                                if let encoded = try? JSONEncoder().encode(History) {
-                                    defaults.set(encoded, forKey: "History\(id)")
-                                }
+                                itemToDelete = item
+                                showConfirmationDialog = true
                             } label: {
-                                Image(systemName: "minus.circle")
-                                    .foregroundStyle(Color.red)
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
                             }
                             //                                Figure out how to make this confirmation modal work
                             //                                .confirmationDialog("Delete this entry?", isPresented: $Confirmation, actions:
@@ -216,11 +207,28 @@ struct WeightInput: View {
                     .padding()
                     .listRowBackground(Color.blue.opacity(0.1))
                 }
+                .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
+                            Button("Delete", role: .destructive) {
+                                if let itemToDelete = itemToDelete {
+                                    // Perform the deletion
+                                    History.remove(at: History.firstIndex(of: itemToDelete)!)
+                                    if let encoded = try? JSONEncoder().encode(History) {
+                                        defaults.set(encoded, forKey: "History\(id)")
+                                    }
+                                }
+                                // Reset itemToDelete after deletion
+                                self.itemToDelete = nil
+                            }
+                            Button("Cancel", role: .cancel) {
+                                // Cancel action
+                                self.itemToDelete = nil
+                            }
+                        }
             }
         }
     }
 }
 
 #Preview {
-    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
+    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "", History: [])
 }
