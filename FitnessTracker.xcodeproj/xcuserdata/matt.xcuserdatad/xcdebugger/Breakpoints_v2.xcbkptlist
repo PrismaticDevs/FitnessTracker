@@ -3,27 +3,4 @@
    uuid = "8871DFDF-72D0-40F9-8C66-0B4330D2DD26"
    type = "1"
    version = "2.0">
-   <Breakpoints>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "48099C87-E9C7-469C-AAC1-84D7488121AC"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "FitnessTracker/Components/WeightInput.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-<<<<<<< HEAD
-            startingLineNumber = "147"
-            endingLineNumber = "147"
-=======
-            startingLineNumber = "145"
-            endingLineNumber = "145"
->>>>>>> 7e15d4fb5280e374d34d65fdc442d78da7249f91
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-   </Breakpoints>
 </Bucket>

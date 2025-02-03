@@ -12,7 +12,6 @@ struct WeightInput: View {
     @State var Note: String
     @State var Iso: Bool = false
     @State var ShowHistory: Bool = false
-    @State var History: [WeightEntry] = []
     @State var Confirmation: Bool = false
     @State private var itemToDelete: WeightEntry?
     @State private var showConfirmationDialog = false
@@ -142,12 +141,12 @@ struct WeightInput: View {
                     Text("Save")
                         .font(.headline)
                     Button {
-//                        History.append(WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue))
-//                        if let encoded = try? JSONEncoder().encode(History) {
-//                                            defaults.set(encoded, forKey: "History\(id)")
-//                                        }
-                        let newEntry = WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
+                        if let encoded = try? JSONEncoder().encode(workoutHistory) {
+                                            defaults.set(encoded, forKey: "History\(id)")
+                                         }
                         
+                        let newEntry = WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
+                        workoutHistory.history.append(newEntry)
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
@@ -175,7 +174,7 @@ struct WeightInput: View {
             // History component displays on Expand button click
             if (ShowHistory) {
                 List {
-                    ForEach(workoutHistory.history, id:\.self) { item in
+                    ForEach(workoutHistory.history, id:\.id) { item in
                         HStack{
                             VStack(alignment: .leading) {
                                 Text(item.date)
@@ -200,22 +199,26 @@ struct WeightInput: View {
                     .padding()
                     .listRowBackground(Color.blue.opacity(0.5))
                 }
-//                .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
-//                            Button("Delete", role: .destructive) {
-//                                if let itemToDelete = itemToDelete {
-//                                    // Perform the deletion
-//                                    let index = workoutHistory.history.firstIndex(of: itemToDelete) {
-//                                        workouthistory.deleteEntry(at: index)
-//                                    }
-//                                }
-//                                // Reset itemToDelete after deletion
-//                                self.itemToDelete = nil
-//                            }
-//                            Button("Cancel", role: .cancel) {
-//                                // Cancel action
-//                                self.itemToDelete = nil
-//                            }
-//                        }
+                .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) {
+                        if let itemToDelete = itemToDelete {
+                            // Perform the deletion
+                            if let index = workoutHistory.history.firstIndex(of: itemToDelete) {
+                                workoutHistory.deleteEntry(at: index)
+                            } else {
+                                // Handle the case where the item is not found
+                                print("Item to delete not found in history.")
+                            }
+                        }
+                        // Reset itemToDelete after deletion
+                        self.itemToDelete = nil
+                    }
+
+                    Button("Cancel", role: .cancel) {
+                        // Cancel action
+                        self.itemToDelete = nil
+                    }
+                        }
                 .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
                                        Button("Delete", role: .destructive) {
                                            if let itemToDelete = itemToDelete,
@@ -229,19 +232,10 @@ struct WeightInput: View {
                                        }
             }
         }
-//        .onAppear {
-//            // Load from UserDefaults when the view appears
-//            if let data = defaults.data(forKey: "History\(id)"),
-//               let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
-//                History = decodedHistory
-//            }
         }
     }
 }
 
-//#Preview {
-//    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "", History: [])
-//}
 #Preview {
     WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
         .environmentObject(WorkoutHistory()) // Provide the WorkoutHistory instance for preview

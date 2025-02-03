@@ -1,19 +1,28 @@
-//
-//  WorkoutHistory 2.swift
-//  FitnessTracker
-//
-//  Created by Matt on 2/2/25.
-//
-
-
 import Foundation
 import Combine
 
-class WorkoutHistory: ObservableObject {
+class WorkoutHistory: ObservableObject, Codable {
     @Published var history: [WeightEntry] = []
 
     private var defaults = UserDefaults.standard
 
+    enum CodingKeys: String, CodingKey {
+        case history
+    }
+
+    // Custom initializer for decoding
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        history = try container.decode([WeightEntry].self, forKey: .history)
+    }
+
+    // Method for encoding
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(history, forKey: .history)
+    }
+
+    // Default initializer
     init() {
         loadHistory()
     }
@@ -42,14 +51,14 @@ class WorkoutHistory: ObservableObject {
     }
     
     func maxWeight() -> Int {
-            return history.map { $0.weight }.max() ?? 0
-        }
+        return history.map { $0.weight }.max() ?? 0
+    }
 
-        func maxLeftWeight() -> Int {
-            return history.map { $0.left }.max() ?? 0
-        }
+    func maxLeftWeight() -> Int {
+        return history.map { $0.left }.max() ?? 0
+    }
 
-        func maxRightWeight() -> Int {
-            return history.map { $0.right }.max() ?? 0
-        }
+    func maxRightWeight() -> Int {
+        return history.map { $0.right }.max() ?? 0
+    }
 }
