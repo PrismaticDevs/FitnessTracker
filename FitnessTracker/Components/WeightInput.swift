@@ -145,30 +145,25 @@ struct WeightInput: View {
                                             defaults.set(encoded, forKey: "History\(id)")
                                          }
                         
-                        let newEntry = WeightEntry(date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
+                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
                         workoutHistory.history.append(newEntry)
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
-                    .foregroundStyle(.white)
-//                    .onAppear {
-//                                // Load from UserDefaults
-//                                if let data = defaults.data(forKey: "History\(id)"),
-//                                   let decodedHistory = try? JSONDecoder().decode([WeightEntry].self, from: data) {
-//                                    History = decodedHistory
-//                                }
-//                            }
+                    .foregroundStyle(.white)    
                 }
                 // Displays Exercise weight history for weights
                 HStack {
                     Text("History")
-                                               .font(.headline)
-                                           Button {
-                                               ShowHistory.toggle()
-                                           } label: {
-                                               Image(systemName: ShowHistory ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
-                                           }
-                                           .foregroundStyle(.white)
+                       .font(.headline)
+                   Button {
+                       ShowHistory.toggle()
+                       print(workoutHistory.history)
+                       print($Exercise)
+                   } label: {
+                       Image(systemName: ShowHistory ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
+                   }
+                   .foregroundStyle(.white)
                 }
             }
             // History component displays on Expand button click
@@ -192,8 +187,6 @@ struct WeightInput: View {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
                             }
-                            //                                Figure out how to make this confirmation modal work
-                            //                                .confirmationDialog("Delete this entry?", isPresented: $Confirmation, actions:
                         }
                     }
                     .padding()
@@ -238,6 +231,6 @@ struct WeightInput: View {
 
 #Preview {
     WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
-        .environmentObject(WorkoutHistory()) // Provide the WorkoutHistory instance for preview
+        .environmentObject(WorkoutHistory())
 }
 

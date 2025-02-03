@@ -33,25 +33,21 @@ struct Workouts: View  {
                         if Chest {
                             ForEach(ChestExercises, id: \.self) { exercise in
                                 WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                                    
                             }
                         }
                          else if Shoulders {
                             ForEach(ShoulderExercises, id: \.self) { exercise in
                                 WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                                    
                             }
                         }
                         else if Abs {
                             ForEach(ArmsAbsExercises, id: \.self) { exercise in
                                 WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                                    
                             }
                         }
                         else if Legs {
                             ForEach(LegExercises, id: \.self) { exercise in
                                 WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                                    
                             }
                         }
                         else {
@@ -77,21 +73,8 @@ struct Workouts: View  {
 #Preview {
     let workoutHistory = WorkoutHistory()
     // Optionally, you can add some sample data to the workoutHistory if needed
-    workoutHistory.addEntry(WeightEntry(date: "01/01/2023", weight: 100, left: 50, right: 50, note: "Sample entry"))
+    workoutHistory.addEntry(WeightEntry(exercise: "Test", date: "01/01/2023", weight: 100, left: 50, right: 50, note: "Sample entry"))
     
-    return Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false)
+     return Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false)
         .environmentObject(workoutHistory) // Provide the WorkoutHistory instance to the preview
 }
-
-/*
- - Create paradigm for naming conventions for saving workout items to userdefaults and then use ForEach loops to iterate through all items within a certain set of keys.
- - Have parent key with children for each seperate program and then add exercises.
- - Add conponent for creating custom exercises.
- - Save these all in lists and use ForEach loops to iterate dynamically
- - Will cut down on total number of components and files used in apps
-    - have segments aved with key title with program name
-    - then have different days as keys within each segment
-    - then have the individual exercises iterate ForEach loop to create weight input components
-    - presto
- 
- */

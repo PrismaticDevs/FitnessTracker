@@ -9,6 +9,7 @@ import Foundation
 
 struct WeightEntry: Codable, Identifiable, Hashable {
     var id = UUID()
+    var exercise: String
     let date: String
     let weight: Int
     let left: Int
