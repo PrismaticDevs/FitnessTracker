@@ -158,8 +158,6 @@ struct WeightInput: View {
                        .font(.headline)
                    Button {
                        ShowHistory.toggle()
-                       print(workoutHistory.history)
-                       print($Exercise)
                    } label: {
                        Image(systemName: ShowHistory ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
                    }
@@ -168,16 +166,24 @@ struct WeightInput: View {
             }
             // History component displays on Expand button click
             if (ShowHistory) {
-                List {
-                    ForEach(workoutHistory.history, id:\.id) { item in
+                let sortedItems = workoutHistory.history
+                                .filter { $0.exercise == Exercise }
+                                .sorted(by: { $0.date > $1.date })
+                let maxWeight = sortedItems.max(by: { $0.weight < $1.weight })?.weight
+                            let maxLeft = sortedItems.max(by: { $0.left < $1.left })?.left
+                            let maxRight = sortedItems.max(by: { $0.right < $1.right })?.right
+//                List {
+                    ForEach(workoutHistory.history.filter { $0.exercise == Exercise }.sorted(by: { $0.date > $1.date }), id: \.id) { item in
                         HStack{
                             VStack(alignment: .leading) {
                                 Text(item.date)
                                 Text("Weight: \(item.weight)")
+                                    .foregroundColor(item.weight == maxWeight ? Color.yellow : Color.primary)
                                 Text("Left Isolated: \(item.left)")
+                                    .foregroundColor(item.left == maxLeft ? Color.yellow : Color.primary)
                                 Text("Right Isolated: \(item.right)")
+                                    .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
                             }
-                            .padding(2.5)
                             
                             // Encodes JSON and saved to UserDefaults
                             Button {
@@ -188,9 +194,12 @@ struct WeightInput: View {
                                     .foregroundColor(.red)
                             }
                         }
-                    }
-                    .padding()
-                    .listRowBackground(Color.blue.opacity(0.5))
+                        .padding(.horizontal)
+                        .padding(.vertical, 5)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+//                        .listRowBackground(Color.blue.opacity(0.5))
+//                    }
                 }
                 .confirmationDialog("Are you sure you want to delete this item?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
                     Button("Delete", role: .destructive) {

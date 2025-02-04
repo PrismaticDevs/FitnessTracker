@@ -24,49 +24,52 @@ struct Workouts: View  {
     @State var LegExercises = ["Deadlift", "Lying Leg Curl", "Walking Lunge", "Hack Squat", "Leg Extension", "Seated Calf Raise", "Hip Abduction", "Standing Calf Raise", "Calf Press", "Leg Press"]
     
     var body: some View {
-        
         NavigationView {
             ZStack {
-                gradient.edgesIgnoringSafeArea(.all)
-                ScrollView {
-                    VStack(spacing: 15) {
-                        if Chest {
-                            ForEach(ChestExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                NavigationView {
+                    ZStack {
+                        gradient.edgesIgnoringSafeArea(.all)
+                        ScrollView {
+                            VStack(spacing: 15) {
+                                if Chest {
+                                    ForEach(ChestExercises, id: \.self) { exercise in
+                                        WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                    }
+                                }
+                                else if Shoulders {
+                                    ForEach(ShoulderExercises, id: \.self) { exercise in
+                                        WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                    }
+                                }
+                                else if Abs {
+                                    ForEach(ArmsAbsExercises, id: \.self) { exercise in
+                                        WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                    }
+                                }
+                                else if Legs {
+                                    ForEach(LegExercises, id: \.self) { exercise in
+                                        WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
+                                    }
+                                }
+                                else {
+                                    Text("No Workout Selected")
+                                        .padding(.top, 100)
+                                }
                             }
+                            .padding(.horizontal) // Add horizontal padding
+                            .padding(.top) // Add top padding
                         }
-                         else if Shoulders {
-                            ForEach(ShoulderExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                            }
-                        }
-                        else if Abs {
-                            ForEach(ArmsAbsExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                            }
-                        }
-                        else if Legs {
-                            ForEach(LegExercises, id: \.self) { exercise in
-                                WeightInput(Exercise: exercise, WeightLeft: defaults.integer(forKey: exercise + "WeightLeft"), WeightRight: defaults.integer(forKey: exercise + "WeightRight"), Weight: defaults.integer(forKey: exercise + "Weight"), Note: defaults.string(forKey: exercise + "Note") ?? "", Iso: false)
-                            }
-                        }
-                        else {
-                            Text("No Workout Selected")
-                                .padding(.top, 100)
+                        .padding(.top, -10)
+                        .navigationTitle(Chest ? "Chest & Side Delts" : Shoulders ? "Upper Back & Rear Delts" : Abs ? "Arms & Abs" : Legs ? "Legs" : "" )
+                        .foregroundColor(Color.white)
+                        .toolbar {
+                            ExerciseToolbar()
                         }
                     }
-                    .padding(.horizontal) // Add horizontal padding
-                    .padding(.top) // Add top padding
                 }
-                .padding(.top, -10)
-                .navigationTitle(Chest ? "Chest & Side Delts" : Shoulders ? "Upper Back & Rear Delts" : Abs ? "Arms & Abs" : Legs ? "Legs" : "" )
-                .foregroundColor(Color.white)
-                .toolbar {
-                    ExerciseToolbar()
-                }
+                .padding(.top, -100)
             }
         }
-        .padding(.top, -100)
     }
 }
 

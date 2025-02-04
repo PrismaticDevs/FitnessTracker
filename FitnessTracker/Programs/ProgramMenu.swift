@@ -34,17 +34,6 @@ struct ProgramMenu: View {
                         .padding(0)
                         .foregroundColor(Color.white)
                     List {
-                        ForEach(workoutHistory.history, id:\.id) { item in
-                            HStack{
-                                VStack(alignment: .leading) {
-                                    Text(item.date)
-                                    Text("Weight: \(item.weight)")
-                                    Text("Left Isolated: \(item.left)")
-                                    Text("Right Isolated: \(item.right)")
-                                }
-                                .padding(2.5)
-                            }
-                        }
                         NavigationLink("Hypertrophy Mass Building", destination: Hypertrophy().environmentObject(workoutHistory))
                             .bold()
                             .listRowBackground(Color.blue)
