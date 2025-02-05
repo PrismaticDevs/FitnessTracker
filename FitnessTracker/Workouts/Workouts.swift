@@ -75,8 +75,6 @@ struct Workouts: View  {
 
 #Preview {
     let workoutHistory = WorkoutHistory()
-    // Optionally, you can add some sample data to the workoutHistory if needed
-    workoutHistory.addEntry(WeightEntry(exercise: "Test", date: "01/01/2023", weight: 100, left: 50, right: 50, note: "Sample entry"))
     
      return Workouts(Chest: true, Shoulders: false, Abs: false, Legs: false)
         .environmentObject(workoutHistory) // Provide the WorkoutHistory instance to the preview

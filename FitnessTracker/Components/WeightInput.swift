@@ -184,7 +184,7 @@ struct WeightInput: View {
                                 Text("Right Isolated: \(item.right)")
                                     .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
                             }
-                            
+                            Spacer()
                             // Encodes JSON and saved to UserDefaults
                             Button {
                                 itemToDelete = item
