@@ -44,10 +44,6 @@ struct ProgramMenu: View {
                     .padding()
                 }
             }
-            .background(Image("AppIcon")
-                .scaledToFit()
-                .frame(minWidth: 0)
-                .edgesIgnoringSafeArea(.all))
             .toolbar {
                 ToolbarItem {
                     Button(action: { ShowAddProgram = true}) {

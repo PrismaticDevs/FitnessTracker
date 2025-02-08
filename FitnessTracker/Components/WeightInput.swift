@@ -15,13 +15,19 @@ struct WeightInput: View {
     @State var Confirmation: Bool = false
     @State private var itemToDelete: WeightEntry?
     @State private var showConfirmationDialog = false
+    
+    private var dateFormatter: DateFormatter {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd/yyyy HH:mm"
+            return formatter
+        }
 
     var body: some View {
-        let date: String = {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "MM/dd/yyyy HH:mm"
-                return dateFormatter.string(from: Date())
-            }()
+//        let date: String = {
+//                let dateFormatter = DateFormatter()
+//                dateFormatter.dateFormat = "MM/dd/yyyy HH:mm"
+//                return dateFormatter.string(from: Date())
+//            }()
         VStack(alignment: .leading) {
             HStack {
                 Text(Exercise)
@@ -145,7 +151,7 @@ struct WeightInput: View {
                                             defaults.set(encoded, forKey: "History\(id)")
                                          }
                         
-                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: date, weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
+                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: Date(), weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
                         workoutHistory.history.append(newEntry)
                     } label: {
                         Image(systemName: "square.and.arrow.down")
@@ -170,19 +176,21 @@ struct WeightInput: View {
                                 .filter { $0.exercise == Exercise }
                                 .sorted(by: { $0.date > $1.date })
                 let maxWeight = sortedItems.max(by: { $0.weight < $1.weight })?.weight
-                            let maxLeft = sortedItems.max(by: { $0.left < $1.left })?.left
-                            let maxRight = sortedItems.max(by: { $0.right < $1.right })?.right
+                let maxLeft = sortedItems.max(by: { $0.left < $1.left })?.left
+                let maxRight = sortedItems.max(by: { $0.right < $1.right })?.right
 //                List {
                     ForEach(workoutHistory.history.filter { $0.exercise == Exercise }.sorted(by: { $0.date > $1.date }), id: \.id) { item in
                         HStack{
                             VStack(alignment: .leading) {
-                                Text(item.date)
+                                let formattedDate = dateFormatter.string(from: item.date)
+                                Text(formattedDate)
                                 Text("Weight: \(item.weight)")
                                     .foregroundColor(item.weight == maxWeight ? Color.yellow : Color.primary)
                                 Text("Left Isolated: \(item.left)")
                                     .foregroundColor(item.left == maxLeft ? Color.yellow : Color.primary)
                                 Text("Right Isolated: \(item.right)")
                                     .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
+                                Text("Notes: \(item.note)")
                             }
                             Spacer()
                             // Encodes JSON and saved to UserDefaults
