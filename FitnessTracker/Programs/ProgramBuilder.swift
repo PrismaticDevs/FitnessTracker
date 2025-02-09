@@ -172,7 +172,7 @@ struct ContentView: View {
                 }
                 .background(Color.clear)
                 .padding()
-                .navigationTitle("Workout Programs")
+                .navigationTitle("Programs")
                 .listStyle(PlainListStyle())
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -227,7 +227,6 @@ struct WorkoutProgramDetailView: View {
                 }
                 .listRowBackground(Color.blue)
             }
-            .navigationTitle("Sessions")
             .listStyle(PlainListStyle())
             .background(Color.clear)
             .bold()
@@ -236,6 +235,8 @@ struct WorkoutProgramDetailView: View {
             .foregroundColor(.white)
             
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Sessions")
         .applyGradientBackground() // Apply the gradient background
     }
 }
@@ -251,8 +252,8 @@ struct SessionDetailView: View {
             Color.clear
                 .applyGradientBackground()
                 .edgesIgnoringSafeArea(.all)
-            ScrollView { // Wrap the content in a ScrollView
                 VStack(alignment: .leading) {
+                    ScrollView { // Wrap the content in a ScrollView
                     Text(session.name)
                         .font(.largeTitle)
                         .padding()
@@ -270,11 +271,12 @@ struct SessionDetailView: View {
                         .padding(.bottom) // Add some spacing between exercises
                     }
                 }
+                .navigationTitle("Exercises")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.hidden, for: .navigationBar) // Hide the navigation bar background
                 .padding()
                 .applyGradientBackground() // Apply the gradient background
             }
-            .navigationTitle("Session Details") // Optional: Set the navigation title
-            .navigationBarTitleDisplayMode(.inline) // Optional: Adjust title display mode
         }
     }
 }
