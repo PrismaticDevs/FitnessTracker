@@ -15,7 +15,7 @@ struct Auth: View {
     var body: some View {
         VStack {
             if isUnlocked {
-                ProgramMenu()
+                ContentView()
                     .environmentObject(workoutHistory)
             } else {
                 Text("Must  Authenticate")

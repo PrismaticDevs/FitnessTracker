@@ -5,11 +5,14 @@ struct WeightInput: View {
     @EnvironmentObject var workoutHistory: WorkoutHistory // Injecting the WorkoutHistory instance
     var defaults = UserDefaults.standard
     var id: UUID = UUID()
-    @State var Exercise: String
-    @State var WeightLeft: Int
-    @State var WeightRight: Int
-    @State var Weight: Int
-    @State var Note: String
+    @State var Exercise: String = ""
+    @State var WeightLeft: String = ""
+    @State var WeightRight: String = ""
+    @State var Weight: String = ""
+    @State var Note: String = ""
+    @State var Sets: String = ""
+    @State var Reps: String = ""
+    @State var Rest: String = ""
     @State var Iso: Bool = false
     @State var ShowHistory: Bool = false
     @State var Confirmation: Bool = false
@@ -23,11 +26,6 @@ struct WeightInput: View {
         }
 
     var body: some View {
-//        let date: String = {
-//                let dateFormatter = DateFormatter()
-//                dateFormatter.dateFormat = "MM/dd/yyyy HH:mm"
-//                return dateFormatter.string(from: Date())
-//            }()
         VStack(alignment: .leading) {
             HStack {
                 Text(Exercise)
@@ -37,6 +35,8 @@ struct WeightInput: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     if (Iso == false) {
+//                        Text("Weight")
+//                            .font(.system(size: 14))
                         Button {
                             Iso = true
                             defaults.set(Iso, forKey: "Iso \(id)")
@@ -60,8 +60,8 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.white)
                                 .fixedSize(horizontal: false, vertical: true)
-                                .padding(-5)
-                            TextField("Weight", value: $WeightLeft, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                                .padding(-4)
+                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                                 // Saves Weight entered on change of TextField
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
@@ -70,17 +70,15 @@ struct WeightInput: View {
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .foregroundColor(Color.white)
-                                .padding(-3)
                             
                         }
                         .padding(0)
                         VStack {
-                            Text("Right")
+                            Text("Weight Right")
                                 .font(.system(size: 14))
-                                .foregroundColor(Color.white)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(-5)
-                            TextField("Weight", value: $WeightRight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                                .foregroundColor(Color.white.opacity(0.8))
+                                .padding(-4)
+                            TextField("Weight", text: $WeightRight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                             // Saves Weight entered on change of TextField
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
@@ -88,22 +86,24 @@ struct WeightInput: View {
                                 .lineLimit(1...4)
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .padding(-3)
                                 .foregroundColor(Color.white)
                             
                         }
                     }
-                    // Singular wright entry
+                    // Singular weight entry
                     if (Iso == false) {
                         VStack {
-                            TextField("Weight", value: $Weight, format: .number, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            Text("Weight")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color.white.opacity(0.8))
+                                .padding(-4)
+                            TextField("Weight", text: $Weight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
                             // Saves Weight entered on change of TextField
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
                                 }
                                 .padding(10)
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .padding(-3)
                                 .foregroundColor(Color.white)
                                 .lineLimit(1...4)
                             
@@ -113,33 +113,91 @@ struct WeightInput: View {
                 }
                 .padding(0)
             }
+            // Sets, Reps, and Rest
+            VStack {
+                HStack {
+                    VStack {
+                        Text("Sets")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.white.opacity(0.8))
+                            .padding(-6)
+                        TextField("Sets", text: $Sets, prompt: Text("Sets").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                            .onChange(of: Sets){
+                                defaults.set(Sets, forKey: Exercise + "Sets")
+                            }
+                            .lineLimit(1...4)
+                            .padding(10)
+                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .foregroundColor(Color.white)
+                    }
+                    VStack {
+                        Text("Reps")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.white.opacity(0.8))
+                            .padding(-4)
+                        TextField("Reps", text: $Reps, prompt: Text("Reps").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                            .onChange(of: Reps){
+                                defaults.set(Reps, forKey: Exercise + "Reps")
+                            }
+                            .lineLimit(1...4)
+                            .padding(10)
+                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .foregroundColor(Color.white)
+                    }
+                    VStack {
+                        Text("Rest")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.white.opacity(0.8))
+                            .padding(-6)
+                        TextField("Rest", text: $Rest, prompt: Text("Rest").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                            .onChange(of: Rest){
+                                defaults.set(Rest, forKey: Exercise + "Rest")
+                            }
+                            .lineLimit(1...4)
+                            .padding(10)
+                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .foregroundColor(Color.white)
+                    }
+                    
+                    
+                }
+                .padding(0)
+            }
+            .padding(0)
             // TextField for entering notes
             VStack {
-                TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
-                // Saves Note entered on change of TextField
-                    .onChange(of: Note){
-                        defaults.set(Note, forKey: Exercise + "Note")
-                    }
-                    .lineLimit(1...4)
-                    .padding(10)
-                    .background(Color.blue.opacity(0.8).cornerRadius(10))
-                    .padding(-3)
-                    .foregroundColor(Color.white)
-                // Overlayed Button to clear Note TextField
-                    .overlay(
-                        Button(action: {
-                            Note = ""
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .opacity(Note.isEmpty ? 0 : 1).padding()
+                Text("Note")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color.white.opacity(0.8))
+                    .padding(-4)
+                HStack {
+                    TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                    // Saves Note entered on change of TextField
+                        .onChange(of: Note){
+                            defaults.set(Note, forKey: Exercise + "Note")
                         }
-                            .foregroundColor(Color.white)
-                            .padding(),
-                        alignment: .trailing
-                    )
+                        .lineLimit(1...4)
+                        .padding(10)
+                        .background(Color.blue.opacity(0.8).cornerRadius(10))
+                        .foregroundColor(Color.white)
+                    // Overlayed Button to clear Note TextField
+                        .overlay(
+                            Button(action: {
+                                Note = ""
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .opacity(Note.isEmpty ? 0 : 1).padding()
+                            }
+                                .foregroundColor(Color.white)
+                                .padding(),
+                            alignment: .trailing
+                        )
+                }
+                .padding(0)
             }
-            .padding(5)
+            .padding(0)
         }
+
         // Saving and displaying Weight and Note history
         VStack {
             HStack {
@@ -151,7 +209,7 @@ struct WeightInput: View {
                                             defaults.set(encoded, forKey: "History\(id)")
                                          }
                         
-                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: Date(), weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, note: $Note.wrappedValue)
+                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: Date(), weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, sets: $Sets.wrappedValue, reps: $Reps.wrappedValue, rest: $Rest.wrappedValue, note: $Note.wrappedValue)
                         workoutHistory.history.append(newEntry)
                     } label: {
                         Image(systemName: "square.and.arrow.down")
@@ -180,32 +238,42 @@ struct WeightInput: View {
                 let maxRight = sortedItems.max(by: { $0.right < $1.right })?.right
 //                List {
                     ForEach(workoutHistory.history.filter { $0.exercise == Exercise }.sorted(by: { $0.date > $1.date }), id: \.id) { item in
-                        HStack{
-                            VStack(alignment: .leading) {
-                                let formattedDate = dateFormatter.string(from: item.date)
-                                Text(formattedDate)
-                                Text("Weight: \(item.weight)")
-                                    .foregroundColor(item.weight == maxWeight ? Color.yellow : Color.primary)
-                                Text("Left Isolated: \(item.left)")
-                                    .foregroundColor(item.left == maxLeft ? Color.yellow : Color.primary)
-                                Text("Right Isolated: \(item.right)")
-                                    .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
-                                Text("Notes: \(item.note)")
+                        VStack {
+                            HStack{
+                                VStack(alignment: .leading) {
+                                    let formattedDate = dateFormatter.string(from: item.date)
+                                    Text(formattedDate)
+                                    Text("Weight: \(item.weight)")
+                                        .foregroundColor(item.weight == maxWeight ? Color.yellow : Color.primary)
+                                    Text("Left Isolated: \(item.left)")
+                                        .foregroundColor(item.left == maxLeft ? Color.yellow : Color.primary)
+                                    Text("Right Isolated: \(item.right)")
+                                        .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
+                                }
+                                VStack {
+                                    Text("Sets: \(item.sets)")
+                                    Text("Reps: \(item.reps)")
+                                    Text("Rest: \(item.rest)")
+                                }
+                                Spacer()
+                                // Encodes JSON and saved to UserDefaults
+                                Button {
+                                    itemToDelete = item
+                                    showConfirmationDialog = true
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.red)
+                                }
                             }
-                            Spacer()
-                            // Encodes JSON and saved to UserDefaults
-                            Button {
-                                itemToDelete = item
-                                showConfirmationDialog = true
-                            } label: {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                            VStack(alignment: .leading) {
+                                Text("Notes: \(item.note)")
                             }
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 5)
                         .background(Color.blue)
                         .cornerRadius(10)
+
 //                        .listRowBackground(Color.blue.opacity(0.5))
 //                    }
                 }
@@ -247,7 +315,7 @@ struct WeightInput: View {
 }
 
 #Preview {
-    WeightInput(Exercise: "", WeightLeft: 0, WeightRight: 0, Weight: 0, Note: "")
+    WeightInput(Exercise: "", WeightLeft: "", WeightRight: "", Weight: "", Note: "", Sets: "", Reps: "", Rest: "")
         .environmentObject(WorkoutHistory())
 }
 

@@ -51,14 +51,14 @@ class WorkoutHistory: ObservableObject, Codable {
     }
     
     func maxWeight() -> Int {
-        return history.map { $0.weight }.max() ?? 0
+        return history.compactMap { Int($0.weight) }.max() ?? 0
     }
 
     func maxLeftWeight() -> Int {
-        return history.map { $0.left }.max() ?? 0
+        return history.compactMap { Int($0.left) }.max() ?? 0
     }
 
     func maxRightWeight() -> Int {
-        return history.map { $0.right }.max() ?? 0
+        return history.compactMap { Int($0.right) }.max() ?? 0
     }
 }

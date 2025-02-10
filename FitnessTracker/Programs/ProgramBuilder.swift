@@ -25,23 +25,121 @@ extension View {
 // Global data for workout programs
 class WorkoutProgramsData: ObservableObject {
     @Published var workoutPrograms: [WorkoutProgram] = [
-        WorkoutProgram(title: "Big and Strong Advanced", sessions: [
-            Session(name: "Push Power Day", exercises: [
-                Exercise(name: "Military Press"),
-                Exercise(name: "Incline Bench Press"), // Fixed typo
-                Exercise(name: "Dumbbell Bench Press"), // Fixed typo
-                Exercise(name: "Tricep Dip"),
-                Exercise(name: "Overhead Z Bar Tricep Extension")
-            ]),
-            Session(name: "Legs Power Day", exercises: [ // Fixed capitalization
-                Exercise(name: "Front Squat"),
-                Exercise(name: "Pause Hack Squat"),
-                Exercise(name: "Back Squat or Leg Press"),
-                Exercise(name: "Walking Lunges"),
-                Exercise(name: "Leg Curl")
-            ])
-        ]), WorkoutProgram(title: "Other", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
-    ]
+           WorkoutProgram(title: "Big and Strong Advanced", sessions: [
+               Session(name: "Push Power Day", exercises: [
+                   Exercise(name: "Military Press", sets: "5", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "Incline Bench Press", sets: "4", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "Dumbbell Bench Press", sets: "3", reps: "5", rest: "2 min"),
+                   Exercise(name: "Tricep Dip", sets: "3", reps: "5", rest: "2 min"),
+                   Exercise(name: "Overhead EZ Bar Tricep Extension", sets: "3", reps: "5", rest: "2 min")
+               ]),
+               Session(name: "Legs Power Day", exercises: [
+                   Exercise(name: "Front Squat", sets: "5", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "Pause Back Squat", sets: "4", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "Hack Squat or Leg Press", sets: "3", reps: "5", rest: "2 min"),
+                   Exercise(name: "Seated Leg Curl", sets: "3", reps: "5", rest: "2 min"),
+                   Exercise(name: "Leg Extension", sets: "3", reps: "5", rest: "2 min")
+               ]),
+               Session(name: "Pull Power Day", exercises: [
+                   Exercise(name: "Trap Bar or Barbell Rack Pull", sets: "5", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "Pull Ups", sets: "4", reps: "3-5", rest: "3 min"),
+                   Exercise(name: "One Arm Dumbbell Row", sets: "3", reps: "5, each side", rest: "2 min"),
+                   Exercise(name: "Concentration Curl", sets: "3", reps: "5", rest: "2 min"),
+                   Exercise(name: "Shrug (with hold)", sets: "3", reps: "5", rest: "2 min")
+               ]),
+               Session(name: "Lower Dynamic Day", exercises: [
+                   Exercise(name: "Speed Front Squat", sets: "6", reps: "3", rest: "30 sec"),
+                   Exercise(name: "Speed Pause Squat", sets: "6", reps: "3", rest: "30 sec"),
+                   Exercise(name: "Leg Press", sets: "4", reps: "4", rest: "30 sec"),
+                   Exercise(name: "Seated Calf Raise", sets: "2", reps: "6", rest: "30 sec"),
+                   Exercise(name: "Lying Leg Raise", sets: "2", reps: "6", rest: "30 sec")
+               ]),
+               Session(name: "Upper Dynamic Day", exercises: [
+                  Exercise(name: "Speed Barbell Press", sets: "6", reps: "3", rest: "30 sec"),
+                  Exercise(name: "Speed Trap Bar or Barbell Rack Pull", sets: "6", reps: "3", rest: "30 sec"),
+                  Exercise(name: "Lateral Raise", sets: "4", reps: "4", rest: "30 sec"),
+                  Exercise(name: "Barbell Curl", sets: "2", reps: "6", rest: "30 sec"),
+                  Exercise(name: "Tricep Extension", sets: "2", reps: "6", rest: "30 sec")
+              ])
+           ]),
+           WorkoutProgram(title: "8 Week Mass Building Hypertrophy Workout", sessions: [ Session(name: "Chest and Side Delts", exercises: [
+                           Exercise(name: "Incline Barbell Bench Press", sets: "3", reps: "12, 10, 12*", rest: "90 sec"),
+                           Exercise(name: "Flat Dumbbell Bench Press", sets: "3", reps: "12, 10, 15+", rest: "90 sec"),
+                           Exercise(name: "Cable Crossover", sets: "3", reps: "12, 12, 12^", rest: "90 sec"),
+                           Exercise(name: "Seated Lateral Raise", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Single Arm Cable Lateral Raise", sets: "3", reps: "12, 12, 12", rest: "90 sec")
+                       ]),
+                       Session(name: "Upper Back and Rear Delts", exercises: [
+                           Exercise(name: "Bent-Over Barbell Row", sets: "3", reps: "12, 10, 12*", rest: "90 sec"),
+                           Exercise(name: "Dumbbell Pullover", sets: "3", reps: "12, 10, 15+", rest: "90 sec"),
+                           Exercise(name: "Wide Grip Lat Pulldown", sets: "3", reps: "12, 12, 12^", rest: "90 sec"),
+                           Exercise(name: "Dumbbell Rear Delt Fly", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Cable Face Pull", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Dumbbell Shrug", sets: "3", reps: "12, 12, 12", rest: "90 sec")
+                       ]),
+                       Session(name: "Arms and Abs", exercises: [
+                           Exercise(name: "Close Grip Bench Press", sets: "3", reps: "12, 10, 12*", rest: "90 sec"),
+                           Exercise(name: "Weighted Dip", sets: "3", reps: "12, 10, 12+", rest: "90 sec"),
+                           Exercise(name: "Rope Tricep Extension", sets: "3", reps: "12, 12, 12^", rest: "90 sec"),
+                           Exercise(name: "Lying Leg Raise", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Cable Crunch", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Barbell Curl", sets: "3", reps: "12, 12, 12*", rest: "90 sec"),
+                           Exercise(name: "Hammer Curl", sets: "3", reps: "12, 10, 12+", rest: "90 sec"),
+                           Exercise(name: "Cable Curl", sets: "3", reps: "12, 12, 12^", rest: "90 sec")
+                       ]),
+                       Session(name: "Legs", exercises: [
+                           Exercise(name: "Deadlift", sets: "3", reps: "12, 10, 12*", rest: "90 sec"),
+                           Exercise(name: "Lying Leg Curl", sets: "3", reps: "12, 10, 12+", rest: "90 sec"),
+                           Exercise(name: "Walking Lunge", sets: "3", reps: "12, 12, 12", rest: "90 sec"),
+                           Exercise(name: "Front Squat", sets: "3", reps: "12, 10, 12*", rest: "90 sec"),
+                           Exercise(name: "Leg Extension", sets: "3", reps: "12, 12, 12+", rest: "90 sec"),
+                           Exercise(name: "Dumbbell Side Lunge", sets: "3", reps: "12, 12, 12", rest: "90 sec")
+                       ])
+           ]),
+           WorkoutProgram(title: "4 Day Maximum Mass Workout", sessions: [
+               Session(name: "Back and Biceps", exercises: [
+                   Exercise(name: "Deadlift", sets: "2", reps: "5", rest: "2 min"),
+                   Exercise(name: "One Arm Dumbbell Row", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Wide Grip Pull Up or Lat Pull Down", sets: "3", reps: "10-12", rest: "1-2 min"),
+                   Exercise(name: "Barbell Row", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Seated Cable Row or Machine Row", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "EZ Bar Preacher Curl", sets: "3", reps: "10-12", rest: "1-2 min"),
+                   Exercise(name: "Concentration Curl", sets: "3", reps: "10-12", rest: "1-2 min"),
+                   Exercise(name: "Seated Dumbbell Curl", sets: "5 Minutes", reps: "Burn", rest: "1 min")
+               ]),
+               Session(name: "Chest and Triceps", exercises: [
+                   Exercise(name: "Bench Press", sets: "3", reps: "6-10", rest: "2 min"),
+                   Exercise(name: "Incline Dumbbell Bench Press", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Chest Dip", sets: "3", reps: "AMRAP", rest: "1-2 min"),
+                   Exercise(name: "Cable Crossover or Pec Dec", sets: "3", reps: "12-15", rest: "1-2 min"),
+                   Exercise(name: "Machine Press or Dumbbell Bench Press", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "EZ Bar Skullcrusher", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Two Arm Seated Dumbbell Extension", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Cable Tricep Extension", sets: "5 Minutes", reps: "Burn", rest: "1 min")
+               ]),
+               Session(name: "Quads, Hamstrings, and Calves", exercises: [
+                   Exercise(name: "Squat", sets: "3", reps: "6-10", rest: "2 min"),
+                   Exercise(name: "Leg Press", sets: "3", reps: "15-20", rest: "1-2 min"),
+                   Exercise(name: "Hack Squat or Dumbbell Lunge", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Leg Extension", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "Stiff Leg Deadlift", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Leg Curl", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "Standing Calf Raise", sets: "3", reps: "10-15", rest: "1-2 min"),
+                   Exercise(name: "Seated Calf Raise", sets: "5 Minutes", reps: "Burn", rest: "1 min")
+               ]),
+               Session(name: "Shoulders, Traps, and Forearms", exercises: [
+                   Exercise(name: "Seated Barbell Press", sets: "3", reps: "6-10", rest: "2 min"),
+                   Exercise(name: "Seated Arnold Press", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Dumbbell Lateral Raise", sets: "3", reps: "10-15", rest: "1-2 min"),
+                   Exercise(name: "Hammer Strength Press or Smith Press", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "Upright Row", sets: "3", reps: "8-12", rest: "1-2 min"),
+                   Exercise(name: "Barbell Shrug or Dumbbell Shrug", sets: "5 Minutes", reps: "Burn", rest: "1 min"),
+                   Exercise(name: "Seated Barbell Wrist Curl", sets: "3", reps: "12-15", rest: "1-2 min"),
+                   Exercise(name: "Barbell Static Hold", sets: "5 Minutes", reps: "Hold", rest: "1 min")
+                   ])
+               ])
+           
+       ]
 
     func addWorkoutProgram(title: String) {
         let newProgram = WorkoutProgram(title: title, sessions: [])
@@ -55,8 +153,8 @@ class WorkoutProgramsData: ObservableObject {
         }
     }
 
-    func addExercise(to session: Session, exerciseName: String) {
-        let newExercise = Exercise(name: exerciseName)
+    func addExercise(to session: Session, exerciseName: String, sets: String, reps: String, rest: String) {
+        let newExercise = Exercise(name: exerciseName, sets: sets, reps: reps, rest: rest)
         if let programIndex = workoutPrograms.firstIndex(where: { $0.sessions.contains(where: { $0.id == session.id }) }) {
             if let sessionIndex = workoutPrograms[programIndex].sessions.firstIndex(where: { $0.id == session.id }) {
                 workoutPrograms[programIndex].sessions[sessionIndex].exercises.append(newExercise)
@@ -72,16 +170,17 @@ struct AddWorkoutProgramView: View {
     @State private var programTitle: String = ""
     @State private var sessionName: String = ""
     @State private var exerciseName: String = ""
+    @State private var sets: String = ""
+    @State private var reps: String = ""
+    @State private var rest: String = ""
     @State private var isAddingSession: Bool = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                // Apply gradient background
                 Color.clear
-                    .applyGradientBackground() // Use the gradient background modifier
-                    .edgesIgnoringSafeArea(.all) // Make the gradient fill the entire screen
-
+                    .applyGradientBackground()
+                    .edgesIgnoringSafeArea(.all)
                 Form {
                     Section(header: Text("Workout Program")) {
                         TextField("Program Title", text: $programTitle)
@@ -110,11 +209,14 @@ struct AddWorkoutProgramView: View {
 
                         Section(header: Text("Exercise")) {
                             TextField("Exercise Name", text: $exerciseName)
+                            TextField("Sets", text: $sets)
+                            TextField("Reps", text: $reps)
+                            TextField("Rest", text: $rest)
                             Button("Add Exercise") {
                                 if let lastProgram = workoutProgramsData.workoutPrograms.last,
                                    let lastSession = lastProgram.sessions.last {
                                     if !exerciseName.isEmpty {
-                                        workoutProgramsData.addExercise(to: lastSession, exerciseName: exerciseName)
+                                        workoutProgramsData.addExercise(to: lastSession, exerciseName: exerciseName, sets: sets, reps: reps, rest: rest)
                                         exerciseName = ""
                                         printWorkoutPrograms() // Print all workout programs after adding an exercise
                                     }
@@ -127,12 +229,12 @@ struct AddWorkoutProgramView: View {
                         isAddingSession.toggle()
                     }
                 }
-                .background(Color.clear) // Set the background of the Form to clear
             }
             .navigationTitle("Add Workout Program")
             .navigationBarTitleDisplayMode(.inline) // Optional: Adjust title display mode
         }
     }
+    
     // Function to print all workout programs
     private func printWorkoutPrograms() {
         for program in workoutProgramsData.workoutPrograms {
@@ -210,12 +312,6 @@ struct WorkoutProgramDetailView: View {
             Text(program.title)
                 .font(.title)
 
-            NavigationLink(destination: WeeklyRoutinesView()) {
-                Text("View Weekly Routines")
-                    .font(.headline)
-                    .padding()
-            }
-
             List {
                 ForEach(program.sessions) { session in
                     NavigationLink(destination: SessionDetailView(session: session)) {
@@ -262,16 +358,19 @@ struct SessionDetailView: View {
                         // Ensure WeightInput is defined and accepts the correct parameters
                         WeightInput(
                             Exercise: exercise.name,
-                            WeightLeft: defaults.integer(forKey: exercise.name + "WeightLeft"),
-                            WeightRight: defaults.integer(forKey: exercise.name + "WeightRight"),
-                            Weight: defaults.integer(forKey: exercise.name + "Weight"),
+                            WeightLeft: defaults.string(forKey: exercise.name + "WeightLeft") ?? "",
+                            WeightRight: defaults.string(forKey: exercise.name + "WeightRight") ?? "",
+                            Weight: defaults.string(forKey: exercise.name + "Weight") ?? "",
                             Note: defaults.string(forKey: exercise.name + "Note") ?? "",
+                            Sets: defaults.string(forKey: exercise.name + "Sets") ?? "",
+                            Reps: defaults.string(forKey: exercise.name + "Reps") ?? "",
+                            Rest: defaults.string(forKey: exercise.name + "Rest") ?? "",
                             Iso: false
                         )
                         .padding(.bottom) // Add some spacing between exercises
                     }
                 }
-                .navigationTitle("Exercises")
+                .navigationTitle("Session Detail")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.hidden, for: .navigationBar) // Hide the navigation bar background
                 .padding()
@@ -281,24 +380,11 @@ struct SessionDetailView: View {
     }
 }
 
-// Weekly Routines View
-struct WeeklyRoutinesView: View {
-    var body: some View {
-        Text("Weekly Routines")
-            .font(.largeTitle)
-            .navigationTitle("Weekly Routines")
-            .applyGradientBackground() // Apply the gradient background
-    }
-}
-
 // Preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         // Create an instance of WorkoutProgramsData for the preview
         let workoutProgramsData = WorkoutProgramsData()
-        
-        // Optionally, you can add some sample data to the workoutProgramsData for better preview
-        workoutProgramsData.workoutPrograms.append(WorkoutProgram(title: "Sample Program", sessions: []))
         
         return ContentView()
             .environmentObject(WorkoutHistory()) // Provide a WorkoutHistory instance for the preview
