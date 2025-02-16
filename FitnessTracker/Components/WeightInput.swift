@@ -61,7 +61,7 @@ struct WeightInput: View {
                                 .foregroundColor(Color.white)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(-4)
-                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            TextField("Weight", text: $WeightLeft, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.5)))
                                 // Saves Weight entered on change of TextField
                                 .onChange(of: WeightLeft) {
                                     defaults.set(WeightLeft, forKey: Exercise + "WeightLeft")
@@ -78,7 +78,7 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.white.opacity(0.8))
                                 .padding(-4)
-                            TextField("Weight", text: $WeightRight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            TextField("Weight", text: $WeightRight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.5)))
                             // Saves Weight entered on change of TextField
                                 .onChange(of: WeightRight) {
                                     defaults.set(WeightRight, forKey: Exercise + "WeightRight")
@@ -97,7 +97,7 @@ struct WeightInput: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.white.opacity(0.8))
                                 .padding(-4)
-                            TextField("Weight", text: $Weight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.3)))
+                            TextField("Weight", text: $Weight, prompt: Text("Weight").foregroundColor(Color.white.opacity(0.5)))
                             // Saves Weight entered on change of TextField
                                 .onChange(of: Weight) {
                                     defaults.set(Weight, forKey: Exercise + "Weight")
@@ -121,7 +121,7 @@ struct WeightInput: View {
                             .font(.system(size: 14))
                             .foregroundColor(Color.white.opacity(0.8))
                             .padding(-6)
-                        TextField("Sets", text: $Sets, prompt: Text("Sets").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                        TextField("Sets", text: $Sets, prompt: Text("Sets").foregroundColor(Color.white.opacity(0.5)), axis: .vertical)
                             .onChange(of: Sets){
                                 defaults.set(Sets, forKey: Exercise + "Sets")
                             }
@@ -135,7 +135,7 @@ struct WeightInput: View {
                             .font(.system(size: 14))
                             .foregroundColor(Color.white.opacity(0.8))
                             .padding(-4)
-                        TextField("Reps", text: $Reps, prompt: Text("Reps").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                        TextField("Reps", text: $Reps, prompt: Text("Reps").foregroundColor(Color.white.opacity(0.5)), axis: .vertical)
                             .onChange(of: Reps){
                                 defaults.set(Reps, forKey: Exercise + "Reps")
                             }
@@ -149,7 +149,7 @@ struct WeightInput: View {
                             .font(.system(size: 14))
                             .foregroundColor(Color.white.opacity(0.8))
                             .padding(-6)
-                        TextField("Rest", text: $Rest, prompt: Text("Rest").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                        TextField("Rest", text: $Rest, prompt: Text("Rest").foregroundColor(Color.white.opacity(0.5)), axis: .vertical)
                             .onChange(of: Rest){
                                 defaults.set(Rest, forKey: Exercise + "Rest")
                             }
@@ -171,7 +171,7 @@ struct WeightInput: View {
                     .foregroundColor(Color.white.opacity(0.8))
                     .padding(-4)
                 HStack {
-                    TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.3)), axis: .vertical)
+                    TextField("Note", text: $Note, prompt: Text("Note").foregroundColor(Color.white.opacity(0.5)), axis: .vertical)
                     // Saves Note entered on change of TextField
                         .onChange(of: Note){
                             defaults.set(Note, forKey: Exercise + "Note")
@@ -218,12 +218,12 @@ struct WeightInput: View {
                 }
                 // Displays Exercise weight history for weights
                 HStack {
-                    Text("History")
+                    Text("See History")
                        .font(.headline)
                    Button {
                        ShowHistory.toggle()
                    } label: {
-                       Image(systemName: ShowHistory ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
+                       Image(systemName: ShowHistory ? "eye.slash" : "eye")
                    }
                    .foregroundStyle(.white)
                 }
@@ -271,8 +271,8 @@ struct WeightInput: View {
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 5)
-                        .background(Color.blue)
                         .cornerRadius(10)
+                        .background(Color.blue.opacity(0.8).cornerRadius(10))
 
 //                        .listRowBackground(Color.blue.opacity(0.5))
 //                    }
