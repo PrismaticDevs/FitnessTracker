@@ -31,12 +31,15 @@ struct SessionDetailView: View {
                         .padding(.bottom) // Add some spacing between exercises
                     }
                 }
-                .modifier(NavigationBarModifier())
-                .navigationTitle("Session Detail")
-                .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.hidden, for: .navigationBar) // Hide the navigation bar background
                 .padding()
-                .applyGradientBackground() // Apply the gradient background
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text("Session Detail")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                    }
+                }
             }
         }
     }
