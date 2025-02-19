@@ -12,25 +12,42 @@ struct ContentView: View {
                 Color.clear
                     .applyGradientBackground()
                     .edgesIgnoringSafeArea(.all)
-                List {
-                    ForEach(workoutProgramsData.workoutPrograms) { program in
-                        NavigationLink("\(program.title)", destination: SessionsView(program: program))
-                            .bold()
-                            .font(.system(size: 24))
-                            .padding()
-                            .foregroundColor(.white) // Set text color to white
+                VStack {
+                    HStack {
+                        Text("FitnessTracker")
+                            .foregroundColor(.white)
+                            .font(.title )
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .foregroundColor(.white)
+                            .font(.system(size: 36))
+                        Text("0.1")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
                     }
-                    .listRowBackground(Color.blue)
-                }
-                .background(Color.clear)
-                .padding()
-                .navigationTitle("Programs")
-                .listStyle(PlainListStyle())
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: AddWorkoutProgramView()) {
-                            Text("Add Program") // Text label
-                            Image(systemName: "plus") // Plus icon
+                    .padding(5)
+                    Text("Workout Programs")
+                        .foregroundColor(.white)
+                        .font(.headline)
+                    List {
+                        ForEach(workoutProgramsData.workoutPrograms) { program in
+                            NavigationLink("\(program.title)", destination: SessionsView(program: program))
+                                .bold()
+                                .font(.system(size: 24))
+                                .padding()
+                                .foregroundColor(.white) // Set text color to white
+                        }
+                        .listRowBackground(Color.blue)
+                    }
+                    .background(Color.clear)
+                    .padding()
+//                    .navigationTitle("Programs")
+                    .listStyle(PlainListStyle())
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            NavigationLink(destination: AddWorkoutProgramView()) {
+                                Text("Add Program") // Text label
+                                Image(systemName: "plus") // Plus icon
+                            }
                         }
                     }
                 }
