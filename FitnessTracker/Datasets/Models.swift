@@ -21,19 +21,51 @@ struct Session: Identifiable, Codable {
 }
 
 // Define a WorkoutProgram model
-class WorkoutProgram: Identifiable, ObservableObject {
-    let id = UUID()
-    let title: String
+//class WorkoutProgram: Identifiable, ObservableObject {
+//    let id = UUID()
+//    let title: String
+//    @Published var sessions: [Session]
+//
+//    init(title: String, sessions: [Session]) {
+//        self.title = title
+//        self.sessions = sessions
+//    }
+//}
+
+// Define a WorkoutProgram model
+class WorkoutProgram: Identifiable, Codable, ObservableObject {
+    var id = UUID()
+    var title: String
+    var isStarred: Bool = false
     @Published var sessions: [Session]
 
     init(title: String, sessions: [Session]) {
         self.title = title
         self.sessions = sessions
     }
+
+    enum CodingKeys: String, CodingKey {
+        case title
+        case sessions
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = try container.decode(String.self, forKey: .title)
+        sessions = try container.decode([Session].self, forKey: .sessions)
+        id = UUID() // Generate a new UUID during decoding
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(title, forKey: .title)
+        try container.encode(sessions, forKey: .sessions)
+    }
 }
 
 struct WeightEntry: Codable, Identifiable, Hashable {
     var id = UUID()
+    var isStarred: Bool = false
     var exercise: String
     var date: Date
     var weight: String

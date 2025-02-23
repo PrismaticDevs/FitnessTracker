@@ -28,7 +28,10 @@ struct SessionDetailView: View {
                             Rest: defaults.string(forKey: exercise.name + "Rest") ?? "",
                             Iso: false
                         )
-                        .padding(.bottom) // Add some spacing between exercises
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding() // Add some spacing between exercises
+//                        .background(Color.blue.opacity(0.5))
+//                        .cornerRadius(10)
                     }
                 }
                 .toolbarBackground(.hidden, for: .navigationBar) // Hide the navigation bar background

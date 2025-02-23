@@ -29,15 +29,26 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .font(.headline)
                     List {
-                        ForEach(workoutProgramsData.workoutPrograms) { program in
-                            NavigationLink("\(program.title)", destination: SessionsView(program: program))
-                                .bold()
-                                .font(.system(size: 24))
-                                .padding()
-                                .foregroundColor(.white) // Set text color to white
-                        }
-                        .listRowBackground(Color.blue)
-                    }
+                                       Section(header: Text("Starred Programs")) {
+                                           ForEach(workoutProgramsData.starredPrograms) { program in
+                                               NavigationLink("\(program.title)", destination: SessionsView(program: program))
+                                                   .bold()
+                                                   .font(.system(size: 24))
+                                                   .padding()
+                                           }
+                                           .listRowBackground(Color.blue)
+                                       }
+                                       
+                                       Section(header: Text("All Programs")) {
+                                           ForEach(workoutProgramsData.workoutPrograms) { program in
+                                               NavigationLink("\(program.title)", destination: SessionsView(program: program))
+                                                   .bold()
+                                                   .font(.system(size: 24))
+                                                   .padding()
+                                           }
+                                           .listRowBackground(Color.blue)
+                                       }
+                                   }
                     .background(Color.clear)
                     .padding()
 //                    .navigationTitle("Programs")

@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-// Workout Program Detail View
 struct SessionsView: View {
     @ObservedObject var program: WorkoutProgram
     @EnvironmentObject var workoutHistory: WorkoutHistory
+    @EnvironmentObject var workoutProgramsData: WorkoutProgramsData
+    @State private var showDeleteConfirmation: Bool = false
 
     var body: some View {
         VStack {
@@ -38,6 +39,25 @@ struct SessionsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Sessions")
         .applyGradientBackground() // Apply the gradient background
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    // Toggle the isStarred property
+                    program.isStarred.toggle()
+                    
+                    if let index = workoutProgramsData.starredPrograms.firstIndex(where: { $0.id == program.id}) {
+                        workoutProgramsData.workoutPrograms[index].isStarred = program.isStarred
+                    }
+                    
+                    workoutProgramsData.updateStarredPrograms()
+                    workoutProgramsData.saveWorkoutProgram(program: program)
+                    print(workoutProgramsData.starredPrograms.count)
+                }) {
+                    Image(systemName: program.isStarred ? "star.fill" : "star")
+                        .foregroundColor(.yellow)
+                }
+            }
+        }
     }
 }
 

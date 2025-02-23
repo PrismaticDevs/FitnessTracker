@@ -10,9 +10,27 @@ import SwiftUI
 // Global data for workout programs
 class WorkoutProgramsData: ObservableObject {
     @Published var workoutPrograms: [WorkoutProgram] = []
+    @Published var starredPrograms: [WorkoutProgram] = []
+        
     init() {
            loadInitialPrograms()
+           loadWorkoutPrograms()
        }
+    
+    
+    func updateStarredPrograms(completion: (() -> Void)? = nil) {
+        starredPrograms = workoutPrograms.filter { $0.isStarred }
+        completion?()
+    }
+
+        func loadWorkoutPrograms() {
+            if let savedPrograms = UserDefaults.standard.data(forKey: "workoutPrograms") {
+                let decoder = JSONDecoder()
+                if let loadedPrograms = try? decoder.decode([WorkoutProgram].self, from: savedPrograms) {
+                    workoutPrograms = loadedPrograms
+                }
+            }
+        }
 
        private func loadInitialPrograms() {
            let initialPrograms: [(String, [(String, [String])])] = [
@@ -45,18 +63,8 @@ class WorkoutProgramsData: ObservableObject {
            }
        }
 
-    func addWorkoutProgram(title: String) {
-        let newProgram = WorkoutProgram(title: title, sessions: [])
+    func saveWorkoutProgram(program: WorkoutProgram) {
+        let newProgram = WorkoutProgram(title: "", sessions: [])
         workoutPrograms.append(newProgram)
-    }
-
-    func addSession(to program: inout WorkoutProgram, sessionName: String) {
-        let session = Session(id: UUID(), name: sessionName, exercises: [])
-        program.sessions.append(session)
-    }
-
-    func addExercise(to session: inout Session, exerciseName: String, sets: String, reps: String, rest: String) {
-        let exercise = Exercise(name: exerciseName)
-        session.exercises.append(exercise)
     }
 }

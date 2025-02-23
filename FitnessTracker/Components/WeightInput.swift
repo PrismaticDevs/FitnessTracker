@@ -34,7 +34,7 @@ struct WeightInput: View {
                     .frame(minWidth: 100, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
-                    if (Iso == false) {
+                    if (!Iso) {
 //                        Text("Weight")
 //                            .font(.system(size: 14))
                         Button {
@@ -45,7 +45,7 @@ struct WeightInput: View {
                                 .foregroundColor(Color.white)
                         }
                     }
-                    if (Iso == true) {
+                    if (Iso) {
                         Button {
                             Iso = false
                         } label: {
@@ -54,7 +54,7 @@ struct WeightInput: View {
                         }
                     }
                     // Isolated Left and Right Weight entries
-                    if (Iso == true) {
+                    if (Iso) {
                         VStack {
                             Text("Left")
                                 .font(.system(size: 14))
@@ -91,7 +91,7 @@ struct WeightInput: View {
                         }
                     }
                     // Singular weight entry
-                    if (Iso == false) {
+                    if (!Iso) {
                         VStack {
                             Text("Weight")
                                 .font(.system(size: 14))
@@ -158,8 +158,7 @@ struct WeightInput: View {
                             .background(Color.blue.opacity(0.8).cornerRadius(10))
                             .foregroundColor(Color.white)
                     }
-                    
-                    
+
                 }
                 .padding(0)
             }
@@ -180,6 +179,7 @@ struct WeightInput: View {
                         .padding(10)
                         .background(Color.blue.opacity(0.8).cornerRadius(10))
                         .foregroundColor(Color.white)
+//                        .shadow(color: Color.black.opacity(0.8), radius: 1, x: 0, y: 3)
                     // Overlayed Button to clear Note TextField
                         .overlay(
                             Button(action: {
@@ -205,12 +205,11 @@ struct WeightInput: View {
                     Text("Save")
                         .font(.headline)
                     Button {
+                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: Date(), weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, sets: $Sets.wrappedValue, reps: $Reps.wrappedValue, rest: $Rest.wrappedValue, note: $Note.wrappedValue)
+                        workoutHistory.history.append(newEntry)
                         if let encoded = try? JSONEncoder().encode(workoutHistory) {
                                             defaults.set(encoded, forKey: "History\(id)")
                                          }
-                        
-                        let newEntry = WeightEntry(exercise: $Exercise.wrappedValue, date: Date(), weight: $Weight.wrappedValue, left: $WeightLeft.wrappedValue, right: $WeightRight.wrappedValue, sets: $Sets.wrappedValue, reps: $Reps.wrappedValue, rest: $Rest.wrappedValue, note: $Note.wrappedValue)
-                        workoutHistory.history.append(newEntry)
                     } label: {
                         Image(systemName: "square.and.arrow.down")
                     }
@@ -273,6 +272,8 @@ struct WeightInput: View {
                         .padding(.vertical, 5)
                         .cornerRadius(10)
                         .background(Color.blue.opacity(0.8).cornerRadius(10))
+//                        .shadow(color: Color.black.opacity(0.8), radius: 1, x: 0, y: 3)
+
 
 //                        .listRowBackground(Color.blue.opacity(0.5))
 //                    }

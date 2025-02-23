@@ -8,12 +8,20 @@
 import SwiftUI
 
 struct ExerciseToolbar: View {
+    @Binding var exerciseName: String
+    var onExerciseSelected: (String) -> Void
+    
+    // Create a single instance of ExerciseList
+    @State private var exerciseList = ExerciseList()
+    
     var body: some View {
         Menu {
+            // Abdominals Menu
             Menu {
-                ForEach(ExerciseList().Abdominals, id: \.self) { exercise in
+                ForEach(exerciseList.Abdominals, id: \.self) { exercise in
                     Button {
-                        print(exercise)
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
                     } label: {
                         Label(exercise, systemImage: "plus.circle.fill")
                     }
@@ -21,10 +29,13 @@ struct ExerciseToolbar: View {
             } label: {
                 Text("Abdominals")
             }
+            
+            // Arms Menu
             Menu {
-                ForEach(ExerciseList().Arms, id: \.self) { exercise in
+                ForEach(exerciseList.Arms, id: \.self) { exercise in
                     Button {
-                        print(exercise)
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
                     } label: {
                         Label(exercise, systemImage: "plus.circle.fill")
                     }
@@ -32,21 +43,27 @@ struct ExerciseToolbar: View {
             } label: {
                 Text("Arms")
             }
+            
+            // Chest Menu
             Menu {
-                ForEach(ExerciseList().Chest, id: \.self) { exercise in
+                ForEach(exerciseList.Chest, id: \.self) { exercise in
                     Button {
-                        print(exercise)
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
                     } label: {
                         Label(exercise, systemImage: "plus.circle.fill")
                     }
                 }
             } label: {
-               Text("Chest")
+                Text("Chest")
             }
+            
+            // Shoulders Menu
             Menu {
-                ForEach(ExerciseList().Shoulders, id: \.self) { exercise in
+                ForEach(exerciseList.Shoulders, id: \.self) { exercise in
                     Button {
-                        print(exercise)
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
                     } label: {
                         Label(exercise, systemImage: "plus.circle.fill")
                     }
@@ -54,16 +71,61 @@ struct ExerciseToolbar: View {
             } label: {
                 Text("Shoulders")
             }
+            
+            // Legs Menu
             Menu {
-                ForEach(ExerciseList().Legs, id: \.self) { exercise in
+                ForEach(exerciseList.Legs, id: \.self) { exercise in
                     Button {
-                        print(exercise)
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
                     } label: {
                         Label(exercise, systemImage: "plus.circle.fill")
                     }
                 }
             } label: {
                 Text("Legs")
+            }
+            
+            // Back Menu
+            Menu {
+                ForEach(exerciseList.Back, id: \.self) { exercise in
+                    Button {
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
+                    } label: {
+                        Label(exercise, systemImage: "plus.circle.fill")
+                    }
+                }
+            } label: {
+                Text("Back")
+            }
+            
+            // Full Body Menu
+            Menu {
+                ForEach(exerciseList.FullBody, id: \.self) { exercise in
+                    Button {
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
+                    } label: {
+                        Label(exercise, systemImage: "plus.circle.fill")
+                    }
+                }
+            } label: {
+                Text("Full Body")
+            }
+            
+            // Cardio Menu
+            Menu {
+                ForEach(exerciseList.Cardio, id: \.self) { exercise in
+                    Button {
+                        exerciseName = exercise
+                        onExerciseSelected(exercise)
+                    } label: {
+                        Label(exercise, systemImage: "plus.circle.fill")
+                    }
+                }
+            } label: {
+                Text("Cardio")
             }
         } label: {
             Label("Add Exercise", systemImage: "plus.circle.fill")
@@ -73,5 +135,5 @@ struct ExerciseToolbar: View {
 }
 
 #Preview {
-    ExerciseToolbar()
+    ExerciseToolbar(exerciseName: .constant(""), onExerciseSelected: { _ in })
 }
