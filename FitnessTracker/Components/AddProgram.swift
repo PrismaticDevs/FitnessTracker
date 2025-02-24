@@ -43,10 +43,7 @@ struct AddWorkoutProgramView: View {
                                     .padding(.top)
                                 
                                 // Create a binding for the session name
-                                TextField("Session Name", text: Binding(
-                                    get: { newSessions[index].name },
-                                    set: { newSessions[index].name = $0 }
-                                ))
+                                TextField("Session Name", text: $newSessions[index].name)
                                 .onChange(of: newSessions[index].name) { newValue, oldValue in
                                         // Update the session name directly in the array
                                         newSessions[index].name = newValue
@@ -127,6 +124,7 @@ struct AddWorkoutProgramView: View {
                         Button(action: {
 //                            createWorkoutProgram() // Call createWorkoutProgram when the button is pressed
                             saveWorkoutProgram()
+//                            navigateToContentView.toggle()
                         }) {
                             Text("Create")
                                 .foregroundColor(.white)
@@ -171,20 +169,24 @@ struct AddWorkoutProgramView: View {
     
     private func saveWorkoutProgram() {
         // Create a new WorkoutProgram instance
-        let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
-
-        if !programTitle.isEmpty {
-            // Add the new program to the workoutProgramsData
-            workoutProgramsData.workoutPrograms.append(newProgram)
-            
-            // Encode the workoutPrograms array to JSON
-            let encoder = JSONEncoder()
-            if let encoded = try? encoder.encode(workoutProgramsData.workoutPrograms) {
-                // Save the JSON data to UserDefaults
-                UserDefaults.standard.set(encoded, forKey: "workoutPrograms")
-            }
-        } else {
+        guard !programTitle.isEmpty, !newSessions.isEmpty else {
             showAlert = true
+            return
+        }
+        
+        let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
+        
+        // Add the new program to the workoutProgramsData
+        workoutProgramsData.workoutPrograms.append(newProgram)
+        
+        // Encode the workoutPrograms array to JSON
+        let encoder = JSONEncoder()
+        do {
+            let encoded = try encoder.encode(workoutProgramsData.workoutPrograms)
+            // Save the JSON data to UserDefaults
+            UserDefaults.standard.set(encoded, forKey: "workoutPrograms")
+        } catch {
+            print("Error encoding workout programs: \(error)")
         }
         
         print(workoutProgramsData.workoutPrograms.count)

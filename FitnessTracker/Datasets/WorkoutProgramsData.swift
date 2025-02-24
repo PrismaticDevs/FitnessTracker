@@ -11,6 +11,7 @@ import SwiftUI
 class WorkoutProgramsData: ObservableObject {
     @Published var workoutPrograms: [WorkoutProgram] = []
     @Published var starredPrograms: [WorkoutProgram] = []
+    
         
     init() {
            loadInitialPrograms()
@@ -64,7 +65,34 @@ class WorkoutProgramsData: ObservableObject {
        }
 
     func saveWorkoutProgram(program: WorkoutProgram) {
-        let newProgram = WorkoutProgram(title: "", sessions: [])
-        workoutPrograms.append(newProgram)
+        objectWillChange.send()
+        if let index = workoutPrograms.firstIndex(where: { $0.id == program.id }) {
+            workoutPrograms[index] = program
+        } else {
+            workoutPrograms.append(program)
+        }
+        // Save the updated workoutPrograms array to UserDefaults
+        let encoder = JSONEncoder()
+        do {
+            let encodedPrograms = try encoder.encode(workoutPrograms)
+            UserDefaults.standard.set(encodedPrograms, forKey: "workoutPrograms")
+        } catch {
+            print("Error saving workout programs: \(error)")
+        }
+    }
+
+    func deleteProgram(program: WorkoutProgram) {
+        objectWillChange.send()
+        if let index = workoutPrograms.firstIndex(where: { $0.id == program.id }) {
+            workoutPrograms.remove(at: index)
+        }
+        // Save the updated workoutPrograms array to UserDefaults
+        let encoder = JSONEncoder()
+        do {
+            let encodedPrograms = try encoder.encode(workoutPrograms)
+            UserDefaults.standard.set(encodedPrograms, forKey: "workoutPrograms")
+        } catch {
+            print("Error saving workout programs: \(error)")
+        }
     }
 }

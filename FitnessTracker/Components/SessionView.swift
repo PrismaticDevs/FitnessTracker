@@ -8,16 +8,18 @@
 import SwiftUI
 
 struct SessionsView: View {
-    @ObservedObject var program: WorkoutProgram
+    @Environment(\.presentationMode) var presentationMode
+    @StateObject var program: WorkoutProgram
     @EnvironmentObject var workoutHistory: WorkoutHistory
     @EnvironmentObject var workoutProgramsData: WorkoutProgramsData
     @State private var showDeleteConfirmation: Bool = false
-
+    @State private var confirmDeletion: Bool = false
+    
     var body: some View {
         VStack {
             Text(program.title)
                 .font(.title)
-
+            
             List {
                 ForEach(program.sessions) { session in
                     NavigationLink(destination: SessionDetailView(session: session)) {
@@ -41,21 +43,45 @@ struct SessionsView: View {
         .applyGradientBackground() // Apply the gradient background
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    // Toggle the isStarred property
-                    program.isStarred.toggle()
-                    
-                    if let index = workoutProgramsData.starredPrograms.firstIndex(where: { $0.id == program.id}) {
-                        workoutProgramsData.workoutPrograms[index].isStarred = program.isStarred
+                    HStack {
+                        Button {
+                            if let index = workoutProgramsData.workoutPrograms.firstIndex(where: { $0.id == program.id }) {
+                                let updatedProgram = workoutProgramsData.workoutPrograms[index]
+                                updatedProgram.isStarred.toggle()
+                                print(updatedProgram.isStarred, 50)
+                            }
+                            workoutProgramsData.updateStarredPrograms()
+                        } label: {
+                            Image(systemName: program.isStarred ? "star.fill" : "star")
+                                .foregroundColor(.yellow)
+                        }
+                        Button(role: .destructive) {
+                            showDeleteConfirmation.toggle()
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
                     }
-                    
-                    workoutProgramsData.updateStarredPrograms()
-                    workoutProgramsData.saveWorkoutProgram(program: program)
-                    print(workoutProgramsData.starredPrograms.count)
-                }) {
-                    Image(systemName: program.isStarred ? "star.fill" : "star")
-                        .foregroundColor(.yellow)
                 }
+        }
+        .confirmationDialog("Delete Program", isPresented: $showDeleteConfirmation) {
+            Button(role: .destructive) {
+                confirmDeletion = true
+            } label: {
+                Text("Delete")
+            }
+            Button(role: .cancel) {
+                showDeleteConfirmation = false
+            } label: {
+                Text("Cancel")
+            }
+        } message: {
+            Text("Are you sure you want to delete this program?")
+        }
+        .onChange(of: confirmDeletion) {
+            if confirmDeletion {
+                workoutProgramsData.deleteProgram(program: program)
+                presentationMode.wrappedValue.dismiss()
             }
         }
     }

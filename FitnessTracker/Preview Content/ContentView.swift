@@ -29,33 +29,33 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .font(.headline)
                     List {
-                                       Section(header: Text("Starred Programs")) {
-                                           ForEach(workoutProgramsData.starredPrograms) { program in
-                                               NavigationLink("\(program.title)", destination: SessionsView(program: program))
-                                                   .bold()
-                                                   .font(.system(size: 24))
-                                                   .padding()
-                                           }
-                                           .listRowBackground(Color.blue)
-                                       }
-                                       
-                                       Section(header: Text("All Programs")) {
-                                           ForEach(workoutProgramsData.workoutPrograms) { program in
-                                               NavigationLink("\(program.title)", destination: SessionsView(program: program))
-                                                   .bold()
-                                                   .font(.system(size: 24))
-                                                   .padding()
-                                           }
-                                           .listRowBackground(Color.blue)
-                                       }
-                                   }
+                           Section(header: Text("Starred Programs")) {
+                               ForEach(workoutProgramsData.starredPrograms) { program in
+                                   NavigationLink("\(program.title)", destination: SessionsView(program: program))
+                                       .bold()
+                                       .font(.system(size: 24))
+                                       .padding()
+                               }
+                               .listRowBackground(Color.blue)
+                           }
+                           
+                           Section(header: Text("All Programs")) {
+                               ForEach(workoutProgramsData.workoutPrograms) { program in
+                                   NavigationLink("\(program.title)", destination: SessionsView(program: program))
+                                       .bold()
+                                       .font(.system(size: 24))
+                                       .padding()
+                               }
+                               .listRowBackground(Color.blue)
+                           }
+                       }
                     .background(Color.clear)
                     .padding()
 //                    .navigationTitle("Programs")
                     .listStyle(PlainListStyle())
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
-                            NavigationLink(destination: AddWorkoutProgramView()) {
+                            NavigationLink(destination: AddWorkoutProgramView().environmentObject(workoutProgramsData)) {
                                 Text("Add Program") // Text label
                                 Image(systemName: "plus") // Plus icon
                             }
