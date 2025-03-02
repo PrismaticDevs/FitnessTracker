@@ -10,13 +10,11 @@ import SwiftUI
 
 struct Auth: View {
     @State private var isUnlocked = false
-    @EnvironmentObject var workoutHistory: WorkoutHistory
     
     var body: some View {
         VStack {
             if isUnlocked {
-                ProgramMenu()
-                    .environmentObject(workoutHistory)
+                ContentView()
             } else {
                 Text("Must  Authenticate")
                 Button("Retry", action: { authenticate() })
@@ -54,5 +52,4 @@ struct Auth: View {
 
 #Preview {
     Auth()
-        .environmentObject(WorkoutHistory())
 }

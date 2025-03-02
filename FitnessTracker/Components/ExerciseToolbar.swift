@@ -8,62 +8,27 @@
 import SwiftUI
 
 struct ExerciseToolbar: View {
+    @Environment(\.modelContext) var context
+    @Binding var exerciseName: String
+    var exercisesSelected: [String]
+    var onExerciseSelected: (String) -> Void
+    @State private var exerciseList = ExerciseList()
+
     var body: some View {
         Menu {
-            Menu {
-                ForEach(ExerciseList().Abdominals, id: \.self) { exercise in
-                    Button {
-                        print(exercise)
-                    } label: {
-                        Label(exercise, systemImage: "plus.circle.fill")
+            ForEach(exerciseList.categories) { category in
+                Menu {
+                    ForEach(category.exercises, id: \.id) { exercise in
+                        Button {
+                            exerciseName = exercise.name
+                            onExerciseSelected(exercise.name)
+                        } label: {
+                            Label(exercise.name, systemImage: "plus.circle.fill")
+                        }
                     }
+                } label: {
+                    Text(category.name) // Use the category name for the menu label
                 }
-            } label: {
-                Text("Abdominals")
-            }
-            Menu {
-                ForEach(ExerciseList().Arms, id: \.self) { exercise in
-                    Button {
-                        print(exercise)
-                    } label: {
-                        Label(exercise, systemImage: "plus.circle.fill")
-                    }
-                }
-            } label: {
-                Text("Arms")
-            }
-            Menu {
-                ForEach(ExerciseList().Chest, id: \.self) { exercise in
-                    Button {
-                        print(exercise)
-                    } label: {
-                        Label(exercise, systemImage: "plus.circle.fill")
-                    }
-                }
-            } label: {
-               Text("Chest")
-            }
-            Menu {
-                ForEach(ExerciseList().Shoulders, id: \.self) { exercise in
-                    Button {
-                        print(exercise)
-                    } label: {
-                        Label(exercise, systemImage: "plus.circle.fill")
-                    }
-                }
-            } label: {
-                Text("Shoulders")
-            }
-            Menu {
-                ForEach(ExerciseList().Legs, id: \.self) { exercise in
-                    Button {
-                        print(exercise)
-                    } label: {
-                        Label(exercise, systemImage: "plus.circle.fill")
-                    }
-                }
-            } label: {
-                Text("Legs")
             }
         } label: {
             Label("Add Exercise", systemImage: "plus.circle.fill")
@@ -73,5 +38,11 @@ struct ExerciseToolbar: View {
 }
 
 #Preview {
-    ExerciseToolbar()
+    ExerciseToolbar(
+        exerciseName: .constant(""), // Example binding
+        exercisesSelected: ["Push Up", "Squat"], // Example selected exercises
+        onExerciseSelected: { selectedExercise in
+            print("Selected exercise: \(selectedExercise)") // Example action
+        }
+    )
 }
