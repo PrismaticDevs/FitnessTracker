@@ -3,6 +3,7 @@ import SwiftData
 
 struct AddWorkoutProgramView: View {
     @Environment(\.modelContext) var context
+    @Environment(\.dismiss) var dismiss
     @State private var programTitle: String = ""
     @State private var newSessions: [Session] = []
     @State private var selectedExercises: [Exercise] = []
@@ -183,7 +184,8 @@ struct AddWorkoutProgramView: View {
         
         // Navigate to the content view
         navigateToContentView = true
-    } 
+//        dismiss()
+    }
 }
 
 #Preview {

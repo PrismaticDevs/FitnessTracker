@@ -31,22 +31,25 @@ struct ContentView: View {
                         .padding(0)
                         .foregroundColor(Color.white)
                     List {
-                        ForEach(programs) { program in
+                        ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
                             NavigationLink(destination: SessionsView(program: program)) {
-                                Text(program.title)
-                                    .bold()
-                                    .font(.system(size: 24))
-                                    .padding()
-                                    .foregroundColor(.white) // Change text color to white for better contrast
+                                HStack {
+                                    Text(program.title)
+                                    if program.starred {
+                                        Image(systemName: "star.fill")
+                                            .foregroundColor(.yellow)
+                                    }
+                                }
                             }
-                            .listRowBackground(Color.blue) // Set the background color for the entire row
+                            .listRowBackground(Color.blue)
+                            .padding()
                         }
                     }
                     .scrollContentBackground(.hidden)
                     .padding()
                 }
             }
-            .navigationTitle("Programs")
+            .navigationTitle("Your Programs")
             .navigationBarTitleTextColor(.white)
             .applyGradientBackground()
             .overlay {

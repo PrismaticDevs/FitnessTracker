@@ -54,11 +54,13 @@ class WorkoutProgram  {
     var id: UUID
     var title: String
     var sessions: [Session]
+    var starred: Bool = false
 
     init(title: String, sessions: [Session]) {
         self.id = UUID()
         self.title = title
         self.sessions = sessions
+        self.starred = false
     }
 }
 

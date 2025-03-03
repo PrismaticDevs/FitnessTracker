@@ -15,25 +15,18 @@ struct SessionDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                VStack {
-                    Text("\(session.name)")
-                        .font(.title)
-                    ForEach(session.exercises) { exercise in
-//                        WeightEntryView(exercise: exercise.name,
-//                                    weight: 0,
-//                                    left: 0,
-//                                    right: 0,
-//                                    sets: "",
-//                                    reps: "",
-//                                    rest: "",
-//                                    note: "")
-                        Text("\(exercise.name)")
+                ScrollView {
+                    VStack {
+                        ForEach(session.exercises) { exercise in
+                            WeightEntryView(exercise: exercise.name, weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "")
+                        }
                     }
                 }
+                .padding(.top, 16)
             }
             .applyGradientBackground()
         }
-        .navigationTitle("Session Detail")
+        .navigationTitle("\(session.name) Exercises")
         .modifier(NavigationBarModifier())
     }
 }

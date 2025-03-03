@@ -10,73 +10,168 @@ import SwiftData
 
 struct WeightEntryView: View {
     @Environment(\.modelContext) var context
-    @Binding var exercise: String
-    @State private var weight: String = ""
-    @State private var left: String = ""
-    @State private var right: String = ""
-    @State private var sets: String = ""
-    @State private var reps: String = ""
-    @State private var rest: String = ""
-    @State private var note: String = ""
-    @State private var date: Date = Date()
-    @State private var iso: Bool = false
-    @State private var itemToDelete: WeightEntry?
-    @State private var showConfirmationDialogue = false
+    var exercise: String
+    @State var weight: Int = 0
+    @State var left: Int = 0
+    @State var right: Int = 0
+    @State var sets: String = ""
+    @State var reps: String = ""
+    @State var rest: String = ""
+    @State var note: String = ""
+    @State var date: Date = Date()
+    @State var iso: Bool = false
+    @State var itemToDelete: WeightEntry?
+    @State var showConfirmationDialogue = false
+    @State var showHistory: Bool = false
+    @State private var weightInput: String = ""
+    @State private var leftInput: String = ""
+    @State private var rightInput: String = ""
 
     var body: some View {
-        Form {
-            Section(header: Text("Weight Entry")) {
-                HStack {
-                    Text(exercise)
-                        .foregroundColor(.white)
-                        .padding()
-                        .font(.headline)
-                        .frame(width: 100, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
+        VStack {
+            Section {
+                Section {
+                    HStack {
+                        Text(exercise)
+                            .foregroundColor(.white)
+                            .padding()
+                            .font(.headline)
+                        if (iso) {
+                            Button {
+                                iso = false
+                            } label: {
+                                Image(systemName: "arrow.right.and.line.vertical.and.arrow.left")
+                                    .foregroundColor(Color.white)
+                            }
+                        } else {
+                            Button {
+                                iso = true
+                            } label: {
+                                Image(systemName: "arrow.left.and.line.vertical.and.arrow.right")
+                                    .foregroundColor(Color.white)
+                            }
+                        }
+                        
+                        if iso {
+                            VStack {
+                                
+                                HStack {
+                                    VStack {
+                                        Text("Left")
+                                            .padding(-4)
+                                            .font(.subheadline)
+                                        TextField("Left Weight", text: $leftInput, prompt: Text("Weight Left").foregroundColor(.white))
+                                            .padding()
+                                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                            .keyboardType(.numberPad)
+                                    }
+                                    VStack {
+                                        Text("Right")
+                                            .padding(-4)
+                                            .font(.subheadline)
+                                        TextField("Right Weight", text: $rightInput, prompt: Text("Right Weight").foregroundColor(.white))
+                                            .padding().background(Color.blue.opacity(0.8).cornerRadius(10))
+                                            .keyboardType(.numberPad)
+                                    }
+                                }
+                            }
+                        } else {
+                            VStack {
+                                Text("Weight").font(.subheadline)
+                                    .padding(-4)
+                                TextField("Weight", text: $weightInput, prompt: Text("Weight").foregroundColor(.white))
+                                    .padding()
+                                    .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                    .keyboardType(.numberPad)
+                            }
+                        }
+                    }
                     
-                    if iso {
-                        HStack {
-                            TextField("Left Weight", text: $left)
-                                .keyboardType(.numberPad)
-                            TextField("Right Weight", text: $right)
+                    HStack {
+                        VStack {
+                            Text("Sets")
+                                .padding(-4)
+                                .font(.subheadline)
+                            TextField("Sets", text: $sets, prompt: Text("Sets").foregroundColor(.white))
+                                .padding()
+                                .background(Color.blue.opacity(0.8).cornerRadius(10))
                                 .keyboardType(.numberPad)
                         }
-                    } else {
-                        TextField("Weight", text: $weight)
-                            .keyboardType(.numberPad)
+                        VStack {
+                            Text("Reps")
+                                .padding(-4)
+                                .font(.subheadline)
+                            TextField("Reps", text: $reps, prompt: Text("Reps").foregroundColor(.white))
+                                .padding() .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .keyboardType(.numberPad)
+                        }
+                        VStack {
+                            Text("Rest")
+                                .padding(-4)
+                                .font(.subheadline)
+                            TextField("Rest (sec)", text: $rest, prompt: Text("Rest (sec)").foregroundColor(.white))
+                                .padding()
+                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .keyboardType(.numberPad)
+                        }
+                    }
+                    Section {
+                        Text("Note")
+                            .padding(-4)
+                            .font(.subheadline)
+                        TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white))
+                            .padding()
+                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .lineLimit(1...4)
+                        
                     }
                 }
+                .listRowInsets(EdgeInsets()) // Remove default insets
                 
-                HStack {
-                    TextField("Sets", text: $sets)
-                        .keyboardType(.numberPad)
-                    TextField("Reps", text: $reps)
-                        .keyboardType(.numberPad)
-                    TextField("Rest (sec)", text: $rest)
-                        .keyboardType(.numberPad)
-                }
-                
-                TextField("Note", text: $note)
-            }
-            
-            HStack {
-                Text("Save")
-                Section {
-                    Button {
-                        saveEntry()
-                    } label: {
-                        Image(systemName: "square.and.arrow.down")
+                Section(header: Text("History").foregroundColor(.white).padding(-4)) {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text("See History")
+                            Button {
+                                saveEntry()
+                                showHistory.toggle()
+                            } label: {
+                                Image(systemName: showHistory ? "eye.slash" : "eye")
+                            }
+                            Spacer()
+                            Text("Save")
+                            Button {
+                                saveEntry()
+                            } label: {
+                                Image(systemName: "square.and.arrow.down")
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        if showHistory {
+                            List {
+                                
+                            }
+                            .listStyle(PlainListStyle())
+                        }
                     }
+                    .background(Color.blue.opacity(0.8).cornerRadius(10))
                 }
+                .listRowInsets(EdgeInsets())
+                .background(Color.clear)
             }
+            .background(Color.clear)
         }
-        .navigationTitle("Add Weight Entry")
+        .background(.clear)
+        .padding()
+        .cornerRadius(15)
     }
 
-    private func saveEntry() {
-        guard let weightValue = Int(weight),
-              let leftValue = Int(left),
-              let rightValue = Int(right) else {
+     func saveEntry() {
+        guard let weightValue = Int(weightInput),
+              let leftValue = Int(leftInput),
+              let rightValue = Int(rightInput) else {
             // Handle invalid input
             return
         }
@@ -98,11 +193,11 @@ struct WeightEntryView: View {
         resetFields()
     }
     
-    private func resetFields() {
-        exercise = ""
-        weight = ""
-        left = ""
-        right = ""
+     func resetFields() {
+//        exercise = ""
+        weight = 0
+        left = 0
+        right = 0
         sets = ""
         reps = ""
         rest = ""
@@ -111,5 +206,5 @@ struct WeightEntryView: View {
 }
 
 #Preview {
-    WeightEntryView(exercise: .constant("pushups"))
+    WeightEntryView(exercise: "Shest Press",iso: true)
 }
