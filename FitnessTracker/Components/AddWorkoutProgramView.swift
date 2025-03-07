@@ -150,6 +150,7 @@ struct AddWorkoutProgramView: View {
     }
     
     private func deleteSession(at index: Int) {
+        guard index < newSessions.count else { return }
         newSessions.remove(at: index)
     }
     
@@ -165,26 +166,17 @@ struct AddWorkoutProgramView: View {
     private func saveWorkoutProgram() {
         print("test")
         // Ensure the program title and sessions are not empty
-        guard !programTitle.isEmpty, !newSessions.isEmpty else {
-            showAlert = true
-            return
-        }
+        guard !programTitle.isEmpty, !newSessions.isEmpty else { return }
         
-        // Create a new WorkoutProgram instance
         let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
-        
-        // Add the new program to the context for saving
         context.insert(newProgram)
-        print("saved new program")
-        print(newProgram)
-        
-        // Optionally reset the fields
-        programTitle = ""
-        newSessions = []
-        
-        // Navigate to the content view
-        navigateToContentView = true
-//        dismiss()
+
+        do {
+            try context.save()
+            dismiss()
+        } catch {
+            print("Failed to save context: \(error)")
+        }
     }
 }
 

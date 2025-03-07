@@ -68,7 +68,7 @@ class WorkoutProgram  {
 class WeightEntry {
     var id: UUID
     var exercise: String
-//    var date: Date
+    var date: Date
     var weight: Int
     var left: Int
     var right: Int
@@ -77,9 +77,10 @@ class WeightEntry {
     var rest: String
     var note: String
     
-    init(exercise: String, weight: Int, left: Int, right: Int, sets: String, reps: String, rest: String, note: String) {
+    init(exercise: String, date: Date, weight: Int, left: Int, right: Int, sets: String, reps: String, rest: String, note: String) {
         self.id = UUID()
         self.exercise = exercise
+        self.date = date
         self.weight = weight
         self.left = left
         self.right = right
@@ -87,5 +88,20 @@ class WeightEntry {
         self.reps = ""
         self.rest = ""
         self.note = note
+    }
+}
+
+@Model
+class WorkoutHistory {
+    var id: UUID
+    var program: String
+    var date: Date
+    var exercises: [WeightEntry] = []
+    
+    init(program: String, date: Date, note: String) {
+        self.id = UUID()
+        self.date = date
+        self.program = program
+        self.exercises = []
     }
 }

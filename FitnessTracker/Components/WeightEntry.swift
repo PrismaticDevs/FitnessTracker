@@ -11,6 +11,7 @@ import SwiftData
 struct WeightEntryView: View {
     @Environment(\.modelContext) var context
     var exercise: String
+    @State var workoutHistory: [WeightEntry] = []
     @State var weight: Int = 0
     @State var left: Int = 0
     @State var right: Int = 0
@@ -26,6 +27,12 @@ struct WeightEntryView: View {
     @State private var weightInput: String = ""
     @State private var leftInput: String = ""
     @State private var rightInput: String = ""
+    
+    private var dateFormatter: DateFormatter {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd/yyyy HH:mm"
+            return formatter
+        }
 
     var body: some View {
         VStack {
@@ -149,12 +156,36 @@ struct WeightEntryView: View {
                             Spacer()
                         }
                         .padding()
-                        if showHistory {
-                            List {
-                                
-                            }
-                            .listStyle(PlainListStyle())
-                        }
+//                        if showHistory {
+//                            let sortedItems = workoutHistory
+//                                                        .filter { $0.exercise == Exercise }
+//                                                        .sorted(by: { $0.date > $1.date })
+//                            let maxWeight = sortedItems.max(by: { $0.weight < $1.weight })?.weight
+//                            let maxLeft = sortedItems.max(by: { $0.left < $1.left })?.left
+//                            let maxRight = sortedItems.max(by: { $0.right < $1.right })?.right
+//                            List {
+//                                ForEach(WeightEntry.filter { $0.exercise == Exercise }.sorted(by: { $0.date > $1.date}), id: \.id) { item in
+//                                    VStack(alignment: .leading) {
+//                                        let formattedDate = dateFormatter.string(from: item.date)
+//                                        Text(formattedDate)
+//                                        Text("Weight: \(item.weight)")
+//                                            .foregroundColor(item.weight == maxWeight ? Color.yellow : Color.primary)
+//                                        Text("Left Isolated: \(item.left)")
+//                                            .foregroundColor(item.left == maxLeft ? Color.yellow : Color.primary)
+//                                        Text("Right Isolated: \(item.right)")
+//                                            .foregroundColor(item.right == maxRight ? Color.yellow : Color.primary)
+//                                    }
+//                                    VStack {
+//                                        Text("Sets: \(item.sets)")
+//                                        Text("Reps: \(item.reps)")
+//                                        Text("Rest: \(item.rest)")
+//                                    }
+//                                            
+//                                }
+//                            }
+//                            .listStyle(PlainListStyle())
+//                        }
+                        
                     }
                     .background(Color.blue.opacity(0.8).cornerRadius(10))
                 }
@@ -178,6 +209,7 @@ struct WeightEntryView: View {
 
         let newEntry = WeightEntry(
             exercise: exercise,
+            date: Date(),
             weight: weightValue,
             left: leftValue,
             right: rightValue,

@@ -68,15 +68,18 @@ struct SessionsView: View {
         // Delete the program from the context
         context.delete(program)
         
-        // Save the context if necessary
         do {
-            try context.save() // Ensure the context is saved after deletion
-        } catch {
-            print("Failed to save context after deletion: \(error)")
-        }
-        
-        // Dismiss the current view to go back to the previous view
-        dismiss()
+//            try context.save()
+//            dismiss()
+//        } catch {
+//            print("Failed to save context: \(error)")
+//        }
+            do {
+                    try context.save() // Save the context to persist the deletion
+                } catch {
+                    print("Failed to delete program: \(error)")
+                }
+            }
     }
 }
 
