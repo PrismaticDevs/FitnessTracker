@@ -65,7 +65,7 @@ class WorkoutProgram  {
 }
 
 @Model
-class WeightEntry {
+class WeightEntry: Identifiable {
     var id: UUID
     var exercise: String
     var date: Date
