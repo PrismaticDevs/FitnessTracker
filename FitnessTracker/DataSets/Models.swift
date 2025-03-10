@@ -84,9 +84,9 @@ class WeightEntry: Identifiable {
         self.weight = weight
         self.left = left
         self.right = right
-        self.sets = ""
-        self.reps = ""
-        self.rest = ""
+        self.sets = sets
+        self.reps = reps
+        self.rest = rest
         self.note = note
     }
 }

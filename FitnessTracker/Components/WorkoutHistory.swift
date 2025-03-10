@@ -29,90 +29,93 @@ struct WorkoutHistoryView: View {
     }
     
     var body: some View {
-        ZStack {
-            Section {
-                VStack {
-                    HStack {
-                        Spacer()
-                        Text("Save")
-                        Button {
-                            saveEntry()
-                            print(workoutHistory)
-                        } label: {
-                            Image(systemName: "square.and.arrow.down")
+        
+        NavigationStack {
+            ZStack {
+                Section {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text("Save")
+                            Button {
+                                saveEntry()
+                                print(workoutHistory)
+                            } label: {
+                                Image(systemName: "square.and.arrow.down")
+                            }
+                            Spacer()
+                            Text("See History")
+                            Button {
+                                showHistory.toggle()
+                            } label: {
+                                Image(systemName: showHistory ? "eye.slash" : "eye")
+                            }
+                            Spacer()
                         }
-                        Spacer()
-                        Text("See History")
-                        Button {
-                            showHistory.toggle()
-                        } label: {
-                            Image(systemName: showHistory ? "eye.slash" : "eye")
-                        }
-                        Spacer()
-                    }
-                    .padding()
-                    if showHistory {
-//                        List {
-                            ForEach(workoutHistory.filter { $0.exercise == exercise}, id: \.id) { entry in
-                                let formattedDate = dateFormatter.string(from: entry.date)
-                                Text(formattedDate)
-                                HStack {
-                                    VStack {
-                                        Text("Weight: \(entry.weight)")
-                                            .foregroundColor(.white)
-                                        Text("Left Isolated: \(entry.left)")
-                                            .foregroundColor(.white)
-                                        Text("Right Isolated \(entry.right)")
-                                            .foregroundColor(.white)
+                        .padding()
+                        if showHistory {
+                            List {
+//                                VStack {
+                                    ForEach(workoutHistory.filter { $0.exercise == exercise}, id: \.id) { entry in
+                                        let formattedDate = dateFormatter.string(from: entry.date)
+                                        Text(formattedDate)
+                                        HStack {
+                                            VStack(alignment: .leading) {
+                                                Text("Weight: \(entry.weight)")
+                                                    .foregroundColor(.white)
+                                                Text("Left Isolated: \(entry.left)")
+                                                    .foregroundColor(.white)
+                                                Text("Right Isolated \(entry.right)")
+                                                    .foregroundColor(.white)
+                                            }
+                                            VStack(alignment: .leading) {
+                                                Text("Sets: \(entry.sets)")
+                                                    .foregroundColor(.white)
+                                                Text("Reps: \(entry.reps)")
+                                                    .foregroundColor(.white)
+                                                Text("Rest: \(entry.rest)")
+                                                    .foregroundColor(.white)
+                                            }
+                                        }
                                     }
-                                    VStack {
-                                        Text("Sets: \(entry.sets)")
+                                    .padding(3)
+                                    .cornerRadius(10)
+                                    .listRowBackground(Color.blue.opacity(0.8))
+//                                }
+                            }
+                            .overlay {
+                                if workoutHistory.isEmpty {
+                                    ContentUnavailableView(label: {
+                                        Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
                                             .foregroundColor(.white)
-                                        Text("Reps: \(entry.reps)")
+                                    }, description: {
+                                        Text("Start by saving sessions to your workout history.")
                                             .foregroundColor(.white)
-                                        Text("Rest: \(entry.rest)")
-                                            .foregroundColor(.white)
-                                    }
+                                    })
                                 }
                             }
-//                        }
-                        .overlay {
-                            if workoutHistory.isEmpty {
-                                ContentUnavailableView(label: {
-                                    Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
-                                        .foregroundColor(.white)
-                                }, description: {
-                                    Text("Start by saving sessions to your workout history.")
-                                        .foregroundColor(.white)
-                                })
-                            }
+                            .padding()
+//                            background(Color.blue.opacity(0.8))
+//                            .cornerRadius(10)
+//                            .listStyle(PlainListStyle())
+                            .frame(height: 500)
+//                            .listRowBackground(Color.blue)
+                            .scrollContentBackground(.hidden)
                         }
-                        .listStyle(PlainListStyle())
-//                        .frame(height: 500)
-//                        .listRowBackground(Color.clear)
-//                        .scrollContentBackground(.hidden)
+                        
                     }
-                    
+                    .listStyle(PlainListStyle())
+                    .background(Color.clear)
+                    .padding()
+                    .font(.system(size: 18))
                 }
-                .background(Color.blue.opacity(0.8).cornerRadius(10))
-                .onAppear() {
-                    print(workoutHistory.isEmpty)
-                }
+//                .listRowInsets(EdgeInsets())
+                .background(Color.clear)
             }
-            .listRowInsets(EdgeInsets())
-            .background(Color.clear)
         }
     }
     
     func saveEntry() {
-        print("Exercise: \(exercise)")
-          print("Weight: \(weight)")
-          print("Left: \(left)")
-          print("Right: \(right)")
-          print("Sets: \(sets)")
-          print("Reps: \(reps)")
-          print("Rest: \(rest)")
-          print("Note: \(note)")
         let newEntry = WeightEntry(
             exercise: exercise,
             date: Date(),
@@ -124,14 +127,12 @@ struct WorkoutHistoryView: View {
             rest: rest,
             note: note
         )
-        print(newEntry.weight, "new weight entry")
         context.insert(newEntry)
         do {
             try context.save()
         } catch {
             print("Error saving context: \(error)")
         }
-        print(newEntry)
     }
 
 }
