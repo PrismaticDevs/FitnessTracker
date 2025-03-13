@@ -22,12 +22,6 @@ struct WorkoutHistoryView: View {
     @Binding var rest: String
     @Binding var note: String
     
-    private var dateFormatter: DateFormatter {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MM/dd/yyyy HH:mm"
-            return formatter
-    }
-    
     var body: some View {
         
         NavigationStack {
@@ -54,53 +48,30 @@ struct WorkoutHistoryView: View {
                         }
                         .padding()
                         if showHistory {
-                            List {
-//                                VStack {
+                            ZStack {
+                                List {
                                     ForEach(workoutHistory.filter { $0.exercise == exercise}, id: \.id) { entry in
-                                        let formattedDate = dateFormatter.string(from: entry.date)
-                                        Text(formattedDate)
-                                        HStack {
-                                            VStack(alignment: .leading) {
-                                                Text("Weight: \(entry.weight)")
-                                                    .foregroundColor(.white)
-                                                Text("Left Isolated: \(entry.left)")
-                                                    .foregroundColor(.white)
-                                                Text("Right Isolated \(entry.right)")
-                                                    .foregroundColor(.white)
-                                            }
-                                            VStack(alignment: .leading) {
-                                                Text("Sets: \(entry.sets)")
-                                                    .foregroundColor(.white)
-                                                Text("Reps: \(entry.reps)")
-                                                    .foregroundColor(.white)
-                                                Text("Rest: \(entry.rest)")
-                                                    .foregroundColor(.white)
-                                            }
-                                        }
+                                        WeightEntryItem(entry: entry)
                                     }
                                     .padding(3)
                                     .cornerRadius(10)
                                     .listRowBackground(Color.blue.opacity(0.8))
-//                                }
-                            }
-                            .overlay {
-                                if workoutHistory.isEmpty {
-                                    ContentUnavailableView(label: {
-                                        Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
-                                            .foregroundColor(.white)
-                                    }, description: {
-                                        Text("Start by saving sessions to your workout history.")
-                                            .foregroundColor(.white)
-                                    })
                                 }
+                                .overlay {
+                                    if workoutHistory.isEmpty {
+                                        ContentUnavailableView(label: {
+                                            Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
+                                                .foregroundColor(.white)
+                                        }, description: {
+                                            Text("Start by saving sessions to your workout history.")
+                                                .foregroundColor(.white)
+                                        })
+                                    }
+                                }
+                                .padding()
+                                .frame(height: 500)
+                                .scrollContentBackground(.hidden)
                             }
-                            .padding()
-//                            background(Color.blue.opacity(0.8))
-//                            .cornerRadius(10)
-//                            .listStyle(PlainListStyle())
-                            .frame(height: 500)
-//                            .listRowBackground(Color.blue)
-                            .scrollContentBackground(.hidden)
                         }
                         
                     }
@@ -109,7 +80,6 @@ struct WorkoutHistoryView: View {
                     .padding()
                     .font(.system(size: 18))
                 }
-//                .listRowInsets(EdgeInsets())
                 .background(Color.clear)
             }
         }
@@ -139,4 +109,67 @@ struct WorkoutHistoryView: View {
 
 #Preview {
     WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(""), reps: .constant(""), rest: .constant(""), note: .constant("") )
+}
+
+struct WeightEntryItem: View {
+    @Environment(\.modelContext) var context
+    @State var showDeleteAlert: Bool = false
+    @State var entry: WeightEntry
+    var body: some View {
+        var dateFormatter: DateFormatter {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MM/dd/yyyy HH:mm"
+                return formatter
+        }
+        let formattedDate = dateFormatter.string(from: entry.date)
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(formattedDate)
+                    Text("Weight: \(entry.weight)")
+                        .foregroundColor(.white)
+                    Text("Left Isolated: \(entry.left)")
+                        .foregroundColor(.white)
+                    Text("Right Isolated \(entry.right)")
+                        .foregroundColor(.white)
+                }
+                VStack(alignment: .leading) {
+                    Text("Sets: \(entry.sets)")
+                        .foregroundColor(.white)
+                    Text("Reps: \(entry.reps)")
+                        .foregroundColor(.white)
+                    Text("Rest: \(entry.rest)")
+                        .foregroundColor(.white)
+                }
+            }
+            Text("Note: \(entry.note)")
+        }
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive){
+                showDeleteAlert = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            .tint(.red)
+        }
+        .alert("Delete Entry", isPresented: $showDeleteAlert) {
+            Button(role: .destructive) {
+                context.delete(entry)
+                do {
+                    try context.save()
+                } catch {
+                    print("Error saving context: \(error)")
+                }
+            } label: {
+                Text("Delete")
+            }
+            Button(role: .cancel) {
+                
+            } label: {
+                Text("Cancel")
+            }
+        } message: {
+            Text("Are you sure you want to delete this entry?")
+        }
+    }
 }
