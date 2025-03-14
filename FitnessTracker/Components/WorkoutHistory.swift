@@ -113,15 +113,17 @@ struct WorkoutHistoryView: View {
 
 struct WeightEntryItem: View {
     @Environment(\.modelContext) var context
-    @State var showDeleteAlert: Bool = false
+    @State private var showHistoryItemDeleteAlert: Bool = false
     @State var entry: WeightEntry
+
     var body: some View {
         var dateFormatter: DateFormatter {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MM/dd/yyyy HH:mm"
-                return formatter
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd/yyyy HH:mm"
+            return formatter
         }
         let formattedDate = dateFormatter.string(from: entry.date)
+
         VStack {
             HStack {
                 VStack(alignment: .leading) {
@@ -130,7 +132,7 @@ struct WeightEntryItem: View {
                         .foregroundColor(.white)
                     Text("Left Isolated: \(entry.left)")
                         .foregroundColor(.white)
-                    Text("Right Isolated \(entry.right)")
+                    Text("Right Isolated: \(entry.right)")
                         .foregroundColor(.white)
                 }
                 VStack(alignment: .leading) {
@@ -145,31 +147,37 @@ struct WeightEntryItem: View {
             Text("Note: \(entry.note)")
         }
         .swipeActions(edge: .trailing) {
-            Button(role: .destructive){
-                showDeleteAlert = true
+            Button(role: .destructive) {
+                showHistoryItemDeleteAlert = true
+                print("Delete button tapped for entry ID: \(entry.id)")
+                print(context)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
             .tint(.red)
         }
-        .alert("Delete Entry", isPresented: $showDeleteAlert) {
-            Button(role: .destructive) {
-                context.delete(entry)
-                do {
-                    try context.save()
-                } catch {
-                    print("Error saving context: \(error)")
-                }
-            } label: {
-                Text("Delete")
-            }
-            Button(role: .cancel) {
-                
-            } label: {
-                Text("Cancel")
-            }
-        } message: {
-            Text("Are you sure you want to delete this entry?")
+        .alert(isPresented: $showHistoryItemDeleteAlert) {
+           Alert(
+               title: Text("Delete Entry"),
+               message: Text("Are you sure you want to delete this entry?"),
+               primaryButton: .destructive(Text("Delete")) {
+                   deleteEntry()
+               },
+               secondaryButton: .cancel() {
+                   print("Delete canceled")
+               }
+           )
+       }
+    }
+
+    private func deleteEntry() {
+        print("Attempting to delete entry with ID: \(entry.id)")
+        context.delete(entry)
+        do {
+            try context.save()
+            print("Successfully deleted entry with ID: \(entry.id)")
+        } catch {
+            print("Error saving context after deletion: \(error)")
         }
     }
 }
