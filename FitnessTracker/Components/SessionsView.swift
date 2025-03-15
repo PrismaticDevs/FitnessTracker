@@ -67,18 +67,11 @@ struct SessionsView: View {
     private func deleteProgram() {
         // Delete the program from the context
         context.delete(program)
-        
         do {
-//            try context.save()
-//            dismiss()
-//        } catch {
-//            print("Failed to save context: \(error)")
-//        }
-            do {
-                    try context.save() // Save the context to persist the deletion
-                } catch {
-                    print("Failed to delete program: \(error)")
-                }
+                try context.save()
+                dismiss()
+            } catch {
+                print("Failed to delete program: \(error)")
             }
     }
 }

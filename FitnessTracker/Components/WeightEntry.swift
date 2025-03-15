@@ -9,7 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct WeightEntryView: View {
+    var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
+    @State var id: UUID = UUID()
     @State var exercise: String
     @State var weight: Int = 0
     @State var left: Int = 0
@@ -61,25 +63,29 @@ struct WeightEntryView: View {
                                             .font(.subheadline)
                                         TextField("Left Weight", text: $leftInput, prompt: Text("Weight Left").foregroundColor(.white.opacity(0.5)))
                                             .padding()
-                                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                            .background(weight == 0 && left == 0 && right == 0 ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
                                             .keyboardType(.numberPad)
                                             .onChange(of: leftInput) { oldValue, newValue in
                                                 if let value = Int(newValue) {
                                                     left = value
+                                                    defaults.set(leftInput, forKey: "left\(id)")
                                                 } else {
                                                     left = 0
                                                 }
+                                                print(defaults.integer(forKey: "left\(id)"))
                                             }                                    }
                                     VStack {
                                         Text("Right")
                                             .padding(-4)
                                             .font(.subheadline)
                                         TextField("Right Weight", text: $rightInput, prompt: Text("Right Weight").foregroundColor(.white.opacity(0.5)))
-                                            .padding().background(Color.blue.opacity(0.8).cornerRadius(10))
+                                            .padding()
+                                            .background(weight == 0 && left == 0 && right == 0 ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
                                             .keyboardType(.numberPad)
                                             .onChange(of: rightInput) { oldValue, newValue in
                                                 if let value = Int(newValue) {
                                                     right = value
+                                                    defaults.set(rightInput, forKey: "right\(id)")
                                                 } else {
                                                     right = 0
                                                 }
@@ -93,11 +99,12 @@ struct WeightEntryView: View {
                                     .padding(-4)
                                 TextField("Weight", text: $weightInput, prompt: Text("Weight").foregroundColor(.white.opacity(0.5)))
                                     .padding()
-                                    .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                    .background(weight == 0 && left == 0 && right == 0 ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
                                     .keyboardType(.numberPad)
                                     .onChange(of: weightInput) { oldValue, newValue in
                                         if let value = Int(newValue) {
                                             weight = value
+                                            defaults.set(weightInput, forKey: "weight\(id)")
                                         } else {
                                             weight = 0
                                         }
@@ -117,6 +124,7 @@ struct WeightEntryView: View {
                                 .keyboardType(.numberPad)
                                 .onChange(of: sets) { oldValue, newValue in
                                     sets = newValue
+                                    defaults.set(sets, forKey: "sets\(id)")
                                 }
                         }
                         VStack {
@@ -128,6 +136,7 @@ struct WeightEntryView: View {
                                 .keyboardType(.numberPad)
                                 .onChange(of: reps) { oldValue, newValue in
                                     reps = newValue
+                                    defaults.set(reps, forKey: "reps\(id)")
                                 }
 
                         }
@@ -141,6 +150,7 @@ struct WeightEntryView: View {
                                 .keyboardType(.numberPad)
                                 .onChange(of: rest) { oldValue, newValue in
                                     rest = newValue
+                                    defaults.set(rest, forKey: "rest\(id)")
                                 }
                         }
                     }
@@ -154,6 +164,7 @@ struct WeightEntryView: View {
                             .lineLimit(1...4)
                             .onChange(of: note) { oldValue, newValue in
                                 note = newValue
+                                defaults.set(note, forKey: "note\(id)")
                             }
                         
                     }

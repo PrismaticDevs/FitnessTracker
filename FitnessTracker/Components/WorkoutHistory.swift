@@ -11,8 +11,8 @@ struct WorkoutHistoryView: View {
     @Environment(\.modelContext) var context
     @Environment(\.defaultMinListRowHeight) var minRowHeight
     @Query var workoutHistory: [WeightEntry]
+    // Bidings
     @Binding var date: Date
-    @State var showHistory: Bool = false
     @Binding var exercise: String
     @Binding var weight: Int
     @Binding var left: Int
@@ -21,6 +21,10 @@ struct WorkoutHistoryView: View {
     @Binding var reps: String
     @Binding var rest: String
     @Binding var note: String
+    // State
+    @State private var showHistory: Bool = false
+    @State private var emptyEntry: Bool = false
+    @State private var showCheckmark: Bool = false
     
     var body: some View {
         
@@ -37,8 +41,18 @@ struct WorkoutHistoryView: View {
                             } label: {
                                 Image(systemName: "square.and.arrow.down")
                             }
+                            .alert(isPresented: $emptyEntry) {
+                                Alert(title: Text("Error"), message: Text("No valid entry to save. All weight fields are empty."), dismissButton: .default(Text("OK")))
+                            }
+                            if showCheckmark {
+                                Text("Saved")
+                                    .foregroundColor(.green)
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.green)
+                                    .transition(.scale)
+                            }
                             Spacer()
-                            Text("See History")
+                            Text(showHistory ? "Hide History" : "See History")
                             Button {
                                 showHistory.toggle()
                             } label: {
@@ -48,32 +62,29 @@ struct WorkoutHistoryView: View {
                         }
                         .padding()
                         if showHistory {
-                            ZStack {
+                            ZStack { if workoutHistory.isEmpty {
+                                ContentUnavailableView(label: {
+                                    Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
+                                        .foregroundColor(.white)
+                                }, description: {
+                                    Text("Start by saving sessions to your workout history.")
+                                        .foregroundColor(.white)
+                                })
+                            } else {
                                 List {
-                                    ForEach(workoutHistory.filter { $0.exercise == exercise}, id: \.id) { entry in
+                                    ForEach(workoutHistory.filter { $0.exercise == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
                                         WeightEntryItem(entry: entry)
                                     }
                                     .padding(3)
                                     .cornerRadius(10)
                                     .listRowBackground(Color.blue.opacity(0.8))
                                 }
-                                .overlay {
-                                    if workoutHistory.isEmpty {
-                                        ContentUnavailableView(label: {
-                                            Label("No history to list", systemImage: "list.bullet.rectangle.portrait")
-                                                .foregroundColor(.white)
-                                        }, description: {
-                                            Text("Start by saving sessions to your workout history.")
-                                                .foregroundColor(.white)
-                                        })
-                                    }
-                                }
                                 .padding()
                                 .frame(height: 500)
                                 .scrollContentBackground(.hidden)
                             }
+                            }
                         }
-                        
                     }
                     .listStyle(PlainListStyle())
                     .background(Color.clear)
@@ -86,6 +97,14 @@ struct WorkoutHistoryView: View {
     }
     
     func saveEntry() {
+        print(emptyEntry)
+        guard !(weight == 0 && left == 0 && right == 0) else {
+            emptyEntry = true
+            return
+        }
+        
+        emptyEntry = false
+        
         let newEntry = WeightEntry(
             exercise: exercise,
             date: Date(),
@@ -100,6 +119,11 @@ struct WorkoutHistoryView: View {
         context.insert(newEntry)
         do {
             try context.save()
+            
+            showCheckmark = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                showCheckmark = false
+            }
         } catch {
             print("Error saving context: \(error)")
         }
@@ -128,8 +152,12 @@ struct WeightEntryItem: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(formattedDate)
-                    Text("Weight: \(entry.weight)")
-                        .foregroundColor(.white)
+                    HStack {
+                        Text("Weight:")
+                            .fontWeight(.bold)
+                        Text("\(entry.weight)")
+                            .foregroundColor(.white)
+                    }
                     Text("Left Isolated: \(entry.left)")
                         .foregroundColor(.white)
                     Text("Right Isolated: \(entry.right)")
