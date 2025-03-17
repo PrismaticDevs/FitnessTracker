@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct SessionDetailView: View {
+    var defaults = UserDefaults.standard
     var session: Session
     @Environment(\.modelContext) var context
 
@@ -18,7 +19,7 @@ struct SessionDetailView: View {
                 ScrollView {
                     VStack {
                         ForEach(session.exercises) { exercise in
-                            WeightEntryView(exercise: exercise.name, weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "")
+                            WeightEntryView(exercise: exercise.name, weight: defaults.integer(forKey: "weight\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), sets: defaults.string(forKey: "sets\(exercise.name)") ?? "", reps: defaults.string(forKey: "reps\(exercise.name)") ?? "", rest: defaults.string(forKey: "rest\(exercise.name)") ?? "", note: defaults.string(forKey: "note\(exercise.name)") ?? "")
                         }
                     }
                 }
