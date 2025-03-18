@@ -65,7 +65,7 @@ class WorkoutProgram  {
 }
 
 @Model
-class WeightEntry: Identifiable {
+class WorkoutEntry: Identifiable {
     var id: UUID
     var exercise: String
     var date: Date
@@ -96,7 +96,7 @@ class WorkoutHistory {
     var id: UUID
     var program: String
     var date: Date
-    var exercises: [WeightEntry] = []
+    var exercises: [WorkoutEntry] = []
     
     init(program: String, date: Date, note: String) {
         self.id = UUID()

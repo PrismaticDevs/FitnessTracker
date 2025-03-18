@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct WeightEntryView: View {
+struct WorkoutEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
     @State var id: UUID = UUID()
@@ -22,7 +22,7 @@ struct WeightEntryView: View {
     @State var note: String = ""
     @State var date: Date = Date()
     @State var iso: Bool = false
-    @State var itemToDelete: WeightEntry?
+    @State var itemToDelete: WorkoutEntry?
     @State var showConfirmationDialogue = false
     @State var showHistory: Bool = false
     @State private var weightInput: String = ""
@@ -67,6 +67,41 @@ struct WeightEntryView: View {
                                             .onAppear {
                                                 leftInput = "\(defaults.integer(forKey: "left\(exercise)"))"
                                             }
+                                    }
+                                    Button(action: {
+                                        if !leftInput.isEmpty && rightInput.isEmpty {
+                                            // Copy left to right
+                                            rightInput = leftInput
+                                            if let value = Int(leftInput) {
+                                                right = value
+                                            } else {
+                                                right = 0
+                                            }
+                                            defaults.set(right, forKey: "right\(exercise)")
+                                        } else if (!rightInput.isEmpty || rightInput == "0") && (leftInput.isEmpty || leftInput == "0") {
+                                            // Copy right to left
+                                            leftInput = rightInput
+                                            if let value = Int(rightInput) {
+                                                left = value
+                                            } else {
+                                                left = 0
+                                            }
+                                            defaults.set(left, forKey: "left\(exercise)")
+                                        } else if (!leftInput.isEmpty || leftInput == "0") && !(rightInput.isEmpty || rightInput == "0") {
+                                            // Clear both inputs
+                                            leftInput = ""
+                                            rightInput = ""
+                                            left = 0
+                                            right = 0
+                                            defaults.set(left, forKey: "left\(exercise)")
+                                            defaults.set(right, forKey: "right\(exercise)")
+                                        }
+                                    }) {
+                                        Image(systemName:
+                                            (leftInput.isEmpty || leftInput == "0") ? "arrow.left" :
+                                            (rightInput.isEmpty || rightInput == "0" ? "arrow.right" : "xmark.circle")
+                                        )
+                                        .foregroundColor(.white)
                                     }
                                     VStack {
                                         Text("Right")
@@ -162,6 +197,18 @@ struct WeightEntryView: View {
                             .padding()
                             .background(Color.blue.opacity(0.8).cornerRadius(10))
                             .lineLimit(1...4)
+                            .overlay(
+                                Button(action: {
+                                    note = "" // Clear the text field
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .opacity(note.isEmpty ? 0 : 1) // Hide button if text is empty
+                                        .padding()
+                                }
+                                .foregroundColor(Color.white)
+                                .padding(),
+                                alignment: .trailing
+                            )
                             .onChange(of: note) { oldValue, newValue in
                                 note = newValue
                                 defaults.set(note, forKey: "note\(exercise)")
@@ -179,5 +226,6 @@ struct WeightEntryView: View {
 }
 
 #Preview {
-    WeightEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "")
+    WorkoutEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "")
 }
+

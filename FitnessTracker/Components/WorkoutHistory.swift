@@ -10,7 +10,7 @@ import SwiftData
 struct WorkoutHistoryView: View {
     @Environment(\.modelContext) var context
     @Environment(\.defaultMinListRowHeight) var minRowHeight
-    @Query var workoutHistory: [WeightEntry]
+    @Query var workoutHistory: [WorkoutEntry]
     // Bidings
     @Binding var date: Date
     @Binding var exercise: String
@@ -52,7 +52,7 @@ struct WorkoutHistoryView: View {
                                     .transition(.scale)
                             }
                             Spacer()
-                            Text(showHistory ? "Hide History" : "See History")
+                            Text(showHistory ? "Hide History" : "View History")
                             Button {
                                 showHistory.toggle()
                             } label: {
@@ -73,7 +73,7 @@ struct WorkoutHistoryView: View {
                             } else {
                                 List {
                                     ForEach(workoutHistory.filter { $0.exercise == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
-                                        WeightEntryItem(entry: entry)
+                                        WorkoutEntryItem(entry: entry)
                                     }
                                     .padding(3)
                                     .cornerRadius(10)
@@ -105,7 +105,7 @@ struct WorkoutHistoryView: View {
         
         emptyEntry = false
         
-        let newEntry = WeightEntry(
+        let newEntry = WorkoutEntry(
             exercise: exercise,
             date: Date(),
             weight: Int(weight),
@@ -135,10 +135,10 @@ struct WorkoutHistoryView: View {
     WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(""), reps: .constant(""), rest: .constant(""), note: .constant("") )
 }
 
-struct WeightEntryItem: View {
+struct WorkoutEntryItem: View {
     @Environment(\.modelContext) var context
     @State private var showHistoryItemDeleteAlert: Bool = false
-    @State var entry: WeightEntry
+    @State var entry: WorkoutEntry
 
     var body: some View {
         var dateFormatter: DateFormatter {
@@ -149,12 +149,12 @@ struct WeightEntryItem: View {
         let formattedDate = dateFormatter.string(from: entry.date)
 
         VStack {
+            Text(formattedDate)
+                .font(.title2)
             HStack {
                 VStack(alignment: .leading) {
-                    Text(formattedDate)
                     HStack {
                         Text("Weight:")
-                            .fontWeight(.bold)
                         Text("\(entry.weight)")
                             .foregroundColor(.white)
                     }

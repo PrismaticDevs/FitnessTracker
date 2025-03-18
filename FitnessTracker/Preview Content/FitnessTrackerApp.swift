@@ -19,6 +19,6 @@ struct FitnessTrackerApp: App {
             Auth()
             #endif
         }
-        .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, WeightEntry.self])
+        .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, WorkoutEntry.self])
     }
 }
