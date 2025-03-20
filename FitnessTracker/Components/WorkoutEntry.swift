@@ -28,6 +28,8 @@ struct WorkoutEntryView: View {
     @State private var weightInput: String = ""
     @State private var leftInput: String = ""
     @State private var rightInput: String = ""
+    @State private var showDeleteConfirmation = false
+    var onDelete: () -> Void
 
 
     var body: some View {
@@ -146,6 +148,21 @@ struct WorkoutEntryView: View {
                                     }
                             }
                         }
+                        Button(action: {
+                            showDeleteConfirmation = true
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .alert(isPresented: $showDeleteConfirmation) {
+                            Alert(title: Text("Delete Exercise"),
+                                  message: Text("Are you sure you want to delete \(exercise)?"),
+                                  primaryButton: .destructive(Text("Delete")) {
+                                onDelete()
+                            },
+                                  secondaryButton: .cancel()
+                            )
+                        }
                     }
                     
                     HStack {
@@ -226,6 +243,6 @@ struct WorkoutEntryView: View {
 }
 
 #Preview {
-    WorkoutEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "")
+    WorkoutEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "", onDelete: {})
 }
 
