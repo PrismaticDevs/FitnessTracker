@@ -156,7 +156,7 @@ struct WorkoutEntryView: View {
                         }
                         .alert(isPresented: $showDeleteConfirmation) {
                             Alert(title: Text("Delete Exercise"),
-                                  message: Text("Are you sure you want to delete \(exercise)?"),
+                                  message: Text("Are you sure you want to remove \(exercise) from this session?"),
                                   primaryButton: .destructive(Text("Delete")) {
                                 onDelete()
                             },
