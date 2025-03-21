@@ -14,7 +14,7 @@ struct SessionsView: View {
                 VStack {
                     List {
                         ForEach(program.sessions) { session in
-                            NavigationLink(destination: SessionDetailView(session: session)) {
+                            NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
                                 Text(session.name)
                             }
                         }

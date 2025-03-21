@@ -11,6 +11,7 @@ import SwiftData
 struct SessionDetailView: View {
     var defaults = UserDefaults.standard
     var session: Session
+    var workoutProgram: WorkoutProgram
     @Environment(\.modelContext) var context
     @State private var showingAddExerciseView = false
     @State private var selectedExerciseName: String = ""
@@ -49,6 +50,18 @@ struct SessionDetailView: View {
     private func addExercise(named exerciseName: String) {
         let newExercise = Exercise(name: exerciseName)
         session.exercises.append(newExercise)
+        
+        // Save the updated session back to the workout program
+        if let index = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
+            workoutProgram.sessions[index] = session
+        }
+        
+        // Save the context to persist changes
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save context: \(error)")
+        }
     }
     
     private func deleteExercise(named exerciseName: String) {
@@ -66,7 +79,17 @@ struct SessionDetailView: View {
             defaults.removeObject(forKey: "rest\(exerciseName)")
             defaults.removeObject(forKey: "note\(exerciseName)")
             
-            // Note: No need to save the context if you're not deleting from it
+            // Update the workout program to reflect the changes
+                  if let programIndex = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
+                      workoutProgram.sessions[programIndex] = session
+                  }
+                  
+                  // Save the context to persist changes
+                  do {
+                      try context.save()
+                  } catch {
+                      print("Failed to save context after deleting exercise: \(error)")
+                  }
         }
     }
 }
@@ -82,6 +105,8 @@ struct SessionDetailView: View {
     // Create a mock session
     let session = Session(name: "Morning Workout", exercises: exercises)
     
+    let workoutProgram = WorkoutProgram(title: "Test Program", sessions: [session])
+    
     // Pass the mock session to the preview
-    SessionDetailView(session: session)
+    SessionDetailView(session: session, workoutProgram: workoutProgram)
 }
