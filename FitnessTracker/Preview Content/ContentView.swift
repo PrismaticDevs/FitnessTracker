@@ -11,90 +11,157 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var context
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
-    @State var ShowAddProgram = false
+    
     var body: some View {
         NavigationStack {
-            ZStack {
-                VStack {
-                    HStack {
-                        Text("FitnessTracker")
-                            .font(.title )
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 36))
-                        Text("0.1")
-                            .font(.system(size: 18))
-                    }
-                    .padding(5)
-                    .padding(.top, 10)
-                    Text("Select a Program")
-                        .font(.system(size: 24, weight: .bold))
-                        .padding(0)
-                        .foregroundColor(Color.white)
-                    List {
-                        ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
-                            NavigationLink(destination: SessionsView(program: program)) {
-                                HStack {
-                                    Text(program.title)
-                                    if program.starred {
-                                        Image(systemName: "star.fill")
-                                            .foregroundColor(.yellow)
-                                    }
-                                }
-                            }
-                            .listRowBackground(Color.blue)
-                            .padding()
-                        }
-                    }
-                    .scrollContentBackground(.hidden)
-                    .padding()
-                }
-            }
-            .navigationTitle("Your Programs")
-            .navigationBarTitleTextColor(.white)
-            .applyGradientBackground()
-            .overlay {
-                if programs.isEmpty {
-                    ContentUnavailableView(label: {
-                        Label("No programs to list", systemImage: "list.bullet.rectangle.portrait")
-                            .foregroundColor(.white)
-                    }, description: {
-                        Text("Start by creating a program")
-                            .foregroundColor(.white)
-                    },actions: {
-                        NavigationLink(destination: AddWorkoutProgramView()) {
-                            HStack {
-                                   Image(systemName: "plus.circle.fill")
-                                   Text("Add Program")
-                                       .font(.headline)
-                               }
-                               .padding()
-   
-                               .cornerRadius(8)
-                           }
-                           .padding()
-                    })
-                }
-            }
-            .toolbar {
-               if !programs.isEmpty {
-                   ToolbarItem {
-                       NavigationLink(destination: AddWorkoutProgramView()) {
-                           HStack {
-                                  Image(systemName: "plus.circle.fill")
-                                   Text("Add Program")
-                                      .font(.headline)
-                              }
-                              .padding()
-                              .foregroundColor(.white)
-                              .cornerRadius(8)
-                          }
-                          .padding()
-                   }
-                }
-
-            }
+            ProgramMenuView(programs: programs, context: _context)
         }
         .accentColor(Color.white)
+    }
+}
+
+struct ProgramMenuView: View {
+    var programs: [WorkoutProgram]
+    @Environment(\.modelContext) var context
+    
+    var body: some View {
+        ZStack {
+            VStack {
+                HeaderView()
+                Text("Select a Program")
+                    .font(.system(size: 24, weight: .bold))
+                    .padding(0)
+                    .foregroundColor(Color.white)
+                ProgramListView(programs: programs, context: _context)
+            }
+        }
+        .navigationTitle("Your Programs")
+        .navigationBarTitleTextColor(.white)
+        .applyGradientBackground()
+        .overlay {
+            if programs.isEmpty {
+                EmptyStateView()
+            }
+        }
+        .toolbar {
+            if !programs.isEmpty {
+                ToolbarItem {
+                    NavigationLink(destination: AddWorkoutProgramView()) {
+                        AddProgramButton()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct HeaderView: View {
+    var body: some View {
+        HStack {
+            Text("FitnessTracker")
+                .font(.title)
+            Image(systemName: "figure.strengthtraining.traditional")
+                .font(.system(size: 36))
+            Text("0.1")
+                .font(.system(size: 18))
+        }
+        .padding(5)
+        .padding(.top, 10)
+    }
+}
+
+struct ProgramListView: View {
+    var programs: [WorkoutProgram]
+    @Environment(\.modelContext) var context
+    
+    var body: some View {
+        List {
+            ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
+                ProgramRowView(program: program)
+            }
+            .onDelete(perform: deleteProgram)
+        }
+        .scrollContentBackground(.hidden)
+        .padding()
+    }
+    
+    private func deleteProgram(at offsets: IndexSet) {
+        for index in offsets {
+            let programToDelete = programs[index]
+            context.delete(programToDelete)
+            do {
+                try context.save()
+            } catch {
+                print("Error deleting program: \(error)")
+            }
+        }
+    }
+}
+
+struct ProgramRowView: View {
+    @Environment(\.modelContext) var context
+    @State var program: WorkoutProgram
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                // Toggle the starred state
+                program.starred.toggle()
+                // Save the context if needed
+                try? context.save()
+            }) {
+                Image(systemName: program.starred ? "star.fill" : "star")
+                    .foregroundColor(.yellow)
+            }
+            .buttonStyle(PlainButtonStyle()) // Prevents the button from changing appearance
+            
+            Spacer()
+            
+            NavigationLink(destination: SessionsView(program: program)) {
+                Text(program.title)
+                    .foregroundColor(.white) // Optional: Set text color for better visibility
+            }
+            .buttonStyle(PlainButtonStyle()) // Prevents the link from changing appearance
+        
+        }
+        .listRowBackground(Color.blue) // Apply blue background to the entire row
+        .padding()
+    }
+}
+
+struct EmptyStateView: View {
+    var body: some View {
+        ContentUnavailableView(label: {
+            Label("No programs to list", systemImage: "list.bullet.rectangle.portrait")
+                .foregroundColor(.white)
+        }, description: {
+            Text("Start by creating a program")
+                .foregroundColor(.white)
+        }, actions: {
+            NavigationLink(destination: AddWorkoutProgramView()) {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                    Text("Add Program")
+                        .font(.headline)
+                }
+                .padding()
+                .cornerRadius(8)
+            }
+            .padding()
+        })
+    }
+}
+
+struct AddProgramButton: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "plus.circle.fill")
+            Text("Add Program")
+                .font(.headline)
+        }
+        .padding()
+        .foregroundColor(.white)
+        .cornerRadius(8)
     }
 }
 

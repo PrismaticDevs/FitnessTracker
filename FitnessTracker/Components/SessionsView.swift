@@ -7,6 +7,7 @@ struct SessionsView: View {
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
     @State var program: WorkoutProgram
     @State private var showDeleteAlert: Bool = false
+    @State private var sessionToDeleteIndex: Int? = nil
 
     var body: some View {
         NavigationStack {
@@ -18,6 +19,7 @@ struct SessionsView: View {
                                 Text(session.name)
                             }
                         }
+                        .onDelete(perform: confirmDeleteSession)
                         .listRowBackground(Color.blue)
                         .padding()
                         .navigationBarTitle("\(program.title) Sessions")
@@ -42,38 +44,45 @@ struct SessionsView: View {
                         Image(systemName: program.starred ? "star.fill" : "star")
                             .foregroundColor(.yellow)
                     }
-                    
-                    Button(action: {
-                        showDeleteAlert = true
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .alert(isPresented: $showDeleteAlert) {
-                        Alert(
-                            title: Text("Delete Program"),
-                            message: Text("Are you sure you want to delete this program? This action cannot be undone."),
-                            primaryButton: .destructive(Text("Delete")) {
-                                deleteProgram() // Call the delete function
-                            },
-                            secondaryButton: .cancel()
-                        )
-                    }
                 }
+            }
+            .alert(isPresented: $showDeleteAlert) {
+                Alert(
+                    title: Text("Delete Session"),
+                    message: Text("Are you sure you want to delete this session?"),
+                    primaryButton: .destructive(Text("Delete")) {
+                        if let index = sessionToDeleteIndex {
+                            deleteSession(at: IndexSet(integer: index))
+                        }
+                    },
+                    secondaryButton: .cancel() {
+                        // Reset the index when the alert is dismissed
+                        sessionToDeleteIndex = nil
+                    }
+                )
             }
         }
     }
     
-    private func deleteProgram() {
-        // Delete the program from the context
-        context.delete(program)
-        do {
-                try context.save()
-                dismiss()
-            } catch {
-                print("Failed to delete program: \(error)")
-            }
+    private func confirmDeleteSession( at offsets: IndexSet) {
+        if let index = offsets.first {
+            sessionToDeleteIndex = index
+            showDeleteAlert = true
+        }
     }
+    
+    private func deleteSession(at offsets: IndexSet) {
+        for index in offsets {
+            let sessionToDelete = program.sessions[index]
+            context.delete(sessionToDelete)
+            do {
+                try context.save()
+            } catch {
+                print("Error deleting session: \(error)")
+            }
+        }
+    }
+
 }
 
 #Preview {
