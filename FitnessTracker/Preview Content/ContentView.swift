@@ -36,7 +36,7 @@ struct ProgramMenuView: View {
             }
         }
         .navigationTitle("Your Programs")
-        .navigationBarTitleTextColor(.white)
+        .navigationBarTitleTextColor(ColorPalette.primary)
         .applyGradientBackground()
         .overlay {
             if programs.isEmpty {
@@ -44,6 +44,18 @@ struct ProgramMenuView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NavigationLink {
+                    PrebuiltProgramsView()
+                } label: {
+                    HStack {
+                        Text("Prebuilt Programs")
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 16))
+                            .bold()
+                    }
+                }
+            }
             if !programs.isEmpty {
                 ToolbarItem {
                     NavigationLink(destination: AddWorkoutProgramView()) {
@@ -73,27 +85,49 @@ struct HeaderView: View {
 struct ProgramListView: View {
     var programs: [WorkoutProgram]
     @Environment(\.modelContext) var context
-    
+    @State private var showAlert = false
+    @State private var programToDeleteIndex: Int? = nil
+
     var body: some View {
         List {
             ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
                 ProgramRowView(program: program)
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            // Find the index of the program to delete
+                            if let index = programs.firstIndex(where: { $0.id == program.id }) {
+                                programToDeleteIndex = index
+                                showAlert = true
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
             }
-            .onDelete(perform: deleteProgram)
         }
         .scrollContentBackground(.hidden)
         .padding()
+        .alert(isPresented: $showAlert) {
+            Alert(
+                title: Text("Delete Program"),
+                message: Text("Are you sure you want to delete \(programs[programToDeleteIndex ?? 0].title)?"),
+                primaryButton: .destructive(Text("Delete")) {
+                    if let index = programToDeleteIndex {
+                        deleteProgram(at: index)
+                    }
+                },
+                secondaryButton: .cancel()
+            )
+        }
     }
     
-    private func deleteProgram(at offsets: IndexSet) {
-        for index in offsets {
-            let programToDelete = programs[index]
-            context.delete(programToDelete)
-            do {
-                try context.save()
-            } catch {
-                print("Error deleting program: \(error)")
-            }
+    private func deleteProgram(at index: Int) {
+        let programToDelete = programs[index]
+        context.delete(programToDelete)
+        do {
+            try context.save()
+        } catch {
+            print("Error deleting program: \(error)")
         }
     }
 }

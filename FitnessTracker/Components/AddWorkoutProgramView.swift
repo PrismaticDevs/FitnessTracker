@@ -22,13 +22,13 @@ struct AddWorkoutProgramView: View {
                     ScrollView {
                         Text("Add New Workout program")
                             .font(.title)
-                            .foregroundColor(.white)
+                            .foregroundColor(ColorPalette.primary)
                             .padding()
-                        Section(header: Text("Title").font(.headline).foregroundColor(.white)) {
-                            TextField("Program Title", text: $programTitle)
+                        Section(header: Text("Title").font(.headline).foregroundColor(ColorPalette.primary)) {
+                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(ColorPalette.primary))
                                 .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
+                                .background(ColorPalette.accent)
+                                .foregroundColor(ColorPalette.primary)
                                 .cornerRadius(8)
                                 .overlay(
                                     Button(action: {
@@ -37,32 +37,32 @@ struct AddWorkoutProgramView: View {
                                         Image(systemName: "xmark.circle.fill")
                                             .opacity(programTitle.isEmpty ? 0 : 1).padding()
                                     }
-                                        .foregroundColor(Color.white)
+                                        .foregroundColor(ColorPalette.primary)
                                         .padding(),
                                     alignment: .trailing
                                 )
                         }
                         .padding(.horizontal)
                             ForEach(newSessions.indices, id: \.self) { index in
-                                Section(header: Text("Session").font(.headline).foregroundColor(.white)) {
+                                Section(header: Text("Session").font(.headline).foregroundColor(ColorPalette.primary)) {
                                     if newSessions.isEmpty {
                                         ContentUnavailableView(label: {
                                             Label("No sessions yet", systemImage: "list.bullet.rectangle.portrait")
-                                                .foregroundColor(.white)
+                                                .foregroundColor(ColorPalette.primary)
                                         }, description: {
                                             Text("Start adding sessions")
-                                                .foregroundColor(.white)
+                                                .foregroundColor(ColorPalette.primary)
                                         },actions: {
                                         })
                                     }
                                 HStack {
-                                    TextField("Session Name", text: $newSessions[index].name)
+                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(ColorPalette.primary))
                                         .onChange(of: newSessions[index].name) { newValue, oldValue in
                                             newSessions[index].name = newValue
                                         }
                                         .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
+                                        .background(ColorPalette.accent)
+                                        .foregroundColor(ColorPalette.primary)
                                         .cornerRadius(8)
                                     Button(action: {
                                         deleteSession(at: index)
@@ -73,13 +73,13 @@ struct AddWorkoutProgramView: View {
                                    }
                                 }
                                 if !newSessions[index].exercises.isEmpty {
-                                    Section(header: Text("Exercises").font(.headline).foregroundColor(.white)) {
+                                    Section(header: Text("Exercises").font(.headline).foregroundColor(ColorPalette.primary)) {
                                         ForEach(newSessions[index].exercises) { exercise in
                                             HStack {
                                                 Text(exercise.name)
                                                     .padding()
-                                                    .background(Color.blue)
-                                                    .foregroundColor(.white)
+                                                    .background(ColorPalette.accent)
+                                                    .foregroundColor(ColorPalette.primary)
                                                     .cornerRadius(8)
                                                 
                                                 Button(action: {
@@ -112,9 +112,9 @@ struct AddWorkoutProgramView: View {
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(ColorPalette.primary)
                                 Text("Add Session")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(ColorPalette.primary)
                             }
                             .padding()
                         }

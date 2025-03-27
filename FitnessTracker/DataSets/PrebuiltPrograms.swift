@@ -78,33 +78,22 @@ struct PrebuiltSessionDetailView: View {
 }
 
 struct PrebuiltProgramsView: View {
-    // Fetch the prebuilt workout programs
+    @Environment(\.dismiss) var dismiss
     let workoutPrograms: [WorkoutProgram] = createPrebuiltWorkoutPrograms()
-    
-    init() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.systemBlue // Set your desired color
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        
-        // Set the same appearance for both standard and scroll edge
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-    }
+    @Environment(\.modelContext) var context
 
     var body: some View {
         NavigationView {
-            ZStack {
-                // Apply the gradient background
-                Color.clear // This is just a placeholder to allow the gradient to show
-                    .applyGradientBackground() // Use your custom gradient background modifier
-
-                List(workoutPrograms, id: \.id) { program in
-                    Section(header: Text(program.title).foregroundColor(.white)) {
-                        ForEach(program.sessions, id: \.id) { session in
-                            NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
-                                Text(session.name)
-                                    .foregroundColor(.white)
+                List {
+                    ForEach(workoutPrograms, id: \.id) { program in
+                        Section(header: CustomSectionHeader(title: program.title) {
+                            addProgramToUserList(program)
+                        }) {
+                            ForEach(program.sessions, id: \.id) { session in
+                                NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
+                                    Text(session.name)
+                                        .foregroundColor(.white)
+                                }
                             }
                             .listRowBackground(Color.blue)
                         }
@@ -112,11 +101,64 @@ struct PrebuiltProgramsView: View {
                 }
                 .navigationTitle("Prebuilt Workout Programs")
                 .navigationBarTitleDisplayMode(.inline)
-                .listStyle(PlainListStyle()) // Use PlainListStyle to avoid default background
-                .background(Color.clear) // Make the List background clear
-            }
+                .listStyle(PlainListStyle())
+                .background(Color.clear)
+                .padding()
+                .applyGradientBackground()
         }
-        .navigationBarTitleTextColor(.white) // Set the navigation bar title color to white
+        .navigationBarTitleTextColor(.white)
+    }
+    
+     func addProgramToUserList(_ program: WorkoutProgram) {
+        // Create a new instance of WorkoutProgram and add it to the user's list
+        let newProgram = WorkoutProgram(title: "\(program.title) CUSTOM", sessions: program.sessions)
+        context.insert(newProgram)
+        
+        do {
+            try context.save()
+            dismiss()
+        } catch {
+            print("Failed to save context: \(error)")
+        }
+    }
+}
+
+struct CustomSectionHeader: View {
+    var title: String
+    var addAction: () -> Void
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(ColorPalette.primary)
+
+            Spacer()
+
+            Button(action: {
+                addAction()
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(PlainButtonStyle()) // Optional: to remove button styling
+        }
+        .padding()
+        .cornerRadius(8) // Optional: rounded corners
+    }
+}
+
+struct ProgramHeaderView: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.headline)
+            .foregroundColor(ColorPalette.primary)
+            .padding()
+            .background(Color.clear) // Ensure the background is clear
     }
 }
 
