@@ -86,9 +86,12 @@ struct PrebuiltProgramsView: View {
         NavigationView {
                 List {
                     ForEach(workoutPrograms, id: \.id) { program in
-                        Section(header: CustomSectionHeader(title: program.title) {
-                            addProgramToUserList(program)
-                        }) {
+                        HStack {
+                            CustomSectionHeader(title: program.title) {
+                                addProgramToUserList(program)
+                            }
+                        }
+                        .listRowBackground(Color.clear)
                             ForEach(program.sessions, id: \.id) { session in
                                 NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
                                     Text(session.name)
@@ -96,7 +99,6 @@ struct PrebuiltProgramsView: View {
                                 }
                             }
                             .listRowBackground(Color.blue)
-                        }
                     }
                 }
                 .navigationTitle("Prebuilt Workout Programs")
@@ -145,8 +147,6 @@ struct CustomSectionHeader: View {
             }
             .buttonStyle(PlainButtonStyle()) // Optional: to remove button styling
         }
-        .padding()
-        .cornerRadius(8) // Optional: rounded corners
     }
 }
 
