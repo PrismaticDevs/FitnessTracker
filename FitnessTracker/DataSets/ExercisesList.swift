@@ -68,7 +68,8 @@ class ExerciseList: ObservableObject {
             Exercise(name: "Bulgarian Split Squat"),
             Exercise(name: "Step-Up"),
             Exercise(name: "Glute Bridge"),
-            Exercise(name: "Single-Leg Deadlift")
+            Exercise(name: "Single-Leg Deadlift"),
+            Exercise(name: "Hip Adduction")
         ]),
         ExerciseCategory(name: "Arms", exercises: [
             Exercise(name: "Barbell Curl"),

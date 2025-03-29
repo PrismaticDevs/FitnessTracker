@@ -8,13 +8,15 @@ struct SessionsView: View {
     @State var program: WorkoutProgram
     @State private var showDeleteAlert: Bool = false
     @State private var sessionToDeleteIndex: Int? = nil
+    @State private var showRenameSheet: Bool = false
+    @State private var newProgramTitle: String = ""
 
     var body: some View {
         NavigationStack {
             ZStack {
                 VStack {
                     List {
-                        ForEach(program.sessions) { session in
+                        ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
                             NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
                                 Text(session.name)
                             }
@@ -35,6 +37,13 @@ struct SessionsView: View {
             .applyGradientBackground()
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        // Show the rename sheet
+                        newProgramTitle = program.title // Set the current title as the default
+                        showRenameSheet = true
+                    }) {
+                        Image(systemName: "pencil")
+                    }
                     Button(action: {
                         // Toggle the starred state
                         program.starred.toggle()
@@ -61,6 +70,36 @@ struct SessionsView: View {
                     }
                 )
             }
+            .sheet(isPresented: $showRenameSheet) {
+               VStack {
+                   Text("Rename Program")
+                       .font(.headline)
+                       .padding()
+
+                   TextField("New Program Title", text: $newProgramTitle)
+                       .textFieldStyle(RoundedBorderTextFieldStyle())
+                       .padding()
+
+                   Button("Rename") {
+                       renameProgram()
+                       showRenameSheet = false // Dismiss the sheet
+                   }
+                   .padding()
+               }
+               .padding()
+           }
+        }
+    }
+    
+    private func renameProgram() {
+        // Update the program title
+        program.title = newProgramTitle
+        
+        // Save the context to persist changes
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save context after renaming program: \(error)")
         }
     }
     

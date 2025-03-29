@@ -15,26 +15,36 @@ struct SessionDetailView: View {
     @Environment(\.modelContext) var context
     @State private var showingAddExerciseView = false
     @State private var selectedExerciseName: String = ""
+    @State private var showingRenameSheet = false
+    @State private var newSessionName: String = ""
+
 
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollView {
                     VStack {
-                        ForEach(session.exercises) { exercise in
+                        ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
                             WorkoutEntryView(exercise: exercise.name, weight: defaults.integer(forKey: "weight\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), sets: defaults.string(forKey: "sets\(exercise.name)") ?? "", reps: defaults.string(forKey: "reps\(exercise.name)") ?? "", rest: defaults.string(forKey: "rest\(exercise.name)") ?? "", note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
                                 deleteExercise(named: exercise.name)
                             })
                         }
                     }
                 }
-                .padding(.top, 16)
             }
             .applyGradientBackground()
         }
         .navigationTitle("\(session.name) Exercises")
         .modifier(NavigationBarModifier())
         .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+               Button(action: {
+                   newSessionName = session.name // Set the current session name as the default
+                   showingRenameSheet = true // Show the alert to rename
+               }) {
+                   Image(systemName: "pencil")
+               }
+           }
             ToolbarItem(placement: .navigationBarTrailing) {
                 ExerciseToolbar(
                     exerciseName: $selectedExerciseName,
@@ -45,6 +55,24 @@ struct SessionDetailView: View {
                 )
             }
         }
+        .sheet(isPresented: $showingRenameSheet) {
+                    VStack {
+                        Text("Rename Session")
+                            .font(.headline)
+                            .padding()
+
+                        TextField("New Session Name", text: $newSessionName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+
+                        Button("Rename") {
+                            renameSession()
+                            showingRenameSheet = false // Dismiss the sheet
+                        }
+                        .padding()
+                    }
+                    .padding()
+                }
     }
     
     private func addExercise(named exerciseName: String) {
@@ -90,6 +118,23 @@ struct SessionDetailView: View {
                   } catch {
                       print("Failed to save context after deleting exercise: \(error)")
                   }
+        }
+    }
+    
+    private func renameSession() {
+        // Update the session name
+        session.name = newSessionName
+        
+        // Update the workout program to reflect the changes
+        if let programIndex = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
+            workoutProgram.sessions[programIndex] = session
+        }
+        
+        // Save the context to persist changes
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save context after renaming session: \(error)")
         }
     }
 }

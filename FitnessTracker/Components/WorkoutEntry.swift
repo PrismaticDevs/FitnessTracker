@@ -42,11 +42,12 @@ struct WorkoutEntryView: View {
                             .font(.headline)
                         Button {
                             iso.toggle()
+                            defaults.set(iso, forKey: "iso\(exercise)")
                         } label: {
                             Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
                         }
                         
-                        if iso {
+                        if defaults.bool(forKey: "iso\(exercise)") {
                             VStack {
                                 
                                 HStack {
@@ -57,7 +58,6 @@ struct WorkoutEntryView: View {
                                         TextField("Left Weight", text: $leftInput, prompt: Text("Weight Left").foregroundColor(.white.opacity(0.5)))
                                             .padding()
                                             .background(weightInput == "" && leftInput == "" && rightInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
-                                            .keyboardType(.numberPad)
                                             .onChange(of: leftInput) { oldValue, newValue in
                                                 if let value = Int(newValue) {
                                                     left = value
@@ -70,41 +70,6 @@ struct WorkoutEntryView: View {
                                                 leftInput = "\(defaults.integer(forKey: "left\(exercise)"))"
                                             }
                                     }
-                                    Button(action: {
-                                        if !leftInput.isEmpty && rightInput.isEmpty {
-                                            // Copy left to right
-                                            rightInput = leftInput
-                                            if let value = Int(leftInput) {
-                                                right = value
-                                            } else {
-                                                right = 0
-                                            }
-                                            defaults.set(right, forKey: "right\(exercise)")
-                                        } else if (!rightInput.isEmpty || rightInput == "0") && (leftInput.isEmpty || leftInput == "0") {
-                                            // Copy right to left
-                                            leftInput = rightInput
-                                            if let value = Int(rightInput) {
-                                                left = value
-                                            } else {
-                                                left = 0
-                                            }
-                                            defaults.set(left, forKey: "left\(exercise)")
-                                        } else if (!leftInput.isEmpty || leftInput == "0") && !(rightInput.isEmpty || rightInput == "0") {
-                                            // Clear both inputs
-                                            leftInput = ""
-                                            rightInput = ""
-                                            left = 0
-                                            right = 0
-                                            defaults.set(left, forKey: "left\(exercise)")
-                                            defaults.set(right, forKey: "right\(exercise)")
-                                        }
-                                    }) {
-                                        Image(systemName:
-                                            (leftInput.isEmpty || leftInput == "0") ? "arrow.left" :
-                                            (rightInput.isEmpty || rightInput == "0" ? "arrow.right" : "xmark.circle")
-                                        )
-                                        .foregroundColor(.white)
-                                    }
                                     VStack {
                                         Text("Right")
                                             .padding(-4)
@@ -112,7 +77,6 @@ struct WorkoutEntryView: View {
                                         TextField("Right Weight", text: $rightInput, prompt: Text("Right Weight").foregroundColor(.white.opacity(0.5)))
                                             .padding()
                                             .background(weightInput == "" && leftInput == "" && rightInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
-                                            .keyboardType(.numberPad)
                                             .onChange(of: rightInput) { oldValue, newValue in
                                                 if let value = Int(newValue) {
                                                     right = value
@@ -134,7 +98,6 @@ struct WorkoutEntryView: View {
                                 TextField("Weight", text: $weightInput, prompt: Text("Weight").foregroundColor(.white.opacity(0.5)))
                                     .padding()
                                     .background(weightInput == "" && leftInput == "" && rightInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
-                                    .keyboardType(.numberPad)
                                     .onChange(of: weightInput) { oldValue, newValue in
                                         if let value = Int(newValue) {
                                             weight = value
@@ -148,21 +111,6 @@ struct WorkoutEntryView: View {
                                     }
                             }
                         }
-                        Button(action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                        }
-                        .alert(isPresented: $showDeleteConfirmation) {
-                            Alert(title: Text("Delete Exercise"),
-                                  message: Text("Are you sure you want to remove \(exercise) from this session?"),
-                                  primaryButton: .destructive(Text("Delete")) {
-                                onDelete()
-                            },
-                                  secondaryButton: .cancel()
-                            )
-                        }
                     }
                     
                     HStack {
@@ -173,7 +121,6 @@ struct WorkoutEntryView: View {
                             TextField("Sets", text: $sets, prompt: Text("Sets").foregroundColor(.white.opacity(0.5)))
                                 .padding()
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .keyboardType(.numberPad)
                                 .onChange(of: sets) { oldValue, newValue in
                                     sets = newValue
                                     defaults.set(sets, forKey: "sets\(exercise)")
@@ -185,7 +132,6 @@ struct WorkoutEntryView: View {
                                 .font(.subheadline)
                             TextField("Reps", text: $reps, prompt: Text("Reps").foregroundColor(.white.opacity(0.5)))
                                 .padding() .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .keyboardType(.numberPad)
                                 .onChange(of: reps) { oldValue, newValue in
                                     reps = newValue
                                     defaults.set(reps, forKey: "reps\(exercise)")
@@ -199,7 +145,6 @@ struct WorkoutEntryView: View {
                             TextField("Rest (sec)", text: $rest, prompt: Text("Rest (sec)").foregroundColor(.white.opacity(0.5)))
                                 .padding()
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .keyboardType(.numberPad)
                                 .onChange(of: rest) { oldValue, newValue in
                                     rest = newValue
                                     defaults.set(rest, forKey: "rest\(exercise)")
@@ -207,37 +152,55 @@ struct WorkoutEntryView: View {
                         }
                     }
                     Section {
-                        Text("Note")
-                            .padding(-4)
-                            .font(.subheadline)
-                        TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
-                            .padding()
-                            .background(Color.blue.opacity(0.8).cornerRadius(10))
-                            .lineLimit(1...4)
-                            .overlay(
-                                Button(action: {
-                                    note = "" // Clear the text field
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .opacity(note.isEmpty ? 0 : 1) // Hide button if text is empty
-                                        .padding()
-                                }
-                                .foregroundColor(Color.white)
-                                .padding(),
-                                alignment: .trailing
-                            )
-                            .onChange(of: note) { oldValue, newValue in
-                                note = newValue
-                                defaults.set(note, forKey: "note\(exercise)")
+                        HStack {
+                            VStack {
+                                Text("Note")
+                                    .padding(-4)
+                                    .font(.subheadline)
+                                TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
+                                    .padding()
+                                    .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                    .lineLimit(1...4)
+                                    .overlay(
+                                        Button(action: {
+                                            note = "" // Clear the text field
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .opacity(note.isEmpty ? 0 : 1) // Hide button if text is empty
+                                                .padding()
+                                        }
+                                        .foregroundColor(Color.white)
+                                        .padding(),
+                                        alignment: .trailing
+                                    )
+                                    .onChange(of: note) { oldValue, newValue in
+                                        note = newValue
+                                        defaults.set(note, forKey: "note\(exercise)")
+                                    }
                             }
-                        
+                            Button(action: {
+                                showDeleteConfirmation = true
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .alert(isPresented: $showDeleteConfirmation) {
+                                Alert(title: Text("Delete Exercise"),
+                                      message: Text("Are you sure you want to remove \(exercise) from this session?"),
+                                      primaryButton: .destructive(Text("Delete")) {
+                                    onDelete()
+                                },
+                                      secondaryButton: .cancel()
+                                )
+                            }
+                        }
                     }
                 }
                 .listRowInsets(EdgeInsets()) // Remove default insets
             WorkoutHistoryView(date: $date, exercise: $exercise, weight: $weight, left: $left, right: $right, sets: $sets, reps: $reps, rest: $rest, note: $note)
         }
         .background(.clear)
-        .padding()
+        .padding(.horizontal)
         .cornerRadius(15)
     }
 }
