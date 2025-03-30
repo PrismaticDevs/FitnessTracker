@@ -76,9 +76,9 @@ struct SessionsView: View {
                        .font(.headline)
                        .padding()
 
-                   TextField("New Program Title", text: $newProgramTitle)
-                       .textFieldStyle(RoundedBorderTextFieldStyle())
+                   TextField("New Program Title", text: $newProgramTitle, prompt: Text("New Program Title").foregroundColor(ColorPalette.primary.opacity(0.5)))
                        .padding()
+                       .background(Color.blue.opacity(0.8).cornerRadius(10))
 
                    Button("Rename") {
                        renameProgram()
@@ -87,6 +87,7 @@ struct SessionsView: View {
                    .padding()
                }
                .padding()
+               .applyGradientBackground()
            }
         }
     }
@@ -125,6 +126,6 @@ struct SessionsView: View {
 }
 
 #Preview {
-    let program = WorkoutProgram(title: "Test", sessions: [])
+    let program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
     SessionsView(program: program)
 }
