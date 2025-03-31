@@ -4,6 +4,7 @@
 //
 //  Created by Matt on 10/1/24.
 //
+// Create and customise your own workout programs
 
 import SwiftUI
 import SwiftData

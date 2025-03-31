@@ -74,7 +74,7 @@ struct HeaderView: View {
                 .font(.title)
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 36))
-            Text("0.1")
+            Text("1.0")
                 .font(.system(size: 18))
         }
         .padding(5)
