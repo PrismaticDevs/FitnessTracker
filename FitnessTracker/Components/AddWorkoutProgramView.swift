@@ -25,7 +25,7 @@ struct AddWorkoutProgramView: View {
                             .foregroundColor(ColorPalette.primary)
                             .padding()
                         Section(header: Text("Title").font(.headline).foregroundColor(ColorPalette.primary)) {
-                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(ColorPalette.primary))
+                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(ColorPalette.primary.opacity(0.5)))
                                 .padding()
                                 .background(ColorPalette.accent)
                                 .foregroundColor(ColorPalette.primary)
@@ -56,7 +56,7 @@ struct AddWorkoutProgramView: View {
                                         })
                                     }
                                 HStack {
-                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(ColorPalette.primary))
+                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
                                         .onChange(of: newSessions[index].name) { newValue, oldValue in
                                             newSessions[index].name = newValue
                                         }
