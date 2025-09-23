@@ -130,7 +130,7 @@ struct WorkoutEntryView: View {
                                     } else {
                                         sets = 0
                                     }
-                                    defaults.set(right, forKey: "sets\(exercise)")
+                                    defaults.set(sets, forKey: "sets\(exercise)")
                                 }
                                 .onAppear {
                                     rightInput = "\(defaults.integer(forKey: "sets\(exercise)"))"
