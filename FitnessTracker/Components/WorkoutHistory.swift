@@ -17,9 +17,9 @@ struct WorkoutHistoryView: View {
     @Binding var weight: Int
     @Binding var left: Int
     @Binding var right: Int
-    @Binding var sets: String
-    @Binding var reps: String
-    @Binding var rest: String
+    @Binding var sets: Int
+    @Binding var reps: Int
+    @Binding var rest: Int
     @Binding var note: String
     // State
     @State private var showHistory: Bool = false
@@ -111,9 +111,9 @@ struct WorkoutHistoryView: View {
             weight: Int(weight),
             left: Int(left),
             right: Int(right),
-            sets: sets,
-            reps: reps,
-            rest: rest,
+            sets: Int(sets),
+            reps: Int(reps),
+            rest: Int(rest),
             note: note
         )
         context.insert(newEntry)
@@ -132,7 +132,7 @@ struct WorkoutHistoryView: View {
 }
 
 #Preview {
-    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(""), reps: .constant(""), rest: .constant(""), note: .constant("") )
+    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(0), reps: .constant(0), rest: .constant(0), note: .constant("") )
 }
 
 struct WorkoutEntryItem: View {
