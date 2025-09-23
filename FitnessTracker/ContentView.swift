@@ -89,6 +89,9 @@ struct ProgramListView: View {
     @State private var programToDeleteIndex: Int? = nil
 
     var body: some View {
+        Button("programs") {
+            print(programs)
+        }
         List {
             ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
                 ProgramRowView(program: program)

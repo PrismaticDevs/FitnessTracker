@@ -39,7 +39,7 @@ class ExerciseCategory {
 class Session {
     var id: UUID
     var name: String
-    var exercises: [Exercise] // Add exercises to the session
+    @Relationship var exercises: [Exercise] // Add exercises to the session
     
     init(name: String, exercises: [Exercise]) {
         self.id = UUID()
@@ -53,7 +53,7 @@ class Session {
 class WorkoutProgram  {
     var id: UUID
     var title: String
-    var sessions: [Session]
+    @Relationship var sessions: [Session]
     var starred: Bool = false
 
     init(title: String, sessions: [Session]) {
@@ -72,12 +72,12 @@ class WorkoutEntry: Identifiable {
     var weight: Int
     var left: Int
     var right: Int
-    var sets: String
-    var reps: String
-    var rest: String
+    var sets: Int
+    var reps: Int
+    var rest: Int
     var note: String
     
-    init(exercise: String, date: Date, weight: Int, left: Int, right: Int, sets: String, reps: String, rest: String, note: String) {
+    init(exercise: String, date: Date, weight: Int, left: Int, right: Int, sets: Int, reps: Int, rest: Int, note: String) {
         self.id = UUID()
         self.exercise = exercise
         self.date = date
