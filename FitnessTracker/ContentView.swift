@@ -14,7 +14,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            ProgramMenuView(programs: programs, context: _context)
+            ProgramMenuView(programs: programs)
         }
         .accentColor(Color.white)
     }
@@ -32,7 +32,7 @@ struct ProgramMenuView: View {
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
                     .foregroundColor(Color.white)
-                ProgramListView(programs: programs, context: _context)
+                ProgramListView(programs: programs)
             }
         }
         .navigationTitle("Your Programs")
@@ -89,6 +89,9 @@ struct ProgramListView: View {
     @State private var programToDeleteIndex: Int? = nil
 
     var body: some View {
+        Button("programs") {
+            print(programs)
+        }
         List {
             ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
                 ProgramRowView(program: program)
