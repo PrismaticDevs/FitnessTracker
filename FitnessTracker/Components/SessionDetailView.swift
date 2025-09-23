@@ -17,6 +17,7 @@ struct SessionDetailView: View {
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
+    @State private var selectedEntryId: UUID? = nil
 
 
     var body: some View {
@@ -25,9 +26,8 @@ struct SessionDetailView: View {
                 ScrollView {
                     VStack {
                         ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
-                            WorkoutEntryView(exercise: exercise.name, weight: defaults.integer(forKey: "weight\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), sets: defaults.string(forKey: "sets\(exercise.name)") ?? "", reps: defaults.string(forKey: "reps\(exercise.name)") ?? "", rest: defaults.string(forKey: "rest\(exercise.name)") ?? "", note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
-                                deleteExercise(named: exercise.name)
-                            })
+                            SetPickerView(selectedId: $selectedEntryId)
+                                .padding()
                         }
                     }
                 }
