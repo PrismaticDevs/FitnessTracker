@@ -39,7 +39,7 @@ class ExerciseCategory {
 class Session {
     var id: UUID
     var name: String
-    var exercises: [Exercise] // Add exercises to the session
+    @Relationship var exercises: [Exercise] // Add exercises to the session
     
     init(name: String, exercises: [Exercise]) {
         self.id = UUID()
@@ -53,7 +53,7 @@ class Session {
 class WorkoutProgram  {
     var id: UUID
     var title: String
-    var sessions: [Session]
+    @Relationship var sessions: [Session]
     var starred: Bool = false
 
     init(title: String, sessions: [Session]) {

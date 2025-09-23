@@ -14,7 +14,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            ProgramMenuView(programs: programs)
+            ProgramMenuView(programs: programs, context: _context)
         }
         .accentColor(Color.white)
     }
@@ -32,7 +32,7 @@ struct ProgramMenuView: View {
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
                     .foregroundColor(Color.white)
-                ProgramListView(programs: programs)
+                ProgramListView(programs: programs, context: _context)
             }
         }
         .navigationTitle("Your Programs")

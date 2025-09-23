@@ -165,9 +165,16 @@ struct AddWorkoutProgramView: View {
     
     private func saveWorkoutProgram() {
         print("test")
-        // Ensure the program title and sessions are not empty
         guard !programTitle.isEmpty, !newSessions.isEmpty else { return }
-        
+
+        // Insert all exercises and sessions into the context
+        for session in newSessions {
+            for exercise in session.exercises {
+                context.insert(exercise)
+            }
+            context.insert(session)
+        }
+
         let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
         context.insert(newProgram)
 
