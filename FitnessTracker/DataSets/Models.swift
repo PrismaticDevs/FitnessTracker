@@ -39,9 +39,9 @@ class ExerciseCategory {
 class Session {
     var id: UUID
     var name: String
-    var exercises: [Exercise] // Add exercises to the session
+    var exercises: [WorkoutEntry] // Add exercises to the session
     
-    init(name: String, exercises: [Exercise]) {
+    init(name: String, exercises: [WorkoutEntry]) {
         self.id = UUID()
         self.name = name
         self.exercises = exercises

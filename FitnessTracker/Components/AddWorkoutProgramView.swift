@@ -154,7 +154,7 @@ struct AddWorkoutProgramView: View {
         newSessions.remove(at: index)
     }
     
-    private func addExercise(to session: inout Session, exercise: Exercise) {
+    private func addExercise(to session: inout Session, exercise: WorkoutEntry) {
         session.exercises.append(exercise)
     }
     func removeExercise(from session: inout Session, exercise: Exercise) {
