@@ -8,66 +8,32 @@
 import Foundation
 import SwiftData
 
-// Define an Exercise model
 @Model
 class Exercise {
-    var id: UUID
+    @Attribute(.unique) var id: UUID = UUID()
     var name: String
-    
+
     init(name: String) {
-        self.id = UUID()
         self.name = name
     }
 }
 
-// Define an ExerciseCategory model
 @Model
 class ExerciseCategory {
-    var id: UUID
+    @Attribute(.unique) var id: UUID = UUID()
     var name: String
-    var exercises: [Exercise]
-    
+    var exercises: [Exercise] = []
+
     init(name: String, exercises: [Exercise] = []) {
-        self.id = UUID() // Automatically generate a unique ID
         self.name = name
         self.exercises = exercises
     }
 }
 
-// Define a Session model
 @Model
-class Session {
-    var id: UUID
-    var name: String
-    var exercises: [WorkoutEntry] // Add exercises to the session
-    
-    init(name: String, exercises: [WorkoutEntry]) {
-        self.id = UUID()
-        self.name = name
-        self.exercises = exercises
-    }
-}
-
-// Define a WorkoutProgram model
-@Model
-class WorkoutProgram  {
-    var id: UUID
-    var title: String
-    var sessions: [Session]
-    var starred: Bool = false
-
-    init(title: String, sessions: [Session]) {
-        self.id = UUID()
-        self.title = title
-        self.sessions = sessions
-        self.starred = false
-    }
-}
-
-@Model
-class WorkoutEntry: Identifiable {
-    var id: UUID
-    var exercise: String
+class WorkoutEntry {
+    @Attribute(.unique) var id: UUID = UUID()
+    var exercise: Exercise        // reference to Exercise model
     var date: Date
     var weight: Int
     var left: Int
@@ -75,10 +41,9 @@ class WorkoutEntry: Identifiable {
     var sets: Int
     var reps: Int
     var rest: Int
-    var note: String
-    
-    init(exercise: String, date: Date, weight: Int, left: Int, right: Int, sets: Int, reps: Int, rest: Int, note: String) {
-        self.id = UUID()
+    var note: String?
+
+    init(exercise: Exercise, date: Date = Date(), weight: Int = 0, left: Int = 0, right: Int = 0, sets: Int = 3, reps: Int = 8, rest: Int = 60, note: String? = nil) {
         self.exercise = exercise
         self.date = date
         self.weight = weight
@@ -92,16 +57,43 @@ class WorkoutEntry: Identifiable {
 }
 
 @Model
+class Session {
+    @Attribute(.unique) var id: UUID = UUID()
+    var name: String
+    var exercises: [WorkoutEntry] = []
+
+    init(name: String, exercises: [WorkoutEntry] = []) {
+        self.name = name
+        self.exercises = exercises
+    }
+}
+
+@Model
+class WorkoutProgram {
+    @Attribute(.unique) var id: UUID = UUID()
+    var title: String
+    var sessions: [Session] = []
+    var starred: Bool = false
+
+    init(title: String, sessions: [Session] = [], starred: Bool = false) {
+        self.title = title
+        self.sessions = sessions
+        self.starred = starred
+    }
+}
+
+@Model
 class WorkoutHistory {
-    var id: UUID
-    var program: String
+    @Attribute(.unique) var id: UUID = UUID()
+    var program: WorkoutProgram?   // reference to the program
     var date: Date
     var exercises: [WorkoutEntry] = []
-    
-    init(program: String, date: Date, note: String) {
-        self.id = UUID()
-        self.date = date
+    var note: String?
+
+    init(program: WorkoutProgram? = nil, date: Date = Date(), exercises: [WorkoutEntry] = [], note: String? = nil) {
         self.program = program
-        self.exercises = []
+        self.date = date
+        self.exercises = exercises
+        self.note = note
     }
 }

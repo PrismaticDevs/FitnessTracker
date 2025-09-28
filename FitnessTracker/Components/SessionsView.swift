@@ -127,7 +127,7 @@ struct SessionsView: View {
 
 #Preview {
     let testEntry = WorkoutEntry(
-        exercise: "Test",
+        exercise: Exercise(name: "Test"),
         date: Date(),
         weight: 0,
         left: 0,

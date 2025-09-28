@@ -25,7 +25,7 @@ struct SessionEditorView: View {
                 Section(header: Text("Exercises").font(.headline).foregroundColor(ColorPalette.primary)) {
                     ForEach(session.exercises) { exercise in
                         HStack {
-                            Text(exercise.exercise)
+                            Text(exercise.exercise.name)
                                 .padding()
                                 .background(ColorPalette.accent)
                                 .foregroundColor(ColorPalette.primary)
@@ -41,7 +41,7 @@ struct SessionEditorView: View {
             }
             ExerciseToolbar(
                 exerciseName: .constant(""),
-                exercisesSelected: session.exercises.map { $0.exercise },
+                exercisesSelected: session.exercises.map { $0.exercise.name },
                 onExerciseSelected: addExercise
             )
         }
@@ -96,8 +96,9 @@ struct AddWorkoutProgramView: View {
                                 session: $newSessions[index],
                                 onDelete: { deleteSession(at: index) },
                                 addExercise: { exerciseName in
+                                    let exerciseModel = Exercise(name: exerciseName)
                                     let entry = WorkoutEntry(
-                                        exercise: exerciseName,
+                                        exercise: exerciseModel,
                                         date: Date(),
                                         weight: 0,
                                         left: 0,
@@ -174,7 +175,6 @@ struct AddWorkoutProgramView: View {
     }
     
     private func saveWorkoutProgram() {
-        print("test")
         // Ensure the program title and sessions are not empty
         guard !programTitle.isEmpty, !newSessions.isEmpty else { return }
         

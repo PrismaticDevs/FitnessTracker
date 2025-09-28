@@ -72,7 +72,7 @@ struct WorkoutHistoryView: View {
                                 })
                             } else {
                                 List {
-                                    ForEach(workoutHistory.filter { $0.exercise == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
+                                    ForEach(workoutHistory.filter { $0.exercise.name == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
                                         WorkoutEntryItem(entry: entry)
                                     }
                                     .padding(3)
@@ -104,9 +104,19 @@ struct WorkoutHistoryView: View {
         }
         
         emptyEntry = false
+        let predicate = NSPredicate(format: "name == %@", exercise)
+        let existing: [Exercise] = (try? context.fetch(Exercise.self, where: predicate)) ?? []
+
+        let exerciseModel: Exercise
+        if let found = existing.first {
+            exerciseModel = found
+        } else {
+            exerciseModel = Exercise(name: exercise)
+            // either insert(exerciseModel) now or let it be reachable from newEntry
+        }
         
         let newEntry = WorkoutEntry(
-            exercise: exercise,
+            exercise: exerciseModel,
             date: Date(),
             weight: Int(weight),
             left: Int(left),

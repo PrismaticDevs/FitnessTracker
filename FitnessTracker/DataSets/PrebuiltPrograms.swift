@@ -39,7 +39,7 @@ func createPrebuiltWorkoutPrograms() -> [WorkoutProgram] {
         for (sessionTitle, exercises) in sessionsData {
             let exerciseObjects = exercises.map {
                 WorkoutEntry(
-                    exercise: $0,
+                    exercise: Exercise(name: $0),
                     date: Date(),
                     weight: 0,
                     left: 0,
@@ -76,7 +76,7 @@ struct PrebuiltSessionDetailView: View {
                     .padding(.top)
                 
                 ForEach(session.exercises, id: \.id) { exercise in
-                    Text(exercise.exercise)
+                    Text(exercise.exercise.name)
                 }
                 
                 Spacer()
