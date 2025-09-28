@@ -37,8 +37,20 @@ func createPrebuiltWorkoutPrograms() -> [WorkoutProgram] {
         var sessions: [Session] = []
         
         for (sessionTitle, exercises) in sessionsData {
-            let exerciseObjects = exercises.map { Exercise(name: $0) }
-            let session = Session(name: sessionTitle, exercises: exerciseObjects) // Assuming a default duration
+            let exerciseObjects = exercises.map {
+                WorkoutEntry(
+                    exercise: Exercise(name: $0),
+                    date: Date(),
+                    weight: 0,
+                    left: 0,
+                    right: 0,
+                    sets: 0,
+                    reps: 0,
+                    rest: 0,
+                    note: ""
+                )
+            }
+            let session = Session(name: sessionTitle, exercises: exerciseObjects)
             sessions.append(session)
         }
         
@@ -64,7 +76,7 @@ struct PrebuiltSessionDetailView: View {
                     .padding(.top)
                 
                 ForEach(session.exercises, id: \.id) { exercise in
-                    Text(exercise.name)
+                    Text(exercise.exercise.name)
                 }
                 
                 Spacer()

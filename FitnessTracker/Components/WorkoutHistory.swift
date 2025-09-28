@@ -17,9 +17,9 @@ struct WorkoutHistoryView: View {
     @Binding var weight: Int
     @Binding var left: Int
     @Binding var right: Int
-    @Binding var sets: String
-    @Binding var reps: String
-    @Binding var rest: String
+    @Binding var sets: Int
+    @Binding var reps: Int
+    @Binding var rest: Int
     @Binding var note: String
     // State
     @State private var showHistory: Bool = false
@@ -72,7 +72,7 @@ struct WorkoutHistoryView: View {
                                 })
                             } else {
                                 List {
-                                    ForEach(workoutHistory.filter { $0.exercise == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
+                                    ForEach(workoutHistory.filter { $0.exercise.name == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
                                         WorkoutEntryItem(entry: entry)
                                     }
                                     .padding(3)
@@ -104,16 +104,26 @@ struct WorkoutHistoryView: View {
         }
         
         emptyEntry = false
+        let predicate = NSPredicate(format: "name == %@", exercise)
+        let existing: [Exercise] = (try? context.fetch(Exercise.self, where: predicate)) ?? []
+
+        let exerciseModel: Exercise
+        if let found = existing.first {
+            exerciseModel = found
+        } else {
+            exerciseModel = Exercise(name: exercise)
+            // either insert(exerciseModel) now or let it be reachable from newEntry
+        }
         
         let newEntry = WorkoutEntry(
-            exercise: exercise,
+            exercise: exerciseModel,
             date: Date(),
             weight: Int(weight),
             left: Int(left),
             right: Int(right),
-            sets: sets,
-            reps: reps,
-            rest: rest,
+            sets: Int(sets),
+            reps: Int(reps),
+            rest: Int(rest),
             note: note
         )
         context.insert(newEntry)
@@ -132,7 +142,7 @@ struct WorkoutHistoryView: View {
 }
 
 #Preview {
-    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(""), reps: .constant(""), rest: .constant(""), note: .constant("") )
+    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(0), reps: .constant(0), rest: .constant(0), note: .constant("") )
 }
 
 struct WorkoutEntryItem: View {

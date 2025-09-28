@@ -16,9 +16,9 @@ struct WorkoutEntryView: View {
     @State var weight: Int = 0
     @State var left: Int = 0
     @State var right: Int = 0
-    @State var sets: String = ""
-    @State var reps: String = ""
-    @State var rest: String = ""
+    @State var sets: Int = 0
+    @State var reps: Int = 0
+    @State var rest: Int = 0
     @State var note: String = ""
     @State var date: Date = Date()
     @State var iso: Bool = false
@@ -28,6 +28,9 @@ struct WorkoutEntryView: View {
     @State private var weightInput: String = ""
     @State private var leftInput: String = ""
     @State private var rightInput: String = ""
+    @State private var setsInput: String = ""
+    @State private var repsInput: String = ""
+    @State private var restInput: String = ""
     @State private var showDeleteConfirmation = false
     var onDelete: () -> Void
 
@@ -118,23 +121,38 @@ struct WorkoutEntryView: View {
                             Text("Sets")
                                 .padding(-4)
                                 .font(.subheadline)
-                            TextField("Sets", text: $sets, prompt: Text("Sets").foregroundColor(.white.opacity(0.5)))
+                            TextField("Sets", text: $setsInput, prompt: Text("Sets").foregroundColor(.white.opacity(0.5)))
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .onChange(of: sets) { oldValue, newValue in
-                                    sets = newValue
+                                .background(setsInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
+                                .onChange(of: setsInput) { oldValue, newValue in
+                                    if let value = Int(newValue) {
+                                        sets = value
+                                    } else {
+                                        sets = 0
+                                    }
                                     defaults.set(sets, forKey: "sets\(exercise)")
+                                }
+                                .onAppear {
+                                    rightInput = "\(defaults.integer(forKey: "sets\(exercise)"))"
                                 }
                         }
                         VStack {
                             Text("Reps")
                                 .padding(-4)
                                 .font(.subheadline)
-                            TextField("Reps", text: $reps, prompt: Text("Reps").foregroundColor(.white.opacity(0.5)))
-                                .padding() .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .onChange(of: reps) { oldValue, newValue in
-                                    reps = newValue
+                            TextField("Reps", text: $repsInput, prompt: Text("Reps").foregroundColor(.white.opacity(0.5)))
+                                .padding()
+                                .background(repsInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
+                                .onChange(of: repsInput) { oldValue, newValue in
+                                    if let value = Int(newValue) {
+                                        reps = value
+                                    } else {
+                                        reps = 0
+                                    }
                                     defaults.set(reps, forKey: "reps\(exercise)")
+                                }
+                                .onAppear {
+                                    repsInput = "\(defaults.integer(forKey: "reps\(exercise)"))"
                                 }
 
                         }
@@ -142,12 +160,19 @@ struct WorkoutEntryView: View {
                             Text("Rest")
                                 .padding(-4)
                                 .font(.subheadline)
-                            TextField("Rest (sec)", text: $rest, prompt: Text("Rest (sec)").foregroundColor(.white.opacity(0.5)))
+                            TextField("Rest", text: $restInput, prompt: Text("Rest").foregroundColor(.white.opacity(0.5)))
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
-                                .onChange(of: rest) { oldValue, newValue in
-                                    rest = newValue
+                                .background(restInput == "" ? Color.red.opacity(0.6).cornerRadius(10) : Color.blue.opacity(0.8).cornerRadius(10))
+                                .onChange(of: restInput) { oldValue, newValue in
+                                    if let value = Int(newValue) {
+                                        rest = value
+                                    } else {
+                                        rest = 0
+                                    }
                                     defaults.set(rest, forKey: "rest\(exercise)")
+                                }
+                                .onAppear {
+                                    rightInput = "\(defaults.integer(forKey: "rest\(exercise)"))"
                                 }
                         }
                     }
@@ -206,6 +231,6 @@ struct WorkoutEntryView: View {
 }
 
 #Preview {
-    WorkoutEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: "", reps: "", rest: "", note: "", onDelete: {})
+    WorkoutEntryView(exercise: "", weight: 0, left: 0, right: 0, sets: 0, reps: 0, rest: 0, note: "", onDelete: {})
 }
 

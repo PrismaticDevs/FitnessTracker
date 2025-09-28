@@ -126,6 +126,17 @@ struct SessionsView: View {
 }
 
 #Preview {
-    let program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
+    let testEntry = WorkoutEntry(
+        exercise: Exercise(name: "Test"),
+        date: Date(),
+        weight: 0,
+        left: 0,
+        right: 0,
+        sets: 0,
+        reps: 0,
+        rest: 0,
+        note: ""
+    )
+    let program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [testEntry])])
     SessionsView(program: program)
 }
