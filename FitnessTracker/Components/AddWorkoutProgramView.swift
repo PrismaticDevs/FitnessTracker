@@ -180,10 +180,12 @@ struct AddWorkoutProgramView: View {
         
         let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
         context.insert(newProgram)
+        print(newProgram.sessions[0].exercises[0].exercise, 183)
 
         do {
             try context.save()
             dismiss()
+            print("context saved")
         } catch {
             print("Failed to save context: \(error)")
         }

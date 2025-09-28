@@ -90,6 +90,8 @@ struct ProgramListView: View {
 
     var body: some View {
         List {
+            Text("Programs count: \(programs.count)")
+                .background(Color.black)
             ForEach(programs.sorted { $0.starred && !$1.starred }) { program in
                 ProgramRowView(program: program)
                     .swipeActions {
