@@ -65,28 +65,37 @@ class WorkoutProgram  {
 }
 
 @Model
+class SetRecord: Identifiable {
+    var id: UUID
+    var combined: Int
+    var left: Int
+    var right: Int
+    var reps: Int
+    var note: String?
+    
+    init(id: UUID, combined: Int, left: Int, right: Int, reps: Int, note: String? = nil) {
+        self.id = id
+        self.combined = combined
+        self.left = left
+        self.right = right
+        self.reps = reps
+        self.note = note
+    }
+}
+
+@Model
 class WorkoutEntry: Identifiable {
     var id: UUID
     var exercise: String
     var date: Date
-    var weight: Int
-    var left: Int
-    var right: Int
-    var sets: String
-    var reps: String
-    var rest: String
-    var note: String
+    var sets: [SetRecord]
+    var note: String?
     
-    init(exercise: String, date: Date, weight: Int, left: Int, right: Int, sets: String, reps: String, rest: String, note: String) {
+    init(exercise: String, date: Date, sets: [SetRecord], note: String? = nil) {
         self.id = UUID()
         self.exercise = exercise
         self.date = date
-        self.weight = weight
-        self.left = left
-        self.right = right
         self.sets = sets
-        self.reps = reps
-        self.rest = rest
         self.note = note
     }
 }
