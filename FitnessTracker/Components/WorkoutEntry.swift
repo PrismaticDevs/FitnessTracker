@@ -248,7 +248,7 @@ struct SetRow: View {
                 .keyboardType(.numberPad)
                 .padding(8)
                 .background(Color.blue.opacity(0.8).cornerRadius(8))
-                .onChange(of: text) { _ in onCommit() }
+                .onChange(of: text) { oldValue, newValue in onCommit() }
                 .onSubmit { onCommit() }
                 .frame(minWidth: 80)
         }
