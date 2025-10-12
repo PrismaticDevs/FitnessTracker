@@ -71,15 +71,13 @@ class SetRecord: Identifiable {
     var left: Int
     var right: Int
     var reps: Int
-    var note: String?
     
-    init(id: UUID, combined: Int, left: Int, right: Int, reps: Int, note: String? = nil) {
+    init(id: UUID, combined: Int, left: Int, right: Int, reps: Int) {
         self.id = id
         self.combined = combined
         self.left = left
         self.right = right
         self.reps = reps
-        self.note = note
     }
 }
 
