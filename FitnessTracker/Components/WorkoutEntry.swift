@@ -10,21 +10,22 @@ import SwiftData
 struct WorkoutEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
-
+    
     @State var id: UUID = UUID()
     @State var exercise: String
     @State var combined: Int = 0
     @State var left: Int = 0
     @State var right: Int = 0
-
+    
     @State private var setsCountInput: String = "1"
+    @State private var sets: Int = 1
     @State private var combinedInputs: [String] = [""]
     @State private var leftInputs: [String] = [""]
     @State private var rightInputs: [String] = [""]
     @State private var repsInputs: [String] = [""]
     @State private var restInputs: [String] = [""]
     @State private var selectedSetIndex: Int = 0
-
+    
     @State var reps: Int = 0
     @State var rest: Int = 0
     @State var note: String = ""
@@ -33,13 +34,16 @@ struct WorkoutEntryView: View {
     @State var itemToDelete: WorkoutEntry?
     @State var showConfirmationDialogue = false
     @State var showHistory: Bool = false
+    @State private var showSavedCheckmark = false
+    @State private var showEmptyEntryAlert = false
     @State private var combinedInput: String = ""
     @State private var leftInput: String = ""
     @State private var rightInput: String = ""
     @State private var showDeleteConfirmation = false
-
+    @State var emptyEntry: Bool = true
+    
     var onDelete: () -> Void
-
+    
     var body: some View {
         VStack {
             Section {
@@ -85,7 +89,7 @@ struct WorkoutEntryView: View {
                             }
                         }.padding(.vertical, 6)
                     }
-
+                    
                     // show detailed inputs for the selected set only
                     VStack {
                         HStack {
@@ -104,7 +108,7 @@ struct WorkoutEntryView: View {
                                         defaults.set(Int(combinedInputs[selectedSetIndex]) ?? 0, forKey: "combined\(exercise)_set\(selectedSetIndex)")
                                     }
                                 }
-
+                                
                             }
                             Button {
                                 iso.toggle()
@@ -123,13 +127,11 @@ struct WorkoutEntryView: View {
                         }
                     }
                 }
-
+                
                 Section {
                     HStack {
-                        VStack {
-                            Text("Note")
-                                .padding(-4)
-                                .font(.subheadline)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Note").font(.subheadline).padding(-4)
                             TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
                                 .padding()
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
@@ -142,15 +144,15 @@ struct WorkoutEntryView: View {
                                             .opacity(note.isEmpty ? 0 : 1)
                                             .padding()
                                     }
-                                    .foregroundColor(Color.white)
-                                    .padding(),
+                                        .foregroundColor(Color.white)
+                                        .padding(),
                                     alignment: .trailing
                                 )
                                 .onChange(of: note) {
                                     defaults.set(note, forKey: "note\(exercise)")
                                 }
                         }
-
+                        
                         Button(action: {
                             showDeleteConfirmation = true
                         }) {
@@ -169,39 +171,68 @@ struct WorkoutEntryView: View {
                 }
             }
             .listRowInsets(EdgeInsets())
-
-//            WorkoutHistoryView(
-//                date: $date,
-//                exercise: $exercise,
-//                combined: Binding<Int>(
-//                    get: { Int(combinedInput) ?? 0},
-//                    set: { combinedInput = String($0)}
-//                ),
-//                left: Binding<Int>(
-//                    get: { left },
-//                    set: { left = $0 }
-//                ),
-//                right: Binding<Int>(
-//                    get: { right },
-//                    set: { right = $0 }
-//                ),
-//                sets: $setsCountInput,
-//                reps: $reps,
-//                rest: $rest,
-//                note: $note
-//            )
+            HStack {
+                Spacer()
+                Text(showHistory ? "Hide History" : "View History")
+                Button {
+                    showHistory.toggle()
+                } label: {
+                    Image(systemName: showHistory ? "eye.slash" : "eye")
+                }
+                Spacer()
+                Button {
+                    saveToHistory()
+                } label: {
+                    Image(systemName: "square.and.arrow.down")
+                }
+                .alert(isPresented: $emptyEntry) {
+                    Alert(title: Text("Error"), message: Text("No valid entry to save. All weight fields are empty."), dismissButton: .default(Text("OK")))
+                }
+                if showSavedCheckmark {
+                    Text("Saved")
+                        .foregroundColor(.green)
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.green)
+                        .transition(.scale)
+                }
+                Spacer()
+            }
+            if !showHistory {
+                WorkoutHistoryList()
+            }
+            
+            //            WorkoutHistoryView(
+            //                date: $date,
+            //                exercise: $exercise,
+            //                combined: Binding<Int>(
+            //                    get: { Int(combinedInput) ?? 0},
+            //                    set: { combinedInput = String($0)}
+            //                ),
+            //                left: Binding<Int>(
+            //                    get: { left },
+            //                    set: { left = $0 }
+            //                ),
+            //                right: Binding<Int>(
+            //                    get: { right },
+            //                    set: { right = $0 }
+            //                ),
+            //                sets: $setsCountInput,
+            //                reps: $reps,
+            //                rest: $rest,
+            //                note: $note
+            //            )
         }
         .background(.clear)
         .padding(.horizontal)
         .cornerRadius(15)
     }
-
+    
     // MARK: - Helpers
-
+    
     private func int(from s: String) -> Int {
         Int(s.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
     }
-
+    
     private func adjustPerSetArrays(to count: Int) {
         let c = max(1, count)
         let needed = c - combinedInputs.count
@@ -219,7 +250,7 @@ struct WorkoutEntryView: View {
             restInputs = Array(restInputs.prefix(c))
         }
     }
-
+    
     private func binding(for array: Binding<[String]>, index: Int) -> Binding<String> {
         Binding(
             get: {
@@ -233,6 +264,69 @@ struct WorkoutEntryView: View {
                 array.wrappedValue = a
             }
         )
+    }
+    
+    private func makeSetRecords() -> [SetRecord] {
+        let count = max(1, int(from: setsCountInput))
+        func val(_ arr: [String], _ idx: Int) -> Int {
+            guard arr.indices.contains(idx) else { return 0 }
+            return Int(arr[idx].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+        }
+        
+        return (0..<count).map { i in
+            SetRecord(
+                id: UUID(),
+                combined: val(combinedInputs, i),
+                left:     val(leftInputs, i),
+                right:    val(rightInputs, i),
+                reps:     val(repsInputs, i),
+                rest:     val(restInputs, i)
+            )
+        }
+    }
+    
+    private func saveToHistory() {
+        print("saving")
+        print(combinedInputs)
+        guard !(combinedInputs == [""] && leftInputs == [""] && rightInputs == [""] && repsInputs == [""] && restInputs == [""]) else {
+                    emptyEntry = true
+                    return
+                }
+                emptyEntry = false
+        let setRecs = makeSetRecords()
+        
+        // require at least one non-zero weight across combined or left/right
+        let anyWeight = setRecs.contains { $0.combined != 0 || $0.left != 0 || $0.right != 0 }
+        guard anyWeight else {
+            showEmptyEntryAlert = true
+            return
+        }
+        
+        // Build a WorkoutEntry (match your WorkoutEntry @Model initializer)
+        let workoutEntry = WorkoutEntry(
+            exercise: exercise,
+            date: date,
+            sets: setRecs,
+            note: note,
+        )
+        
+        // Wrap in WorkoutHistory
+        let history = WorkoutHistory(
+            id: UUID(),
+            date: date,
+            exercise: exercise,
+            entries: [workoutEntry]
+        )
+        
+        context.insert(history)
+        print(history.entries.count)
+        do {
+            try context.save()
+            showSavedCheckmark = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSavedCheckmark = false }
+        } catch {
+            print("Save error:", error)
+        }
     }
 }
 
