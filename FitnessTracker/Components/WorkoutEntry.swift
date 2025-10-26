@@ -56,7 +56,7 @@ struct WorkoutEntryView: View {
                         VStack {
                             Text("Sets").font(.subheadline)
                             TextField("Sets", text: $setsCountInput)
-                                .keyboardType(.numberPad)
+                                .keyboardType(.default)
                                 .frame(width: 60)
                                 .padding(6)
                                 .background(Color.blue.opacity(0.8).cornerRadius(8))
@@ -78,7 +78,10 @@ struct WorkoutEntryView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(0..<n, id: \.self) { idx in
-                                Button(action: { selectedSetIndex = idx }) {
+                                Button(action: {
+                                    selectedSetIndex = idx
+                                    autofillValues()
+                                }) {
                                     Text("Set \(idx + 1)")
                                         .padding(8)
                                         .background(selectedSetIndex == idx ? Color.blue.opacity(0.8) : Color.white.opacity(0.2))
@@ -96,16 +99,40 @@ struct WorkoutEntryView: View {
                             VStack(spacing: 10) {
                                 if defaults.bool(forKey: "iso\(exercise)_set\(selectedSetIndex)") {
                                     HStack {
-                                        SetRow(title: "Left Weight", text: binding(for: $leftInputs, index: selectedSetIndex)) {
-                                            defaults.set(Int(leftInputs[selectedSetIndex]) ?? 0, forKey: "left\(exercise)_set\(selectedSetIndex)")
+                                        SetRow(title: "Left Weight",
+                                               text: binding(for: $leftInputs, index: selectedSetIndex),
+                                               exerciseKey: "left\(exercise)_set\(selectedSetIndex)"
+                                        )
+                                        .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
+                                            if let value = Int(newValue) {
+                                                defaults.set(value, forKey: "left\(exercise)_set\(selectedSetIndex)")
+                                            } else {
+                                                defaults.set(0, forKey: "left\(exercise)_set\(selectedSetIndex)")
+                                            }
                                         }
-                                        SetRow(title: "Right Weight", text: binding(for: $rightInputs, index: selectedSetIndex)) {
-                                            defaults.set(Int(rightInputs[selectedSetIndex]) ?? 0, forKey: "right\(exercise)_set\(selectedSetIndex)")
+                                        SetRow(title: "Right Weight",
+                                               text: binding(for: $rightInputs, index: selectedSetIndex),
+                                               exerciseKey: "right\(exercise)_set\(selectedSetIndex)"
+                                        )
+                                        .onChange(of: rightInputs[selectedSetIndex]) { oldValue, newValue in
+                                            if let value = Int(newValue) {
+                                                defaults.set(value, forKey: "right\(exercise)_set\(selectedSetIndex)")
+                                            } else {
+                                                defaults.set(0, forKey: "right\(exercise)_set\(selectedSetIndex)")
+                                            }
                                         }
                                     }
                                 } else {
-                                    SetRow(title: "Combined Weight", text: binding(for: $combinedInputs, index: selectedSetIndex)) {
-                                        defaults.set(Int(combinedInputs[selectedSetIndex]) ?? 0, forKey: "combined\(exercise)_set\(selectedSetIndex)")
+                                    SetRow(title: "Combined Weight",
+                                           text: binding(for: $combinedInputs, index: selectedSetIndex),
+                                           exerciseKey: "weight\(exercise)_set\(selectedSetIndex)"
+                                    )
+                                    .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
+                                        if let value = Int(newValue) {
+                                            defaults.set(value, forKey: "weight\(exercise)_set\(selectedSetIndex)")
+                                        } else {
+                                            defaults.set(0, forKey: "weight\(exercise)_set\(selectedSetIndex)")
+                                        }
                                     }
                                 }
                                 
@@ -118,11 +145,27 @@ struct WorkoutEntryView: View {
                             }
                         }
                         HStack {
-                            SetRow(title: "Reps", text: binding(for: $repsInputs, index: selectedSetIndex)) {
-                                defaults.set(Int(repsInputs[selectedSetIndex]) ?? 0, forKey: "reps\(exercise)_set\(selectedSetIndex)")
+                            SetRow(title: "Reps",
+                                   text: binding(for: $repsInputs, index: selectedSetIndex),
+                                   exerciseKey: "reps\(exercise)_set\(selectedSetIndex)"
+                            )
+                            .onChange(of: repsInputs[selectedSetIndex]) { oldValue, newValue in
+                                if let value = Int(newValue) {
+                                    defaults.set(value, forKey: "reps\(exercise)_set\(selectedSetIndex)")
+                                } else {
+                                    defaults.set(0, forKey: "reps\(exercise)_set\(selectedSetIndex)")
+                                }
                             }
-                            SetRow(title: "Rest", text: binding(for: $restInputs, index: selectedSetIndex)) {
-                                defaults.set(Int(restInputs[selectedSetIndex]) ?? 0, forKey: "rest\(exercise)_set\(selectedSetIndex)")
+                            SetRow(title: "Rest",
+                                   text: binding(for: $restInputs, index: selectedSetIndex),
+                                   exerciseKey: "rest\(exercise)_set\(selectedSetIndex)"
+                            )
+                            .onChange(of: restInputs[selectedSetIndex]) { oldValue, newValue in
+                                if let value = Int(newValue) {
+                                    defaults.set(value, forKey: "rest\(exercise)_set\(selectedSetIndex)")
+                                } else {
+                                    defaults.set(0, forKey: "rest\(exercise)_set\(selectedSetIndex)")
+                                }
                             }
                         }
                     }
@@ -131,7 +174,7 @@ struct WorkoutEntryView: View {
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Note").font(.subheadline).padding(-4)
+                            Text("Note \(defaults.integer(forKey: "note\(exercise)"))").font(.subheadline).padding(-4)
                             TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
                                 .padding()
                                 .background(Color.blue.opacity(0.8).cornerRadius(10))
@@ -328,22 +371,58 @@ struct WorkoutEntryView: View {
             print("Save error:", error)
         }
     }
+    
+    private func autofillValues() {
+        // Check and autofill leftInput
+        if leftInputs[selectedSetIndex].isEmpty {
+            leftInputs[selectedSetIndex] = "\(defaults.integer(forKey: "left\(exercise)_set0"))"
+        }
+        
+        // Check and autofill rightInput
+        if rightInputs[selectedSetIndex].isEmpty {
+            rightInputs[selectedSetIndex] = "\(defaults.integer(forKey: "right\(exercise)_set0"))"
+        }
+        
+        // Check and autofill combinedInput
+        if combinedInputs[selectedSetIndex].isEmpty {
+            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: "combined\(exercise)_set0"))"
+        }
+        
+        // Check and autofill repsInput
+        if repsInputs[selectedSetIndex].isEmpty {
+            repsInputs[selectedSetIndex] = "\(defaults.integer(forKey: "reps\(exercise)_set0"))"
+        }
+        
+        // Check and autofill combinedInput
+        if restInputs[selectedSetIndex].isEmpty {
+            restInputs[selectedSetIndex] = "\(defaults.integer(forKey: "rest\(exercise)_set0"))"
+        }
+    }
 }
 
 struct SetRow: View {
+    var defaults = UserDefaults.standard
     let title: String
     @Binding var text: String
-    var onCommit: () -> Void
+    let exerciseKey: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline).padding(-4)
             TextField(title, text: $text)
-                .keyboardType(.numberPad)
+                .keyboardType(.default)
                 .padding(8)
                 .background(Color.blue.opacity(0.8).cornerRadius(8))
-                .onChange(of: text) { oldValue, newValue in onCommit() }
-                .onSubmit { onCommit() }
+                .onChange(of: text) { oldValue, newValue in
+                    if let value = Int(newValue) {
+                        defaults.set(value, forKey: exerciseKey)
+                    } else {
+                        defaults.set(0, forKey: exerciseKey)
+                    }
+                }
+                .onAppear {
+                    text = "\(defaults.integer(forKey: exerciseKey))"
+                }
                 .frame(minWidth: 80)
         }
     }
