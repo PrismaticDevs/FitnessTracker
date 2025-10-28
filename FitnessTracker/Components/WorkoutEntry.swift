@@ -244,26 +244,26 @@ struct WorkoutEntryView: View {
                 WorkoutHistoryList()
             }
             
-            //            WorkoutHistoryView(
-            //                date: $date,
-            //                exercise: $exercise,
-            //                combined: Binding<Int>(
-            //                    get: { Int(combinedInput) ?? 0},
-            //                    set: { combinedInput = String($0)}
-            //                ),
-            //                left: Binding<Int>(
-            //                    get: { left },
-            //                    set: { left = $0 }
-            //                ),
-            //                right: Binding<Int>(
-            //                    get: { right },
-            //                    set: { right = $0 }
-            //                ),
-            //                sets: $setsCountInput,
-            //                reps: $reps,
-            //                rest: $rest,
-            //                note: $note
-            //            )
+                        WorkoutHistoryView(
+                            date: $date,
+                            exercise: $exercise,
+                            combined: Binding<Int>(
+                                get: { Int(combinedInput) ?? 0},
+                                set: { combinedInput = String($0)}
+                            ),
+                            left: Binding<Int>(
+                                get: { left },
+                                set: { left = $0 }
+                            ),
+                            right: Binding<Int>(
+                                get: { right },
+                                set: { right = $0 }
+                            ),
+                            sets: $setsCountInput,
+                            reps: $reps,
+                            rest: $rest,
+                            note: $note
+                        )
         }
         .background(.clear)
         .padding(.horizontal)
