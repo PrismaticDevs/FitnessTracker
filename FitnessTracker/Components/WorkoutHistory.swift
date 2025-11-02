@@ -14,12 +14,12 @@ struct WorkoutHistoryView: View {
     // Bidings
     @Binding var date: Date
     @Binding var exercise: String
-    @Binding var weight: Int
+    @Binding var combined: Int
     @Binding var left: Int
     @Binding var right: Int
-    @Binding var sets: String
-    @Binding var reps: String
-    @Binding var rest: String
+    @Binding var sets: Int
+    @Binding var reps: Int
+    @Binding var rest: Int
     @Binding var note: String
     // State
     @State private var showHistory: Bool = false
@@ -98,7 +98,7 @@ struct WorkoutHistoryView: View {
     
     func saveEntry() {
         print(emptyEntry)
-        guard !(weight == 0 && left == 0 && right == 0) else {
+        guard !(combined == 0 && left == 0 && right == 0) else {
             emptyEntry = true
             return
         }
@@ -108,7 +108,7 @@ struct WorkoutHistoryView: View {
         let newEntry = WorkoutEntry(
             exercise: exercise,
             date: Date(),
-            weight: Int(weight),
+            combined: Int(combined),
             left: Int(left),
             right: Int(right),
             sets: sets,
@@ -132,7 +132,7 @@ struct WorkoutHistoryView: View {
 }
 
 #Preview {
-    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), weight: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(""), reps: .constant(""), rest: .constant(""), note: .constant("") )
+    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), combined: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(0), reps: .constant(0), rest: .constant(0), note: .constant("") )
 }
 
 struct WorkoutEntryItem: View {
@@ -155,7 +155,7 @@ struct WorkoutEntryItem: View {
                 VStack(alignment: .leading) {
                     HStack {
                         Text("Weight:")
-                        Text("\(entry.weight)")
+                        Text("\(entry.combined)")
                             .foregroundColor(.white)
                     }
                     Text("Left Isolated: \(entry.left)")

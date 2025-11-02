@@ -259,9 +259,18 @@ struct WorkoutEntryView: View {
                                 get: { right },
                                 set: { right = $0 }
                             ),
-                            sets: $setsCountInput,
-                            reps: $reps,
-                            rest: $rest,
+                            sets: Binding<Int>(
+                                get: { Int(setsCountInput) ?? 0},
+                                set: { setsCountInput = String($0)}
+                            ),
+                            reps: Binding<Int>(
+                                get: { reps },
+                                set: { reps = $0 }
+                            ),
+                            rest: Binding<Int>(
+                                get: { rest },
+                                set: { rest = $0 }
+                            ),
                             note: $note
                         )
         }
