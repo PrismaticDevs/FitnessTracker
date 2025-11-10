@@ -8,92 +8,109 @@
 import Foundation
 import SwiftData
 
+// Define an Exercise model
 @Model
 class Exercise {
-    @Attribute(.unique) var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID
     var name: String
-
+    
     init(name: String) {
+        self.id = UUID()
         self.name = name
     }
 }
 
+// Define an ExerciseCategory model
 @Model
 class ExerciseCategory {
-    @Attribute(.unique) var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID
     var name: String
-    var exercises: [Exercise] = []
-
+    var exercises: [Exercise]
+    
     init(name: String, exercises: [Exercise] = []) {
+        self.id = UUID() // Automatically generate a unique ID
         self.name = name
         self.exercises = exercises
     }
 }
 
-@Model
-class WorkoutEntry {
-    @Attribute(.unique) var id: UUID = UUID()
-    var exercise: Exercise        // reference to Exercise model
-    var date: Date
-    var weight: Int
-    var left: Int
-    var right: Int
-    var sets: Int
-    var reps: Int
-    var rest: Int
-    var note: String?
-
-    init(exercise: Exercise, date: Date = Date(), weight: Int = 0, left: Int = 0, right: Int = 0, sets: Int = 3, reps: Int = 8, rest: Int = 60, note: String? = nil) {
-        self.exercise = exercise
-        self.date = date
-        self.weight = weight
-        self.left = left
-        self.right = right
-        self.sets = sets
-        self.reps = reps
-        self.rest = rest
-        self.note = note
-    }
-}
-
+// Define a Session model
 @Model
 class Session {
-    @Attribute(.unique) var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID
     var name: String
-    var exercises: [WorkoutEntry] = []
-
-    init(name: String, exercises: [WorkoutEntry] = []) {
+    var exercises: [Exercise] // Add exercises to the session
+    
+    init(name: String, exercises: [Exercise]) {
+        self.id = UUID()
         self.name = name
         self.exercises = exercises
     }
 }
 
+// Define a WorkoutProgram model
 @Model
-class WorkoutProgram {
-    @Attribute(.unique) var id: UUID = UUID()
+class WorkoutProgram  {
+    @Attribute(.unique) var id: UUID
     var title: String
-    var sessions: [Session] = []
+    var sessions: [Session]
     var starred: Bool = false
 
-    init(title: String, sessions: [Session] = [], starred: Bool = false) {
+    init(title: String, sessions: [Session]) {
+        self.id = UUID()
         self.title = title
         self.sessions = sessions
-        self.starred = starred
+        self.starred = false
     }
 }
 
 @Model
-class WorkoutHistory {
-    @Attribute(.unique) var id: UUID = UUID()
-    var program: WorkoutProgram?   // reference to the program
-    var date: Date
-    var exercises: [WorkoutEntry] = []
-    var note: String?
+class SetRecord: Identifiable {
+    @Attribute(.unique) var id: UUID
+    var combined: Int
+    var left: Int
+    var right: Int
+    var reps: Int
+    var rest: Int
+    
+    init(id: UUID, combined: Int, left: Int, right: Int, reps: Int, rest: Int) {
+        self.id = id
+        self.combined = combined
+        self.left = left
+        self.right = right
+        self.reps = reps
+        self.rest = rest
+    }
+}
 
-    init(program: WorkoutProgram? = nil, date: Date = Date(), exercises: [WorkoutEntry] = [], note: String? = nil) {
-        self.program = program
+@Model
+class WorkoutEntry: Identifiable {
+    @Attribute(.unique) var id: UUID
+    var exercise: String
+    var date: Date
+    var sets: [SetRecord]
+    var note: String?
+    
+    init(exercise: String, date: Date, sets: [SetRecord], note: String? = nil) {
+        self.id = UUID()
+        self.exercise = exercise
         self.date = date
-        self.exercises = exercises
+        self.sets = sets
         self.note = note
+    }
+}
+
+@Model
+final class WorkoutHistory: Identifiable {
+    @Attribute(.unique) var id: UUID
+    var date: Date
+    var exercise: String
+    var entries: [WorkoutEntry]
+
+    init(id: UUID = UUID(), date: Date = Date(), exercise: String = "", entries: [WorkoutEntry] = []) {
+        self.id = id
+        self.date = date
+        self.exercise = exercise
+        self.entries = entries
     }
 }

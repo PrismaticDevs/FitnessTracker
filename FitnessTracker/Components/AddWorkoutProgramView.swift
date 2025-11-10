@@ -1,60 +1,12 @@
 import SwiftUI
 import SwiftData
 
-struct SessionEditorView: View {
-    @Binding var session: Session
-    var onDelete: () -> Void
-    var addExercise: (String) -> Void
-    var removeExercise: (WorkoutEntry) -> Void
-
-    var body: some View {
-        Section(header: Text("Session").font(.headline).foregroundColor(ColorPalette.primary)) {
-            HStack {
-                TextField("Session Name", text: $session.name)
-                    .padding()
-                    .background(ColorPalette.accent)
-                    .foregroundColor(ColorPalette.primary)
-                    .cornerRadius(8)
-                Button(action: onDelete) {
-                    Image(systemName: "minus.circle")
-                        .foregroundColor(.red)
-                        .padding(.leading, 8)
-                }
-            }
-            if !session.exercises.isEmpty {
-                Section(header: Text("Exercises").font(.headline).foregroundColor(ColorPalette.primary)) {
-                    ForEach(session.exercises) { exercise in
-                        HStack {
-                            Text(exercise.exercise.name)
-                                .padding()
-                                .background(ColorPalette.accent)
-                                .foregroundColor(ColorPalette.primary)
-                                .cornerRadius(8)
-                            Button(action: { removeExercise(exercise) }) {
-                                Image(systemName: "minus.circle")
-                                    .foregroundColor(.red)
-                                    .padding(.trailing, 8)
-                            }
-                        }
-                    }
-                }
-            }
-            ExerciseToolbar(
-                exerciseName: .constant(""),
-                exercisesSelected: session.exercises.map { $0.exercise.name },
-                onExerciseSelected: addExercise
-            )
-        }
-        .padding(.horizontal)
-    }
-}
-
 struct AddWorkoutProgramView: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     @State private var programTitle: String = ""
     @State private var newSessions: [Session] = []
-    @State private var selectedExercises: [WorkoutEntry] = []
+    @State private var selectedExercises: [Exercise] = []
     @State private var navigateToContentView: Bool = false
     @State private var showAlert: Bool = false
     @StateObject private var exerciseList = ExerciseList() // Create a single instance
@@ -91,29 +43,66 @@ struct AddWorkoutProgramView: View {
                                 )
                         }
                         .padding(.horizontal)
-                        ForEach(newSessions.indices, id: \.self) { index in
-                            SessionEditorView(
-                                session: $newSessions[index],
-                                onDelete: { deleteSession(at: index) },
-                                addExercise: { exerciseName in
-                                    let exerciseModel = Exercise(name: exerciseName)
-                                    let entry = WorkoutEntry(
-                                        exercise: exerciseModel,
-                                        date: Date(),
-                                        weight: 0,
-                                        left: 0,
-                                        right: 0,
-                                        sets: 0,
-                                        reps: 0,
-                                        rest: 0,
-                                        note: ""
-                                    )
-                                    addExercise(to: &newSessions[index], exercise: entry)
-                                },
-                                removeExercise: { exercise in
-                                    removeExercise(from: &newSessions[index], exercise: exercise)
+                            ForEach(newSessions.indices, id: \.self) { index in
+                                Section(header: Text("Session").font(.headline).foregroundColor(ColorPalette.primary)) {
+                                    if newSessions.isEmpty {
+                                        ContentUnavailableView(label: {
+                                            Label("No sessions yet", systemImage: "list.bullet.rectangle.portrait")
+                                                .foregroundColor(ColorPalette.primary)
+                                        }, description: {
+                                            Text("Start adding sessions")
+                                                .foregroundColor(ColorPalette.primary)
+                                        },actions: {
+                                        })
+                                    }
+                                HStack {
+                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                                        .onChange(of: newSessions[index].name) { newValue, oldValue in
+                                            newSessions[index].name = newValue
+                                        }
+                                        .padding()
+                                        .background(ColorPalette.accent)
+                                        .foregroundColor(ColorPalette.primary)
+                                        .cornerRadius(8)
+                                    Button(action: {
+                                        deleteSession(at: index)
+                                   }) {
+                                       Image(systemName: "minus.circle")
+                                           .foregroundColor(.red)
+                                           .padding(.leading, 8) // Add some space between the text field and the button
+                                   }
                                 }
-                            )
+                                if !newSessions[index].exercises.isEmpty {
+                                    Section(header: Text("Exercises").font(.headline).foregroundColor(ColorPalette.primary)) {
+                                        ForEach(newSessions[index].exercises) { exercise in
+                                            HStack {
+                                                Text(exercise.name)
+                                                    .padding()
+                                                    .background(ColorPalette.accent)
+                                                    .foregroundColor(ColorPalette.primary)
+                                                    .cornerRadius(8)
+                                                
+                                                Button(action: {
+                                                    removeExercise(from: &newSessions[index], exercise: exercise)
+                                                }) {
+                                                    Image(systemName: "minus.circle")
+                                                        .foregroundColor(.red)
+                                                        .padding(.trailing, 8)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // ExerciseToolbar for selecting exercises
+                                ExerciseToolbar(
+                                    exerciseName: .constant(""),
+                                    exercisesSelected: newSessions[index].exercises.map { $0.name }, // Pass selected exercises
+                                    onExerciseSelected: { exerciseName in
+                                        let exercise = Exercise(name: exerciseName)
+                                        addExercise(to: &newSessions[index], exercise: exercise)
+                                    }
+                                )
+                            }
                         }
                         .padding(.horizontal)
                         
@@ -165,27 +154,26 @@ struct AddWorkoutProgramView: View {
         newSessions.remove(at: index)
     }
     
-    private func addExercise(to session: inout Session, exercise: WorkoutEntry) {
+    private func addExercise(to session: inout Session, exercise: Exercise) {
         session.exercises.append(exercise)
     }
-    func removeExercise(from session: inout Session, exercise: WorkoutEntry) {
+    func removeExercise(from session: inout Session, exercise: Exercise) {
         if let index = session.exercises.firstIndex(where: { $0.id == exercise.id }) {
             session.exercises.remove(at: index)
         }
     }
     
     private func saveWorkoutProgram() {
+        print("test")
         // Ensure the program title and sessions are not empty
         guard !programTitle.isEmpty, !newSessions.isEmpty else { return }
         
         let newProgram = WorkoutProgram(title: programTitle, sessions: newSessions)
         context.insert(newProgram)
-        print(newProgram.sessions[0].exercises[0].exercise, 183)
 
         do {
             try context.save()
             dismiss()
-            print("context saved")
         } catch {
             print("Failed to save context: \(error)")
         }

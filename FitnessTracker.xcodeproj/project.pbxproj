@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C9E3894E2EC1619200DCC8EE /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = C9E3894D2EC1619200DCC8EE /* FirebaseAI */; };
+		C9E389502EC1619200DCC8EE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C9E3894F2EC1619200DCC8EE /* FirebaseAnalytics */; };
+		C9E389522EC1619200DCC8EE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C9E389512EC1619200DCC8EE /* FirebaseAuth */; };
+		C9E389542EC1619200DCC8EE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C9E389532EC1619200DCC8EE /* FirebaseCore */; };
+		C9E389562EC1619200DCC8EE /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C9E389552EC1619200DCC8EE /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C998B05D2CACEB5B00AD3898 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -30,11 +38,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C998B04E2CACEB5700AD3898 /* FitnessTracker */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FitnessTracker;
-			sourceTree = "<group>";
-		};
 		C998B05F2CACEB5B00AD3898 /* FitnessTrackerTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FitnessTrackerTests;
@@ -45,6 +48,11 @@
 			path = FitnessTrackerUITests;
 			sourceTree = "<group>";
 		};
+		C9E389A32EC1620F00DCC8EE /* FitnessTracker */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FitnessTracker;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +60,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9E389502EC1619200DCC8EE /* FirebaseAnalytics in Frameworks */,
+				C9E389522EC1619200DCC8EE /* FirebaseAuth in Frameworks */,
+				C9E389542EC1619200DCC8EE /* FirebaseCore in Frameworks */,
+				C9E389562EC1619200DCC8EE /* FirebaseFirestore in Frameworks */,
+				C9E3894E2EC1619200DCC8EE /* FirebaseAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,7 +88,7 @@
 		C998B0432CACEB5700AD3898 = {
 			isa = PBXGroup;
 			children = (
-				C998B04E2CACEB5700AD3898 /* FitnessTracker */,
+				C9E389A32EC1620F00DCC8EE /* FitnessTracker */,
 				C998B05F2CACEB5B00AD3898 /* FitnessTrackerTests */,
 				C998B0692CACEB5B00AD3898 /* FitnessTrackerUITests */,
 				C998B04D2CACEB5700AD3898 /* Products */,
@@ -108,10 +121,15 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				C998B04E2CACEB5700AD3898 /* FitnessTracker */,
+				C9E389A32EC1620F00DCC8EE /* FitnessTracker */,
 			);
 			name = FitnessTracker;
 			packageProductDependencies = (
+				C9E3894D2EC1619200DCC8EE /* FirebaseAI */,
+				C9E3894F2EC1619200DCC8EE /* FirebaseAnalytics */,
+				C9E389512EC1619200DCC8EE /* FirebaseAuth */,
+				C9E389532EC1619200DCC8EE /* FirebaseCore */,
+				C9E389552EC1619200DCC8EE /* FirebaseFirestore */,
 			);
 			productName = FitnessTracker;
 			productReference = C998B04C2CACEB5700AD3898 /* FitnessTracker.app */;
@@ -195,6 +213,9 @@
 			);
 			mainGroup = C998B0432CACEB5700AD3898;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C998B04D2CACEB5700AD3898 /* Products */;
 			projectDirPath = "";
@@ -561,6 +582,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C9E3894D2EC1619200DCC8EE /* FirebaseAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAI;
+		};
+		C9E3894F2EC1619200DCC8EE /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		C9E389512EC1619200DCC8EE /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		C9E389532EC1619200DCC8EE /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		C9E389552EC1619200DCC8EE /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C998B0442CACEB5700AD3898 /* Project object */;
 }

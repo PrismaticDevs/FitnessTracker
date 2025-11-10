@@ -24,20 +24,10 @@ struct SessionDetailView: View {
             ZStack {
                 ScrollView {
                     VStack {
-                        ForEach(session.exercises.sorted(by: { $0.exercise.name < $1.exercise.name })) { exercise in
-                            WorkoutEntryView(
-                                exercise: exercise.exercise.name,
-                                weight: exercise.weight,
-                                left: exercise.left,
-                                right: exercise.right,
-                                sets: exercise.sets,
-                                reps: exercise.reps,
-                                rest: exercise.rest,
-                                note: exercise.note ?? "",
-                                onDelete: {
-                                    deleteExercise(named: exercise.exercise.name)
-                                }
-                            )
+                        ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
+                            WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
+                                deleteExercise(named: exercise.name)
+                            })
                         }
                     }
                 }
@@ -58,7 +48,7 @@ struct SessionDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 ExerciseToolbar(
                     exerciseName: $selectedExerciseName,
-                    exercisesSelected: session.exercises.map { $0.exercise.name },
+                    exercisesSelected: session.exercises.map { $0.name },
                     onExerciseSelected: { exerciseName in
                         addExercise(named: exerciseName)
                     }
@@ -88,18 +78,7 @@ struct SessionDetailView: View {
     }
     
     private func addExercise(named exerciseName: String) {
-        let exerciseModel = Exercise(name: exerciseName)
-        let newExercise = WorkoutEntry(
-            exercise: Exercise(name: exerciseName),
-            date: Date(),
-            weight: 0,
-            left: 0,
-            right: 0,
-            sets: 0,
-            reps: 0,
-            rest: 0,
-            note: ""
-        )
+        let newExercise = Exercise(name: exerciseName)
         session.exercises.append(newExercise)
         
         // Save the updated session back to the workout program
@@ -117,12 +96,12 @@ struct SessionDetailView: View {
     
     private func deleteExercise(named exerciseName: String) {
         // Find the index of the exercise to delete
-        if let index = session.exercises.firstIndex(where: { $0.exercise.name == exerciseName }) {
+        if let index = session.exercises.firstIndex(where: { $0.name == exerciseName }) {
             // Remove the exercise from the session's exercises array
             session.exercises.remove(at: index)
             
             // Remove associated data from UserDefaults
-            defaults.removeObject(forKey: "weight\(exerciseName)")
+            defaults.removeObject(forKey: "combined\(exerciseName)")
             defaults.removeObject(forKey: "left\(exerciseName)")
             defaults.removeObject(forKey: "right\(exerciseName)")
             defaults.removeObject(forKey: "sets\(exerciseName)")
@@ -171,7 +150,7 @@ struct SessionDetailView: View {
     ]
     
     // Create a mock session
-    let session = Session(name: "Morning Workout", exercises: exercises as! [WorkoutEntry])
+    let session = Session(name: "Morning Workout", exercises: exercises)
     
     let workoutProgram = WorkoutProgram(title: "Test Program", sessions: [session])
     

@@ -20,14 +20,14 @@ struct ExerciseToolbar: View {
                 Menu {
                     ForEach(category.exercises, id: \.id) { exercise in
                         Button {
-                            exerciseName = exercise.name // or exercise.exercise if that's the property
-                            onExerciseSelected(exercise.name) // or exercise.exercise
+                            exerciseName = exercise.name
+                            onExerciseSelected(exercise.name)
                         } label: {
-                            Label(exercise.name, systemImage: "plus.circle.fill") // or exercise.exercise
+                            Label(exercise.name, systemImage: "plus.circle.fill")
                         }
                     }
                 } label: {
-                    Text(category.name)
+                    Text(category.name) // Use the category name for the menu label
                 }
             }
         } label: {
