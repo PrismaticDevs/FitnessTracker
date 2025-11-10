@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "lifting icon.png",
+      "filename" : "FT.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -24,6 +24,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "lifting icon.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
