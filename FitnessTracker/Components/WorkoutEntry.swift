@@ -244,35 +244,35 @@ struct WorkoutEntryView: View {
                 WorkoutHistoryList()
             }
             
-                        WorkoutHistoryView(
-                            date: $date,
-                            exercise: $exercise,
-                            combined: Binding<Int>(
-                                get: { Int(combinedInput) ?? 0},
-                                set: { combinedInput = String($0)}
-                            ),
-                            left: Binding<Int>(
-                                get: { left },
-                                set: { left = $0 }
-                            ),
-                            right: Binding<Int>(
-                                get: { right },
-                                set: { right = $0 }
-                            ),
-                            sets: Binding<Int>(
-                                get: { Int(setsCountInput) ?? 0},
-                                set: { setsCountInput = String($0)}
-                            ),
-                            reps: Binding<Int>(
-                                get: { reps },
-                                set: { reps = $0 }
-                            ),
-                            rest: Binding<Int>(
-                                get: { rest },
-                                set: { rest = $0 }
-                            ),
-                            note: $note
-                        )
+//                        WorkoutHistoryView(
+//                            date: $date,
+//                            exercise: $exercise,
+//                            combined: Binding<Int>(
+//                                get: { Int(combinedInput) ?? 0},
+//                                set: { combinedInput = String($0)}
+//                            ),
+//                            left: Binding<Int>(
+//                                get: { left },
+//                                set: { left = $0 }
+//                            ),
+//                            right: Binding<Int>(
+//                                get: { right },
+//                                set: { right = $0 }
+//                            ),
+//                            sets: Binding<Int>(
+//                                get: { Int(setsCountInput) ?? 0},
+//                                set: { setsCountInput = String($0)}
+//                            ),
+//                            reps: Binding<Int>(
+//                                get: { reps },
+//                                set: { reps = $0 }
+//                            ),
+//                            rest: Binding<Int>(
+//                                get: { rest },
+//                                set: { rest = $0 }
+//                            ),
+//                            note: $note
+//                        )
         }
         .background(.clear)
         .padding(.horizontal)
