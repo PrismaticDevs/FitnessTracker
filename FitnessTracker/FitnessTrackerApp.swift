@@ -8,9 +8,13 @@
 
 import SwiftUI
 import SwiftData
+import Firebase
 
 @main
 struct FitnessTrackerApp: App {
+    init() {
+        FirebaseApp.configure()
+    }
 
     var body: some Scene {
         WindowGroup {
