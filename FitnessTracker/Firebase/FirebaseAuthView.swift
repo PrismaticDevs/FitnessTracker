@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct AuthView: View {
-    @StateObject var viewModel = AuthManager()
+struct FirebaseAuthView: View {
+    @ObservedObject var viewModel = AuthManager()
     
     @State private var email = ""
     @State private var password = ""
@@ -22,10 +22,15 @@ struct AuthView: View {
                     TextField("Email", text: $email)
                         .padding(8)
                         .background(Color.blue.opacity(0.8).cornerRadius(8))
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
                     
                     SecureField("Password", text: $password)
                         .padding(8)
                         .background(Color.blue.opacity(0.8).cornerRadius(8))
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
                     
                     HStack {
                         Button("Login") {
@@ -44,5 +49,5 @@ struct AuthView: View {
 }
 
 #Preview {
-    AuthView()
+    FirebaseAuthView()
 }
