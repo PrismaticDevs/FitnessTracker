@@ -11,9 +11,10 @@ struct SocialPortal: View {
     @EnvironmentObject var auth: AuthManager
     @Binding var isPresented: Bool
     @State private var navigateToAuthView = false // State variable for navigation
+    @State private var returnToRoot = false
 
     var body: some View {
-        // Use NavigationStack for navigation
+        // Use NavigationStack for main content
         NavigationStack {
             ZStack {
                 // Your main content can go here
@@ -22,26 +23,27 @@ struct SocialPortal: View {
             .navigationTitle("FiT Social")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Logout") {
+                    Button(action: {
                         #if canImport(UIKit)
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         #endif
                         auth.signOut()
                         isPresented = false
-                        navigateToAuthView = true // Trigger navigation
+                        returnToRoot = true // Trigger return to ContentView
+                    }) {
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(ColorPalette.primary)
+                            .padding(10)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .accessibilityLabel("Log out")
                     }
                 }
             }
             .navigationBarTitleTextColor(.white)
-            // Use navigationDestination to define the next view
-            .navigationDestination(for: Bool.self) { _ in
-                FirebaseAuthView() // Destination view
-            }
-            .onChange(of: navigateToAuthView) { newValue, oldValue in
-                if newValue && !oldValue{
-                    // Triggers the navigation to FireBaseAuthView when navigateToAuthView is true
-                    navigateToAuthView = false
-                }
+            .fullScreenCover(isPresented: $returnToRoot) {
+                ContentView().environmentObject(auth)
             }
         }
     }

@@ -212,7 +212,7 @@ struct AddProgramButton: View {
 struct SocialEntry: View {
     var body: some View {
         HStack {
-            Image(systemName: "lock.fill")
+            Image(systemName: "bubble.left.and.bubble.right")
             Text("FiT Social")
                 .font(.headline)
                 .foregroundColor(ColorPalette.accent)
