@@ -12,7 +12,7 @@ struct FirebaseAuthView: View {
     
     @State private var email = ""
     @State private var password = ""
-    @State private var shouldNavigateToSocial: Bool = false
+    @State private var shouldNavigateToHome: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -50,13 +50,13 @@ struct FirebaseAuthView: View {
                 .padding()
             }
             .applyGradientBackground()
-            .navigationDestination(isPresented: $shouldNavigateToSocial) {
-                SocialPortal(isPresented: $shouldNavigateToSocial)
+            .navigationDestination(isPresented: $shouldNavigateToHome) {
+                ContentView()
                     .environmentObject(auth)
             }
             .onChange(of: auth.isAuthenticated) { oldValue, newValue in
                 if newValue {
-                    shouldNavigateToSocial = true
+                    shouldNavigateToHome = true
                 }
             }
         }

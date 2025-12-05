@@ -19,12 +19,14 @@ struct FitnessTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            #if DEBUG
-            ContentView()
-                .environmentObject(authManager)
-            #else
-            Auth()
-            #endif
+            Group {
+                if authManager.user != nil {
+                    ContentView()
+                } else {
+                    FirebaseAuthView()
+                }
+            }
+            .environmentObject(authManager)
         }
         .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, WorkoutEntry.self])
     }

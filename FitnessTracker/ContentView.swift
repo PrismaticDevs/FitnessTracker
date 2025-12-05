@@ -25,6 +25,7 @@ struct ProgramMenuView: View {
     var programs: [WorkoutProgram]
     @Environment(\.modelContext) var context
     @StateObject var auth: AuthManager
+    @State private var showSocialPortal = false
     
     var body: some View {
         ZStack {
@@ -58,13 +59,27 @@ struct ProgramMenuView: View {
                     }
                 }
             }
-            ToolbarItem {
+            // Trailing: Add Program
+            ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(destination: AddWorkoutProgramView()) {
-                    AddProgramButton()
+                    AddProgramButton(compact: true)
                 }
             }
-            ToolbarItem {
-                NavigationLink(destination: FirebaseAuthView().environmentObject(auth)) {
+
+            // Trailing: Logout
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    auth.signOut()
+                } label: {
+                    Image(systemName: "arrow.right.square")
+                        .font(.system(size: 18, weight: .semibold))
+                        .accessibilityLabel("Log out")
+                }
+            }
+
+            // Bottom bar (or move to leading if you prefer): Social entry
+            ToolbarItem(placement: .bottomBar) {
+                NavigationLink(destination: SocialEntry()) {
                     SocialEntry()
                 }
             }
@@ -81,8 +96,8 @@ struct HeaderView: View {
         HStack {
             Text("FitnessTracker")
                 .font(.title)
-//            Image(systemName: "figure.strengthtraining.traditional")
-//                .font(.system(size: 36))
+            Text("1.0")
+                .font(.system(size: 18))
             Image("white-outline")
                 .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -90,8 +105,6 @@ struct HeaderView: View {
                     .clipped()
                     .cornerRadius(8)
                     .padding(0)
-            Text("1.0")
-                .font(.system(size: 18))
         }
         .padding(5)
         .padding(.top, 10)
@@ -203,16 +216,22 @@ struct EmptyStateView: View {
 }
 
 struct AddProgramButton: View {
+    var compact: Bool = false
+
     var body: some View {
-        HStack {
+        HStack(spacing: compact ? 0 : 6) {
             Image(systemName: "plus.circle.fill")
-            Text("Add Program")
-                .font(.headline)
-                .foregroundColor(ColorPalette.accent)
+            if !compact {
+                Text("Add Program")
+                    .font(.headline)
+                    .foregroundColor(ColorPalette.accent)
+            }
         }
-        .padding()
+        .padding(compact ? 0 : 8)
         .foregroundColor(ColorPalette.primary)
         .cornerRadius(8)
+        .contentShape(Rectangle()) // helps hit-testing
+        .accessibilityLabel("Add Program")
     }
 }
 
@@ -232,4 +251,5 @@ struct SocialEntry: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager())
 }
