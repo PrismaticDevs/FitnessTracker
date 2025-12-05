@@ -81,8 +81,15 @@ struct HeaderView: View {
         HStack {
             Text("FitnessTracker")
                 .font(.title)
-            Image(systemName: "figure.strengthtraining.traditional")
-                .font(.system(size: 36))
+//            Image(systemName: "figure.strengthtraining.traditional")
+//                .font(.system(size: 36))
+            Image("white-outline")
+                .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 100, height: 100)
+                    .clipped()
+                    .cornerRadius(8)
+                    .padding(0)
             Text("1.0")
                 .font(.system(size: 18))
         }
