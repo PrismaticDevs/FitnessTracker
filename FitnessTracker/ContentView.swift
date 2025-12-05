@@ -17,7 +17,6 @@ struct ContentView: View {
         NavigationStack {
             ProgramMenuView(programs: programs, context: _context, auth: authManager)
         }
-        .tint(ColorPalette.accent)
     }
 }
 
@@ -26,6 +25,7 @@ struct ProgramMenuView: View {
     @Environment(\.modelContext) var context
     @StateObject var auth: AuthManager
     @State private var showSocialPortal = false
+    @State private var showSignoutAlert = false
     
     var body: some View {
         ZStack {
@@ -69,20 +69,30 @@ struct ProgramMenuView: View {
             // Trailing: Logout
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    auth.signOut()
+                    showSignoutAlert = true
+//                    auth.signOut()
                 } label: {
                     Image(systemName: "arrow.right.square")
                         .font(.system(size: 18, weight: .semibold))
                         .accessibilityLabel("Log out")
                 }
             }
-
             // Bottom bar (or move to leading if you prefer): Social entry
             ToolbarItem(placement: .bottomBar) {
                 NavigationLink(destination: SocialEntry()) {
                     SocialEntry()
                 }
             }
+        }
+        .alert(isPresented: $showSignoutAlert) {
+            Alert(
+                title: Text("Log Out Confirmation"),
+                message: Text("Are you sure you want to log out?"),
+                primaryButton: .destructive(Text("Log Out")) {
+                    auth.signOut()
+                },
+                secondaryButton: .cancel()
+            )
         }
         #if canImport(UIKit)
         .toolbarColorScheme(.dark, for: .navigationBar)      // or .light depending on your background

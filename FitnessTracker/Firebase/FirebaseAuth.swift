@@ -30,6 +30,7 @@ class AuthManager: ObservableObject {
                 print("Localized Description: \(error.localizedDescription)")
                 
                 // Firebase specific error codes
+                // Need to show these errors to the user
                 switch error.code {
                 case AuthErrorCode.emailAlreadyInUse.rawValue:
                     print("Email already in use")
