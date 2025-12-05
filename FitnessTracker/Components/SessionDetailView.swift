@@ -63,7 +63,7 @@ struct SessionDetailView: View {
 
                         TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
                             .padding()
-                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
 
 
                         Button("Rename") {

@@ -12,6 +12,7 @@ import Firebase
 
 @main
 struct FitnessTrackerApp: App {
+    @StateObject private var authManager = AuthManager()
     init() {
         FirebaseApp.configure()
     }
@@ -20,6 +21,7 @@ struct FitnessTrackerApp: App {
         WindowGroup {
             #if DEBUG
             ContentView()
+                .environmentObject(authManager)
             #else
             Auth()
             #endif

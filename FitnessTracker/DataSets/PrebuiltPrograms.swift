@@ -98,7 +98,7 @@ struct PrebuiltProgramsView: View {
                                         .foregroundColor(.white)
                                 }
                             }
-                            .listRowBackground(Color.blue)
+                            .listRowBackground(ColorPalette.accent)
                     }
                 }
                 .navigationTitle("Prebuilt Workout Programs")

@@ -22,7 +22,7 @@ struct SessionsView: View {
                             }
                         }
                         .onDelete(perform: confirmDeleteSession)
-                        .listRowBackground(Color.blue)
+                        .listRowBackground(ColorPalette.accent)
                         .padding()
                         .navigationBarTitle("\(program.title) Sessions")
                     }
@@ -51,7 +51,7 @@ struct SessionsView: View {
                         try? context.save()
                     }) {
                         Image(systemName: program.starred ? "star.fill" : "star")
-                            .foregroundColor(.yellow)
+                            .foregroundColor(ColorPalette.accent)
                     }
                 }
             }
@@ -78,7 +78,7 @@ struct SessionsView: View {
 
                    TextField("New Program Title", text: $newProgramTitle, prompt: Text("New Program Title").foregroundColor(ColorPalette.primary.opacity(0.5)))
                        .padding()
-                       .background(Color.blue.opacity(0.8).cornerRadius(10))
+                       .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
 
                    Button("Rename") {
                        renameProgram()

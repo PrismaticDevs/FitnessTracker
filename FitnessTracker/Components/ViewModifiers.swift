@@ -8,15 +8,20 @@
 import SwiftUI
 
 // Color Palette
+let crimson = Color(red: 0.64, green: 0.12, blue: 0.17)
+let scarlet = Color(red: 0.86, green: 0.08, blue: 0.24)
+let blush = Color(red: 1.0, green: 0.71, blue: 0.76)
+let deepMagenta = Color(red: 0.78, green: 0.08, blue: 0.52)
+let midnightOrchid = Color(red: 0.45, green: 0.01, blue: 0.35)
 struct ColorPalette {
     static let primary: Color = .white
     static let secondary: Color = .gray
-    static let accent: Color = .blue
+    static let accent: Color = deepMagenta
 }
 
 // Gradient Background Modifier
 struct GradientBackground: ViewModifier {
-    var gradient = LinearGradient(gradient: Gradient(colors: [.cyan, .blue]), startPoint: .bottom, endPoint: .top)
+    var gradient = LinearGradient(gradient: Gradient(colors: [blush, deepMagenta]), startPoint: .bottom, endPoint: .top)
 
     func body(content: Content) -> some View {
         ZStack {

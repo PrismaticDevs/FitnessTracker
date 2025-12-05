@@ -77,7 +77,7 @@
 //                                    }
 //                                    .padding(3)
 //                                    .cornerRadius(10)
-//                                    .listRowBackground(Color.blue.opacity(0.8))
+//                                    .listRowBackground(ColorPalette.accent.opacity(0.8))
 //                                }
 //                                .padding()
 //                                .frame(height: 500)

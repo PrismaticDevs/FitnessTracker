@@ -59,7 +59,7 @@ struct WorkoutEntryView: View {
                                 .keyboardType(.default)
                                 .frame(width: 60)
                                 .padding(6)
-                                .background(Color.blue.opacity(0.8).cornerRadius(8))
+                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
                                 .onChange(of: setsCountInput) {
                                     let n = max(1, Int(setsCountInput) ?? 1)
                                     adjustPerSetArrays(to: n)
@@ -84,7 +84,7 @@ struct WorkoutEntryView: View {
                                 }) {
                                     Text("Set \(idx + 1)")
                                         .padding(8)
-                                        .background(selectedSetIndex == idx ? Color.blue.opacity(0.8) : Color.white.opacity(0.2))
+                                        .background(selectedSetIndex == idx ? ColorPalette.accent.opacity(0.8) : ColorPalette.primary.opacity(0.2))
                                         .cornerRadius(10)
                                         .foregroundColor(.white)
                                         .cornerRadius(8)
@@ -177,7 +177,7 @@ struct WorkoutEntryView: View {
                             Text("Note \(defaults.integer(forKey: "note\(exercise)"))").font(.subheadline).padding(-4)
                             TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                                 .lineLimit(1...4)
                                 .overlay(
                                     Button(action: {
@@ -187,7 +187,7 @@ struct WorkoutEntryView: View {
                                             .opacity(note.isEmpty ? 0 : 1)
                                             .padding()
                                     }
-                                        .foregroundColor(Color.white)
+                                        .foregroundColor(ColorPalette.primary)
                                         .padding(),
                                     alignment: .trailing
                                 )
@@ -421,7 +421,7 @@ struct SetRow: View {
             TextField(title, text: $text)
                 .keyboardType(.default)
                 .padding(8)
-                .background(Color.blue.opacity(0.8).cornerRadius(8))
+                .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
                     if let value = Int(newValue) {
                         defaults.set(value, forKey: exerciseKey)

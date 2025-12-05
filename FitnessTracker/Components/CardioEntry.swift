@@ -38,7 +38,7 @@ struct CardioEntryView: View {
                             TextField("Duration", text: $duration)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                                 .onChange(of: duration) { oldValue, newValue in
                                     duration = newValue
                                     calculateCaloriesBurned()
@@ -50,7 +50,7 @@ struct CardioEntryView: View {
                             TextField("Elevation", text: $elevation)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                                 .onChange(of: elevation) { oldValue, newValue in
                                     elevation = newValue
                                     calculateCaloriesBurned()
@@ -62,7 +62,7 @@ struct CardioEntryView: View {
                             TextField("Heart Rate", text: $heartRate)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(Color.blue.opacity(0.8).cornerRadius(10))
+                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                                 .onChange(of: heartRate) { oldValue, newValue in
                                     heartRate = newValue
                                     calculateCaloriesBurned()
@@ -85,7 +85,7 @@ struct CardioEntryView: View {
                             .font(.subheadline)
                         TextField("Note", text: $note)
                             .padding()
-                            .background(Color.blue.opacity(0.8).cornerRadius(10))
+                            .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                     }
                     
                     Button(action: {

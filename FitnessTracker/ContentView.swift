@@ -10,19 +10,21 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) var context
+    @EnvironmentObject var authManager: AuthManager
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
     
     var body: some View {
         NavigationStack {
-            ProgramMenuView(programs: programs, context: _context)
+            ProgramMenuView(programs: programs, context: _context, auth: authManager)
         }
-        .accentColor(Color.white)
+        .tint(ColorPalette.accent)
     }
 }
 
 struct ProgramMenuView: View {
     var programs: [WorkoutProgram]
     @Environment(\.modelContext) var context
+    @StateObject var auth: AuthManager
     
     var body: some View {
         ZStack {
@@ -31,7 +33,7 @@ struct ProgramMenuView: View {
                 Text("Select a Program")
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
-                    .foregroundColor(Color.white)
+                    .foregroundColor(ColorPalette.primary)
                 ProgramListView(programs: programs, context: _context)
             }
         }
@@ -56,14 +58,21 @@ struct ProgramMenuView: View {
                     }
                 }
             }
-            if !programs.isEmpty {
-                ToolbarItem {
-                    NavigationLink(destination: AddWorkoutProgramView()) {
-                        AddProgramButton()
-                    }
+            ToolbarItem {
+                NavigationLink(destination: AddWorkoutProgramView()) {
+                    AddProgramButton()
+                }
+            }
+            ToolbarItem {
+                NavigationLink(destination: FirebaseAuthView().environmentObject(auth)) {
+                    SocialEntry()
                 }
             }
         }
+        #if canImport(UIKit)
+        .toolbarColorScheme(.dark, for: .navigationBar)      // or .light depending on your background
+        .toolbarBackground(.visible, for: .navigationBar)
+        #endif
     }
 }
 
@@ -158,7 +167,7 @@ struct ProgramRowView: View {
             .buttonStyle(PlainButtonStyle()) // Prevents the link from changing appearance
         
         }
-        .listRowBackground(Color.blue) // Apply blue background to the entire row
+        .listRowBackground(ColorPalette.accent) // Apply blue background to the entire row
         .padding()
     }
 }
@@ -192,9 +201,24 @@ struct AddProgramButton: View {
             Image(systemName: "plus.circle.fill")
             Text("Add Program")
                 .font(.headline)
+                .foregroundColor(ColorPalette.accent)
         }
         .padding()
-        .foregroundColor(.white)
+        .foregroundColor(ColorPalette.primary)
+        .cornerRadius(8)
+    }
+}
+
+struct SocialEntry: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "lock.fill")
+            Text("FiT Social")
+                .font(.headline)
+                .foregroundColor(ColorPalette.accent)
+        }
+        .padding()
+        .foregroundColor(ColorPalette.primary)
         .cornerRadius(8)
     }
 }
