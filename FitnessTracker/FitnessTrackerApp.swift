@@ -9,12 +9,18 @@
 import SwiftUI
 import SwiftData
 import Firebase
+import GoogleSignIn
 
 @main
 struct FitnessTrackerApp: App {
     @StateObject private var authManager = AuthManager()
     init() {
         FirebaseApp.configure()
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            fatalError("Couldn't get clientID from FirebaseApp")
+        }
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
     }
 
     var body: some Scene {
@@ -24,6 +30,9 @@ struct FitnessTrackerApp: App {
                     ContentView()
                 } else {
                     FirebaseAuthView()
+                        .onOpenURL { url in
+                            GIDSignIn.sharedInstance.handle(url)
+                        }
                 }
             }
             .environmentObject(authManager)

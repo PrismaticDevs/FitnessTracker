@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C9483D132EE4B0E80071B6D8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C9483D122EE4B0E80071B6D8 /* GoogleSignIn */; };
+		C9483D152EE4B0E80071B6D8 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C9483D142EE4B0E80071B6D8 /* GoogleSignInSwift */; };
 		C9E3894E2EC1619200DCC8EE /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = C9E3894D2EC1619200DCC8EE /* FirebaseAI */; };
 		C9E389502EC1619200DCC8EE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C9E3894F2EC1619200DCC8EE /* FirebaseAnalytics */; };
 		C9E389522EC1619200DCC8EE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C9E389512EC1619200DCC8EE /* FirebaseAuth */; };
@@ -37,6 +39,16 @@
 		C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C9483D192EE4F8170071B6D8 /* Exceptions for "FitnessTracker" folder in "FitnessTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C998B04B2CACEB5700AD3898 /* FitnessTracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C998B05F2CACEB5B00AD3898 /* FitnessTrackerTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -50,6 +62,9 @@
 		};
 		C9E389A32EC1620F00DCC8EE /* FitnessTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C9483D192EE4F8170071B6D8 /* Exceptions for "FitnessTracker" folder in "FitnessTracker" target */,
+			);
 			path = FitnessTracker;
 			sourceTree = "<group>";
 		};
@@ -62,9 +77,11 @@
 			files = (
 				C9E389502EC1619200DCC8EE /* FirebaseAnalytics in Frameworks */,
 				C9E389522EC1619200DCC8EE /* FirebaseAuth in Frameworks */,
+				C9483D152EE4B0E80071B6D8 /* GoogleSignInSwift in Frameworks */,
 				C9E389542EC1619200DCC8EE /* FirebaseCore in Frameworks */,
 				C9E389562EC1619200DCC8EE /* FirebaseFirestore in Frameworks */,
 				C9E3894E2EC1619200DCC8EE /* FirebaseAI in Frameworks */,
+				C9483D132EE4B0E80071B6D8 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,12 +102,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C9483D112EE4B0E80071B6D8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C998B0432CACEB5700AD3898 = {
 			isa = PBXGroup;
 			children = (
 				C9E389A32EC1620F00DCC8EE /* FitnessTracker */,
 				C998B05F2CACEB5B00AD3898 /* FitnessTrackerTests */,
 				C998B0692CACEB5B00AD3898 /* FitnessTrackerUITests */,
+				C9483D112EE4B0E80071B6D8 /* Frameworks */,
 				C998B04D2CACEB5700AD3898 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +155,8 @@
 				C9E389512EC1619200DCC8EE /* FirebaseAuth */,
 				C9E389532EC1619200DCC8EE /* FirebaseCore */,
 				C9E389552EC1619200DCC8EE /* FirebaseFirestore */,
+				C9483D122EE4B0E80071B6D8 /* GoogleSignIn */,
+				C9483D142EE4B0E80071B6D8 /* GoogleSignInSwift */,
 			);
 			productName = FitnessTracker;
 			productReference = C998B04C2CACEB5700AD3898 /* FitnessTracker.app */;
@@ -215,6 +242,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C914B1A12EE4A59E0093E70E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C998B04D2CACEB5700AD3898 /* Products */;
@@ -423,6 +451,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"FitnessTracker/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitnessTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FitnessTracker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Authentication required";
@@ -454,6 +483,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"FitnessTracker/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitnessTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FitnessTracker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Authentication required";
@@ -586,6 +616,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C914B1A12EE4A59E0093E70E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 		C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -597,6 +635,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C9483D122EE4B0E80071B6D8 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C914B1A12EE4A59E0093E70E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		C9483D142EE4B0E80071B6D8 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C914B1A12EE4A59E0093E70E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		C9E3894D2EC1619200DCC8EE /* FirebaseAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

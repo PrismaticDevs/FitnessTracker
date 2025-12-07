@@ -63,6 +63,7 @@ struct ProgramMenuView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(destination: AddWorkoutProgramView()) {
                     AddProgramButton(compact: true)
+                        .help("Create workout program")
                 }
             }
 
@@ -70,12 +71,13 @@ struct ProgramMenuView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showSignoutAlert = true
-//                    auth.signOut()
                 } label: {
                     Image(systemName: "arrow.right.square")
                         .font(.system(size: 18, weight: .semibold))
                         .accessibilityLabel("Log out")
+                        .foregroundColor(Color.red)
                 }
+                .help("Lof out of FiT")
             }
             // Bottom bar (or move to leading if you prefer): Social entry
             ToolbarItem(placement: .bottomBar) {
@@ -87,7 +89,7 @@ struct ProgramMenuView: View {
         .alert(isPresented: $showSignoutAlert) {
             Alert(
                 title: Text("Log Out Confirmation"),
-                message: Text("Are you sure you want to log out?"),
+                message: Text("Are you sure you want to log out of FiT?"),
                 primaryButton: .destructive(Text("Log Out")) {
                     auth.signOut()
                 },
@@ -226,6 +228,7 @@ struct EmptyStateView: View {
 }
 
 struct AddProgramButton: View {
+    @State private var isHovering = false
     var compact: Bool = false
 
     var body: some View {
@@ -239,9 +242,13 @@ struct AddProgramButton: View {
         }
         .padding(compact ? 0 : 8)
         .foregroundColor(ColorPalette.primary)
+        .animation(.easeInOut(duration: 0.12), value: isHovering)
         .cornerRadius(8)
         .contentShape(Rectangle()) // helps hit-testing
         .accessibilityLabel("Add Program")
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
 }
 
@@ -249,6 +256,7 @@ struct SocialEntry: View {
     var body: some View {
         HStack {
             Image(systemName: "bubble.left.and.bubble.right")
+                .foregroundColor(ColorPalette.accent)
             Text("FiT Social")
                 .font(.headline)
                 .foregroundColor(ColorPalette.accent)
