@@ -30,12 +30,12 @@ struct FitnessTrackerApp: App {
                     ContentView()
                 } else {
                     FirebaseAuthView()
-                        .onOpenURL { url in
-                            GIDSignIn.sharedInstance.handle(url)
-                        }
                 }
             }
             .environmentObject(authManager)
+            .onOpenURL { url in
+                GIDSignIn.sharedInstance.handle(url)
+            }
         }
         .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, WorkoutEntry.self])
     }

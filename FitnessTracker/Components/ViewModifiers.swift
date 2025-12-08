@@ -17,6 +17,7 @@ struct ColorPalette {
     static let primary: Color = .white
     static let secondary: Color = .gray
     static let accent: Color = deepMagenta
+    static let accent2: Color = midnightOrchid
 }
 
 // Gradient Background Modifier

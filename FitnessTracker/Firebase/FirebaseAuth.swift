@@ -14,9 +14,24 @@ class AuthManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
     typealias FBAuth = FirebaseAuth.Auth
     
+    private var authStateListenerHandle: AuthStateDidChangeListenerHandle?
+    
     init() {
         self.user = FBAuth.auth().currentUser
-        self.isAuthenticated = user != nil
+        self.isAuthenticated = self.user != nil
+        
+        authStateListenerHandle = FBAuth.auth().addStateDidChangeListener { [weak self] (auth: FirebaseAuth.Auth, user: FirebaseAuth.User?) in
+            DispatchQueue.main.async {
+                self?.user = user
+                self?.isAuthenticated = (user != nil)
+            }
+        }
+    }
+    
+    deinit {
+        if let handle = authStateListenerHandle {
+            FBAuth.auth().removeStateDidChangeListener(handle)
+        }
     }
     
     func registerUser(email: String, password: String) {
@@ -33,11 +48,11 @@ class AuthManager: ObservableObject {
                 // Firebase specific error codes
                 // Need to show these errors to the user
                 switch error.code {
-                case AuthErrorCode.emailAlreadyInUse.rawValue:
+                case FirebaseAuth.AuthErrorCode.emailAlreadyInUse.rawValue:
                     print("Email already in use")
-                case AuthErrorCode.invalidEmail.rawValue:
+                case FirebaseAuth.AuthErrorCode.invalidEmail.rawValue:
                     print("Invalid email format")
-                case AuthErrorCode.weakPassword.rawValue:
+                case FirebaseAuth.AuthErrorCode.weakPassword.rawValue:
                     print("Password is too weak")
                 default:
                     print("Unknown Firebase authentication error")
@@ -59,7 +74,7 @@ class AuthManager: ObservableObject {
 
     
     func signIn(email: String, password: String) {
-        FBAuth.auth().signIn(withEmail: email, password: password) { result, error in
+        FBAuth.auth().signIn(withEmail: email, password: password) { (result: AuthDataResult?, error: Error?) in
             if let error = error {
                 print("Error signing in: \(error.localizedDescription)")
                 return
