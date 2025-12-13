@@ -20,22 +20,21 @@ struct SessionDetailView: View {
 
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ScrollView {
-                    VStack {
-                        ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
-                            WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
-                                deleteExercise(named: exercise.name)
-                            })
-                        }
+        ZStack {
+            ScrollView {
+                VStack {
+                    ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
+                        WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
+                            deleteExercise(named: exercise.name)
+                        })
                     }
                 }
             }
-            .applyGradientBackground()
         }
+        .applyGradientBackground()
         .navigationTitle("\(session.name) Exercises")
-        .modifier(NavigationBarModifier())
+        .navigationBarTitleDisplayMode(.inline)
+//        .modifier(NavigationBarModifier())
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                Button(action: {
@@ -56,25 +55,24 @@ struct SessionDetailView: View {
             }
         }
         .sheet(isPresented: $showingRenameSheet) {
-                    VStack {
-                        Text("Rename Session")
-                            .font(.headline)
-                            .padding()
-
-                        TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
-                            .padding()
-                            .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
-
-
-                        Button("Rename") {
-                            renameSession()
-                            showingRenameSheet = false // Dismiss the sheet
-                        }
-                        .padding()
-                    }
+            VStack {
+                Text("Rename Session")
+                    .font(.headline)
                     .padding()
-                    .applyGradientBackground()
+
+                TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                    .padding()
+                    .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+
+                Button("Rename") {
+                    renameSession()
+                    showingRenameSheet = false // Dismiss the sheet
                 }
+                .padding()
+            }
+            .padding()
+            .applyGradientBackground()
+        }
     }
     
     private func addExercise(named exerciseName: String) {

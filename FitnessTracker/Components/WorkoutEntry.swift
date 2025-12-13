@@ -43,6 +43,8 @@ struct WorkoutEntryView: View {
     @State private var showDeleteConfirmation = false
     @State var emptyEntry: Bool = true
     
+    @FocusState private var isFocused: Bool?
+    
     var onDelete: () -> Void
     
     var body: some View {
@@ -53,7 +55,8 @@ struct WorkoutEntryView: View {
                         Text(exercise)
                             .foregroundColor(.white)
                             .padding()
-                            .font(.subheadline)
+                            .font(.title.bold())
+                        Spacer()
                         VStack {
                             Text("Sets").font(.subheadline)
                             TextField("Sets", text: $setsCountInput)
@@ -67,6 +70,7 @@ struct WorkoutEntryView: View {
                                     defaults.set(n, forKey: scopedKey("sets\(exercise)"))
                                     if selectedSetIndex >= n { selectedSetIndex = n - 1 }
                                 }
+                                .focused($isFocused, equals: true)
                                 .onAppear {
                                     let n = max(1, defaults.integer(forKey: scopedKey("sets\(exercise)")))
                                     setsCountInput = "\(n == 0 ? 1 : n)"
@@ -104,6 +108,7 @@ struct WorkoutEntryView: View {
                                                text: binding(for: $leftInputs, index: selectedSetIndex),
                                                exerciseKey: scopedKey("left\(exercise)_set\(selectedSetIndex)")
                                         )
+                                        .focused($isFocused, equals: true)
                                         .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
                                             if let value = Int(newValue) {
                                                 defaults.set(value, forKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
@@ -115,6 +120,7 @@ struct WorkoutEntryView: View {
                                                text: binding(for: $rightInputs, index: selectedSetIndex),
                                                exerciseKey: scopedKey("right\(exercise)_set\(selectedSetIndex)")
                                         )
+                                        .focused($isFocused, equals: true)
                                         .onChange(of: rightInputs[selectedSetIndex]) { oldValue, newValue in
                                             if let value = Int(newValue) {
                                                 defaults.set(value, forKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
@@ -128,6 +134,7 @@ struct WorkoutEntryView: View {
                                            text: binding(for: $combinedInputs, index: selectedSetIndex),
                                            exerciseKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)")
                                     )
+                                    .focused($isFocused, equals: true)
                                     .onChange(of: combinedInputs[selectedSetIndex]) { oldValue, newValue in
                                         if let value = Int(newValue) {
                                             defaults.set(value, forKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
@@ -150,6 +157,7 @@ struct WorkoutEntryView: View {
                                    text: binding(for: $repsInputs, index: selectedSetIndex),
                                    exerciseKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)")
                             )
+                            .focused($isFocused, equals: true)
                             .onChange(of: repsInputs[selectedSetIndex]) { oldValue, newValue in
                                 if let value = Int(newValue) {
                                     defaults.set(value, forKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
@@ -161,6 +169,7 @@ struct WorkoutEntryView: View {
                                    text: binding(for: $restInputs, index: selectedSetIndex),
                                    exerciseKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)")
                             )
+                            .focused($isFocused, equals: true)
                             .onChange(of: restInputs[selectedSetIndex]) { oldValue, newValue in
                                 if let value = Int(newValue) {
                                     defaults.set(value, forKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
@@ -177,31 +186,39 @@ struct WorkoutEntryView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Note").font(.subheadline).padding(-4)
 
-                            ZStack(alignment: .topLeading) {
-                                // Placeholder
-                                if note.isEmpty {
-                                    Text("Note")
-                                        .foregroundColor(.white.opacity(0.5))
-                                        .padding(.vertical, 12)
-                                        .padding(.horizontal, 16)
+                            HStack(alignment: .center, spacing: 8) {
+                                // Editor container with fixed height to center-align reliably
+                                ZStack(alignment: .topLeading) {
+                                    if note.isEmpty {
+                                        Text("Note")
+                                            .foregroundColor(.white.opacity(0.5))
+                                            .padding(.vertical, 12)
+                                            .padding(.horizontal, 16)
+                                    }
+
+                                    TextEditor(text: $note)
+                                        .focused($isFocused, equals: true)
+                                        .scrollContentBackground(.hidden)
+                                        .padding(.horizontal, 6)
+                                        .padding(.top, 6)
+                                        .frame(minHeight: 36, maxHeight: 96)
                                 }
 
-                                TextEditor(text: $note)
-                                    .scrollContentBackground(.hidden) // keeps your custom background visible
-                                    .frame(minHeight: 44, maxHeight: 100) // roughly ~4 lines depending on font
-                                    .padding(6)
+                                if !note.isEmpty {
+                                    Button(action: { note = "" }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(ColorPalette.primary)
+                                            .padding(8)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .padding(.trailing, 6)
+                                    .padding(.vertical, 2)
+                                }
                             }
                             .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
-                            .overlay(
-                                Button(action: { note = "" }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .opacity(note.isEmpty ? 0 : 1)
-                                        .padding()
-                                }
-                                .foregroundColor(ColorPalette.primary)
-                                .padding(),
-                                alignment: .topTrailing
-                            )
+                            .onAppear {
+                                    note = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
+                            }
                             .onChange(of: note) {
                                 defaults.set(note, forKey: scopedKey("note\(exercise)"))
                             }
@@ -285,60 +302,13 @@ struct WorkoutEntryView: View {
 //                            note: $note
 //                        )
         }
-        .onAppear {
-            migrateUnscopedDefaultsIfNeeded(for: exercise, maxSets: 10)
-        }
         .background(.clear)
         .padding(.horizontal)
         .cornerRadius(15)
+        .onTapGesture {
+            isFocused = nil
+        }
     }
-    
-    // MARK: - Migration
-    private func migrateUnscopedDefaultsIfNeeded(for exercise: String, maxSets: Int = 10) {
-        guard let uid = auth.user?.uid else { return }
-        let defaults = UserDefaults.standard
-        let migrationFlagKey = "user_\(uid).didMigrateFromUnscoped.\(exercise)"
-        if defaults.bool(forKey: migrationFlagKey) {
-            return // already migrated for this exercise
-        }
-
-        func scoped(_ base: String) -> String { "user_\(uid).\(base)" }
-
-        // Helper: copy an integer if legacy key exists
-        func migrateInt(_ base: String) {
-            let legacyKey = base
-            let scopedKey = scoped(base)
-            if defaults.object(forKey: legacyKey) != nil {
-                let value = defaults.integer(forKey: legacyKey)
-                defaults.set(value, forKey: scopedKey)
-            }
-        }
-
-        // Sets count
-        migrateInt("sets\(exercise)")
-
-        // Note (string)
-        if let legacyNote = defaults.object(forKey: "note\(exercise)") as? String {
-            defaults.set(legacyNote, forKey: scoped("note\(exercise)"))
-        }
-
-        // Per-set values: iso, left/right/combined, reps, rest
-        for idx in 0..<maxSets {
-            migrateInt("iso\(exercise)_set\(idx)")
-            migrateInt("left\(exercise)_set\(idx)")
-            migrateInt("right\(exercise)_set\(idx)")
-
-            // Combined weight key; migrate both potential legacy names just in case
-            migrateInt("weight\(exercise)_set\(idx)")
-            migrateInt("combined\(exercise)_set\(idx)")
-
-            migrateInt("reps\(exercise)_set\(idx)")
-            migrateInt("rest\(exercise)_set\(idx)")
-        }
-
-        defaults.set(true, forKey: migrationFlagKey)
-    }
-    
     // MARK: - Helpers
     
     private func scopedKey(_ base: String) -> String {
@@ -459,7 +429,7 @@ struct WorkoutEntryView: View {
         
         // Check and autofill combinedInput
         if combinedInputs[selectedSetIndex].isEmpty {
-            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("combined\(exercise)_set0")))"
+            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("weight\(exercise)_set0")))"
         }
         
         // Check and autofill repsInput
@@ -507,3 +477,4 @@ struct SetRow: View {
 #Preview {
     WorkoutEntryView(exercise: "Test Exercise", combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", onDelete: {})
 }
+
