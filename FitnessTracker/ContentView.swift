@@ -77,7 +77,7 @@ struct ProgramMenuView: View {
                         .accessibilityLabel("Log out")
                         .foregroundColor(Color.red)
                 }
-                .help("Lof out of FiT")
+                .help("Log out of FiT")
             }
             // Bottom bar (or move to leading if you prefer): Social entry
             ToolbarItem(placement: .bottomBar) {

@@ -17,6 +17,8 @@ struct FirebaseAuthView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var shouldNavigateToHome = false
+    @State private var showAuthError = false
+    @State private var authErrorMessage: String = ""
 
     private let fieldHeight: CGFloat = 48
     private let corner: CGFloat = 10
@@ -43,8 +45,43 @@ struct FirebaseAuthView: View {
 
                 // Primary auth actions
                 AuthButtons(
-                    onLogin: { auth.signIn(email: email, password: password) },
-                    onSignUp: { auth.registerUser(email: email, password: password) },
+                    onLogin: {
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedEmail.isEmpty, !trimmedPassword.isEmpty else {
+                            authErrorMessage = "Please enter both email and password."
+                            showAuthError = true
+                            return
+                        }
+                        // Very light email shape check
+                        guard trimmedEmail.contains("@"), trimmedEmail.contains(".") else {
+                            authErrorMessage = "Please enter a valid email address."
+                            showAuthError = true
+                            return
+                        }
+                        auth.signIn(email: trimmedEmail, password: trimmedPassword)
+                    },
+                    onSignUp: {
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedEmail.isEmpty, !trimmedPassword.isEmpty else {
+                            authErrorMessage = "Please enter both email and password."
+                            showAuthError = true
+                            return
+                        }
+                        guard trimmedEmail.contains("@"), trimmedEmail.contains(".") else {
+                            authErrorMessage = "Please enter a valid email address."
+                            showAuthError = true
+                            return
+                        }
+                        // Basic password guidance (customize as needed)
+                        guard trimmedPassword.count >= 6 else {
+                            authErrorMessage = "Password must be at least 6 characters."
+                            showAuthError = true
+                            return
+                        }
+                        auth.registerUser(email: trimmedEmail, password: trimmedPassword)
+                    },
                     corner: corner,
                     height: fieldHeight
                 )
@@ -52,7 +89,10 @@ struct FirebaseAuthView: View {
                 // Third-party sign in
                 VStack(spacing: 12) {
                     AppleSignInButton()
-                    GoogleSignInButton()
+                    GoogleSignInButton(onError: { message in
+                        authErrorMessage = message
+                        showAuthError = true
+                    })
                 }
                 .frame(maxWidth: .infinity)
                 
@@ -60,11 +100,24 @@ struct FirebaseAuthView: View {
             }
             .padding()
             .applyGradientBackground()
+            .alert("Sign-In Error", isPresented: $showAuthError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(authErrorMessage)
+            }
             .navigationDestination(isPresented: $shouldNavigateToHome) {
                 ContentView().environmentObject(auth)
             }
             .onChange(of: auth.isAuthenticated) { _, newValue in
                 if newValue { shouldNavigateToHome = true }
+            }
+            .onChange(of: auth.authErrorMessage) { _, newValue in
+                if let newValue, !newValue.isEmpty {
+                    authErrorMessage = newValue
+                    showAuthError = true
+                    // Clear the message on the manager so the alert doesn't reappear unexpectedly
+                    auth.authErrorMessage = nil
+                }
             }
         }
     }
@@ -176,6 +229,7 @@ struct AppleSignInButton: View {
 }
 
 struct GoogleSignInButton: View {
+    var onError: ((String) -> Void)? = nil
     @State private var isSigningIn = false
     
     var body: some View {
@@ -233,6 +287,7 @@ struct GoogleSignInButton: View {
             .first(where: { $0.isKeyWindow })?
             .rootViewController else {
                 print("Unable to find presenting view controller for Google Sign-In")
+                onError?("We couldn't start Google Sign-In. Please try again.")
                 isSigningIn = false
                 return
             }
@@ -241,12 +296,14 @@ struct GoogleSignInButton: View {
         GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { signInResult, error in
             if let error = error {
                 print("Google sign in error: \(error.localizedDescription)")
+                onError?(error.localizedDescription)
                 isSigningIn = false
                 return
             }
 
             guard let result = signInResult else {
                 print("Google sign in returned no result")
+                onError?("Google didn't return a sign-in result. Please try again.")
                 isSigningIn = false
                 return
             }
@@ -254,6 +311,7 @@ struct GoogleSignInButton: View {
             let user = result.user
             guard let idTokenString = user.idToken?.tokenString else {
                 print("Missing Google ID token")
+                onError?("Couldn't verify your Google account. Please try again.")
                 isSigningIn = false
                 return
             }
@@ -263,6 +321,7 @@ struct GoogleSignInButton: View {
             FirebaseAuth.Auth.auth().signIn(with: credential) { authResult, error in
                 if let error = error {
                     print("Firebase sign in error: \(error.localizedDescription)")
+                    onError?(error.localizedDescription)
                     isSigningIn = false
                     return
                 }
@@ -270,6 +329,7 @@ struct GoogleSignInButton: View {
                     print("Signed in as: \(user.uid)")
                 } else {
                     print("Firebase returned no user after sign-in")
+                    onError?("Signed in with Google, but no user was returned. Please try again.")
                 }
                 isSigningIn = false
             }

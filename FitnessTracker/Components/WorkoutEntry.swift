@@ -10,6 +10,7 @@ import SwiftData
 struct WorkoutEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
+    @EnvironmentObject var auth: AuthManager
     
     @State var id: UUID = UUID()
     @State var exercise: String
@@ -52,7 +53,7 @@ struct WorkoutEntryView: View {
                         Text(exercise)
                             .foregroundColor(.white)
                             .padding()
-                            .font(.headline)
+                            .font(.subheadline)
                         VStack {
                             Text("Sets").font(.subheadline)
                             TextField("Sets", text: $setsCountInput)
@@ -63,11 +64,11 @@ struct WorkoutEntryView: View {
                                 .onChange(of: setsCountInput) {
                                     let n = max(1, Int(setsCountInput) ?? 1)
                                     adjustPerSetArrays(to: n)
-                                    defaults.set(n, forKey: "sets\(exercise)")
+                                    defaults.set(n, forKey: scopedKey("sets\(exercise)"))
                                     if selectedSetIndex >= n { selectedSetIndex = n - 1 }
                                 }
                                 .onAppear {
-                                    let n = max(1, defaults.integer(forKey: "sets\(exercise)"))
+                                    let n = max(1, defaults.integer(forKey: scopedKey("sets\(exercise)")))
                                     setsCountInput = "\(n == 0 ? 1 : n)"
                                     adjustPerSetArrays(to: Int(setsCountInput) ?? 1)
                                 }
@@ -97,41 +98,41 @@ struct WorkoutEntryView: View {
                     VStack {
                         HStack {
                             VStack(spacing: 10) {
-                                if defaults.bool(forKey: "iso\(exercise)_set\(selectedSetIndex)") {
+                                if defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)")) {
                                     HStack {
                                         SetRow(title: "Left Weight",
                                                text: binding(for: $leftInputs, index: selectedSetIndex),
-                                               exerciseKey: "left\(exercise)_set\(selectedSetIndex)"
+                                               exerciseKey: scopedKey("left\(exercise)_set\(selectedSetIndex)")
                                         )
                                         .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
                                             if let value = Int(newValue) {
-                                                defaults.set(value, forKey: "left\(exercise)_set\(selectedSetIndex)")
+                                                defaults.set(value, forKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
                                             } else {
-                                                defaults.set(0, forKey: "left\(exercise)_set\(selectedSetIndex)")
+                                                defaults.set(0, forKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
                                             }
                                         }
                                         SetRow(title: "Right Weight",
                                                text: binding(for: $rightInputs, index: selectedSetIndex),
-                                               exerciseKey: "right\(exercise)_set\(selectedSetIndex)"
+                                               exerciseKey: scopedKey("right\(exercise)_set\(selectedSetIndex)")
                                         )
                                         .onChange(of: rightInputs[selectedSetIndex]) { oldValue, newValue in
                                             if let value = Int(newValue) {
-                                                defaults.set(value, forKey: "right\(exercise)_set\(selectedSetIndex)")
+                                                defaults.set(value, forKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
                                             } else {
-                                                defaults.set(0, forKey: "right\(exercise)_set\(selectedSetIndex)")
+                                                defaults.set(0, forKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
                                             }
                                         }
                                     }
                                 } else {
                                     SetRow(title: "Combined Weight",
                                            text: binding(for: $combinedInputs, index: selectedSetIndex),
-                                           exerciseKey: "weight\(exercise)_set\(selectedSetIndex)"
+                                           exerciseKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)")
                                     )
-                                    .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
+                                    .onChange(of: combinedInputs[selectedSetIndex]) { oldValue, newValue in
                                         if let value = Int(newValue) {
-                                            defaults.set(value, forKey: "weight\(exercise)_set\(selectedSetIndex)")
+                                            defaults.set(value, forKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
                                         } else {
-                                            defaults.set(0, forKey: "weight\(exercise)_set\(selectedSetIndex)")
+                                            defaults.set(0, forKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
                                         }
                                     }
                                 }
@@ -139,7 +140,7 @@ struct WorkoutEntryView: View {
                             }
                             Button {
                                 iso.toggle()
-                                defaults.set(iso, forKey: "iso\(exercise)_set\(selectedSetIndex)")
+                                defaults.set(iso, forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
                             } label: {
                                 Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
                             }
@@ -147,24 +148,24 @@ struct WorkoutEntryView: View {
                         HStack {
                             SetRow(title: "Reps",
                                    text: binding(for: $repsInputs, index: selectedSetIndex),
-                                   exerciseKey: "reps\(exercise)_set\(selectedSetIndex)"
+                                   exerciseKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)")
                             )
                             .onChange(of: repsInputs[selectedSetIndex]) { oldValue, newValue in
                                 if let value = Int(newValue) {
-                                    defaults.set(value, forKey: "reps\(exercise)_set\(selectedSetIndex)")
+                                    defaults.set(value, forKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
                                 } else {
-                                    defaults.set(0, forKey: "reps\(exercise)_set\(selectedSetIndex)")
+                                    defaults.set(0, forKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
                                 }
                             }
                             SetRow(title: "Rest",
                                    text: binding(for: $restInputs, index: selectedSetIndex),
-                                   exerciseKey: "rest\(exercise)_set\(selectedSetIndex)"
+                                   exerciseKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)")
                             )
                             .onChange(of: restInputs[selectedSetIndex]) { oldValue, newValue in
                                 if let value = Int(newValue) {
-                                    defaults.set(value, forKey: "rest\(exercise)_set\(selectedSetIndex)")
+                                    defaults.set(value, forKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
                                 } else {
-                                    defaults.set(0, forKey: "rest\(exercise)_set\(selectedSetIndex)")
+                                    defaults.set(0, forKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
                                 }
                             }
                         }
@@ -174,26 +175,36 @@ struct WorkoutEntryView: View {
                 Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Note \(defaults.integer(forKey: "note\(exercise)"))").font(.subheadline).padding(-4)
-                            TextField("Note", text: $note, prompt: Text("Note").foregroundColor(.white.opacity(0.5)))
-                                .padding()
-                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
-                                .lineLimit(1...4)
-                                .overlay(
-                                    Button(action: {
-                                        note = ""
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .opacity(note.isEmpty ? 0 : 1)
-                                            .padding()
-                                    }
-                                        .foregroundColor(ColorPalette.primary)
-                                        .padding(),
-                                    alignment: .trailing
-                                )
-                                .onChange(of: note) {
-                                    defaults.set(note, forKey: "note\(exercise)")
+                            Text("Note").font(.subheadline).padding(-4)
+
+                            ZStack(alignment: .topLeading) {
+                                // Placeholder
+                                if note.isEmpty {
+                                    Text("Note")
+                                        .foregroundColor(.white.opacity(0.5))
+                                        .padding(.vertical, 12)
+                                        .padding(.horizontal, 16)
                                 }
+
+                                TextEditor(text: $note)
+                                    .scrollContentBackground(.hidden) // keeps your custom background visible
+                                    .frame(minHeight: 44, maxHeight: 100) // roughly ~4 lines depending on font
+                                    .padding(6)
+                            }
+                            .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+                            .overlay(
+                                Button(action: { note = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .opacity(note.isEmpty ? 0 : 1)
+                                        .padding()
+                                }
+                                .foregroundColor(ColorPalette.primary)
+                                .padding(),
+                                alignment: .topTrailing
+                            )
+                            .onChange(of: note) {
+                                defaults.set(note, forKey: scopedKey("note\(exercise)"))
+                            }
                         }
                         
                         Button(action: {
@@ -274,12 +285,66 @@ struct WorkoutEntryView: View {
 //                            note: $note
 //                        )
         }
+        .onAppear {
+            migrateUnscopedDefaultsIfNeeded(for: exercise, maxSets: 10)
+        }
         .background(.clear)
         .padding(.horizontal)
         .cornerRadius(15)
     }
     
+    // MARK: - Migration
+    private func migrateUnscopedDefaultsIfNeeded(for exercise: String, maxSets: Int = 10) {
+        guard let uid = auth.user?.uid else { return }
+        let defaults = UserDefaults.standard
+        let migrationFlagKey = "user_\(uid).didMigrateFromUnscoped.\(exercise)"
+        if defaults.bool(forKey: migrationFlagKey) {
+            return // already migrated for this exercise
+        }
+
+        func scoped(_ base: String) -> String { "user_\(uid).\(base)" }
+
+        // Helper: copy an integer if legacy key exists
+        func migrateInt(_ base: String) {
+            let legacyKey = base
+            let scopedKey = scoped(base)
+            if defaults.object(forKey: legacyKey) != nil {
+                let value = defaults.integer(forKey: legacyKey)
+                defaults.set(value, forKey: scopedKey)
+            }
+        }
+
+        // Sets count
+        migrateInt("sets\(exercise)")
+
+        // Note (string)
+        if let legacyNote = defaults.object(forKey: "note\(exercise)") as? String {
+            defaults.set(legacyNote, forKey: scoped("note\(exercise)"))
+        }
+
+        // Per-set values: iso, left/right/combined, reps, rest
+        for idx in 0..<maxSets {
+            migrateInt("iso\(exercise)_set\(idx)")
+            migrateInt("left\(exercise)_set\(idx)")
+            migrateInt("right\(exercise)_set\(idx)")
+
+            // Combined weight key; migrate both potential legacy names just in case
+            migrateInt("weight\(exercise)_set\(idx)")
+            migrateInt("combined\(exercise)_set\(idx)")
+
+            migrateInt("reps\(exercise)_set\(idx)")
+            migrateInt("rest\(exercise)_set\(idx)")
+        }
+
+        defaults.set(true, forKey: migrationFlagKey)
+    }
+    
     // MARK: - Helpers
+    
+    private func scopedKey(_ base: String) -> String {
+        let uid = auth.user?.uid ?? "guest"
+        return "user_\(uid).\(base)"
+    }
     
     private func int(from s: String) -> Int {
         Int(s.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
@@ -384,27 +449,27 @@ struct WorkoutEntryView: View {
     private func autofillValues() {
         // Check and autofill leftInput
         if leftInputs[selectedSetIndex].isEmpty {
-            leftInputs[selectedSetIndex] = "\(defaults.integer(forKey: "left\(exercise)_set0"))"
+            leftInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("left\(exercise)_set0")))"
         }
         
         // Check and autofill rightInput
         if rightInputs[selectedSetIndex].isEmpty {
-            rightInputs[selectedSetIndex] = "\(defaults.integer(forKey: "right\(exercise)_set0"))"
+            rightInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("right\(exercise)_set0")))"
         }
         
         // Check and autofill combinedInput
         if combinedInputs[selectedSetIndex].isEmpty {
-            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: "combined\(exercise)_set0"))"
+            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("combined\(exercise)_set0")))"
         }
         
         // Check and autofill repsInput
         if repsInputs[selectedSetIndex].isEmpty {
-            repsInputs[selectedSetIndex] = "\(defaults.integer(forKey: "reps\(exercise)_set0"))"
+            repsInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("reps\(exercise)_set0")))"
         }
         
         // Check and autofill combinedInput
         if restInputs[selectedSetIndex].isEmpty {
-            restInputs[selectedSetIndex] = "\(defaults.integer(forKey: "rest\(exercise)_set0"))"
+            restInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("rest\(exercise)_set0")))"
         }
     }
 }
@@ -414,7 +479,7 @@ struct SetRow: View {
     let title: String
     @Binding var text: String
     let exerciseKey: String
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline).padding(-4)
