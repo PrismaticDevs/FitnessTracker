@@ -5,7 +5,7 @@ struct SessionsView: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss // Correctly access the dismiss environment
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
-    @State var program: WorkoutProgram
+    @Binding var program: WorkoutProgram
     @State private var showDeleteAlert: Bool = false
     @State private var sessionToDeleteIndex: Int? = nil
     @State private var showRenameSheet: Bool = false
@@ -16,9 +16,13 @@ struct SessionsView: View {
             ZStack {
                 VStack {
                     List {
-                        ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
-                            NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
-                                Text(session.name)
+                        ForEach(program.sessions.indices, id: \.self) { idx in
+                            let sessionBinding = Binding(
+                                get: { program.sessions[idx] },
+                                set: { program.sessions[idx] = $0 }
+                            )
+                            NavigationLink(destination: SessionDetailView(session: sessionBinding, workoutProgram: program)) {
+                                Text(program.sessions[idx].name)
                             }
                         }
                         .onDelete(perform: confirmDeleteSession)
@@ -126,6 +130,6 @@ struct SessionsView: View {
 }
 
 #Preview {
-    let program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
-    SessionsView(program: program)
+    @Previewable @State var program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
+    return SessionsView(program: $program)
 }

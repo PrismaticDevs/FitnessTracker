@@ -10,7 +10,7 @@ import SwiftData
 
 struct SessionDetailView: View {
     var defaults = UserDefaults.standard
-    var session: Session
+    @Binding var session: Session
     var workoutProgram: WorkoutProgram
     @Environment(\.modelContext) var context
     @State private var showingAddExerciseView = false
@@ -139,19 +139,16 @@ struct SessionDetailView: View {
     }
 }
 
-#Preview {
-    // Create mock exercises
-    let exercises = [
-        Exercise(name: "Push Up"),
+#Preview {    
+    // Create a mock session
+    @State var previewSession = Session(name: "Morning Workout", exercises: [
+        Exercise(name: "Pushup"),
         Exercise(name: "Squat"),
         Exercise(name: "Lunge")
-    ]
+    ])
     
-    // Create a mock session
-    let session = Session(name: "Morning Workout", exercises: exercises)
-    
-    let workoutProgram = WorkoutProgram(title: "Test Program", sessions: [session])
+    @State var previewProgram = WorkoutProgram(title: "Test Program", sessions: [previewSession])
     
     // Pass the mock session to the preview
-    SessionDetailView(session: session, workoutProgram: workoutProgram)
+    SessionDetailView(session: $previewSession, workoutProgram: previewProgram)
 }

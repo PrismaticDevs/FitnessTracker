@@ -537,7 +537,7 @@ struct WorkoutHeaderView: View {
             VStack {
                 Text("Sets").font(.subheadline)
                 TextField("Sets", text: $setsCountInput)
-                    .keyboardType(.default)
+                    .keyboardType(.numberPad)
                     .frame(width: 60)
                     .padding(6)
                     .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))

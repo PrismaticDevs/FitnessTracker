@@ -192,7 +192,7 @@ struct ProgramRowView: View {
             
             Spacer()
             
-            NavigationLink(destination: SessionsView(program: program)) {
+            NavigationLink(destination: SessionsView(program: $program)) {
                 Text(program.title)
                     .foregroundColor(.white) // Optional: Set text color for better visibility
             }
