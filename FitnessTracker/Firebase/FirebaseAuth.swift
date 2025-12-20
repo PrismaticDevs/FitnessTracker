@@ -13,6 +13,8 @@ class AuthManager: ObservableObject {
     @Published var user: User? = nil
     @Published var isAuthenticated: Bool = false
     @Published var authErrorMessage: String? = nil
+    // Preview-only override for a stable user id in SwiftUI previews
+    var previewUserID: String? = nil
     typealias FBAuth = FirebaseAuth.Auth
     
     private var authStateListenerHandle: AuthStateDidChangeListenerHandle?

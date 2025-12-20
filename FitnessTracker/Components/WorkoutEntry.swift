@@ -6,6 +6,7 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
 
 struct WorkoutEntryView: View {
     var defaults = UserDefaults.standard
@@ -36,6 +37,7 @@ struct WorkoutEntryView: View {
     @State var showConfirmationDialogue = false
     @State var showHistory: Bool = false
     @State private var showSavedCheckmark = false
+    @State private var showAllSavedCheckmark = false
     @State private var showEmptyEntryAlert = false
     @State private var combinedInput: String = ""
     @State private var leftInput: String = ""
@@ -46,199 +48,191 @@ struct WorkoutEntryView: View {
     @FocusState private var isFocused: Bool?
     
     var onDelete: () -> Void
+
+    // MARK: - Helpers
+
+    private var isRunningInPreview: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PLAYGROUNDS"] == "1"
+    }
+
+    private func exercisePreferencesPayload(userId: String) -> [String: Any] {
+        let n = max(1, int(from: setsCountInput))
+        var setsArray: [[String: Any]] = []
+
+        for idx in 0..<n {
+            let isIso = defaults.bool(forKey: scopedKey("iso\(exercise)_set\(idx)"))
+            let combined = defaults.integer(forKey: scopedKey("weight\(exercise)_set\(idx)"))
+            let left = defaults.integer(forKey: scopedKey("left\(exercise)_set\(idx)"))
+            let right = defaults.integer(forKey: scopedKey("right\(exercise)_set\(idx)"))
+            let reps = defaults.integer(forKey: scopedKey("reps\(exercise)_set\(idx)"))
+            let rest = defaults.integer(forKey: scopedKey("rest\(exercise)_set\(idx)"))
+
+            var setDict: [String: Any] = [
+                "index": idx,
+                "iso": isIso,
+                "reps": reps,
+                "rest": rest
+            ]
+            if isIso {
+                setDict["left"] = left
+                setDict["right"] = right
+            } else {
+                setDict["combined"] = combined
+            }
+            setsArray.append(setDict)
+        }
+
+        let noteValue = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
+
+        return [
+            "exercise": exercise,
+            "setsCount": n,
+            "sets": setsArray,
+            "note": noteValue,
+            "updatedAt": Date().timeIntervalSince1970
+        ]
+    }
+
+    private func uploadExercisePreferencesToCloud() {
+        guard !isRunningInPreview else { return }
+        guard let userId = auth.user?.uid else {
+            print("No authenticated user; skipping cloud preferences upload")
+            return
+        }
+        let payload = exercisePreferencesPayload(userId: userId)
+        let db = Firestore.firestore()
+        db.collection("users")
+            .document(userId)
+            .collection("settings")
+            .document("preferences_exercises")
+            .setData([exercise: payload], merge: true) { error in
+                if let error = error {
+                    print("Error uploading exercise preferences: \(error.localizedDescription)")
+                } else {
+                    print("Exercise preferences uploaded")
+                }
+            }
+    }
     
-    var body: some View {
-        VStack {
-            Section {
-                VStack {
-                    HStack {
-                        Text(exercise)
-                            .foregroundColor(.white)
-                            .padding()
-                            .font(.title.bold())
-                        Spacer()
-                        VStack {
-                            Text("Sets").font(.subheadline)
-                            TextField("Sets", text: $setsCountInput)
-                                .keyboardType(.default)
-                                .frame(width: 60)
-                                .padding(6)
-                                .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
-                                .onChange(of: setsCountInput) {
-                                    let n = max(1, Int(setsCountInput) ?? 1)
-                                    adjustPerSetArrays(to: n)
-                                    defaults.set(n, forKey: scopedKey("sets\(exercise)"))
-                                    if selectedSetIndex >= n { selectedSetIndex = n - 1 }
-                                }
-                                .focused($isFocused, equals: true)
-                                .onAppear {
-                                    let n = max(1, defaults.integer(forKey: scopedKey("sets\(exercise)")))
-                                    setsCountInput = "\(n == 0 ? 1 : n)"
-                                    adjustPerSetArrays(to: Int(setsCountInput) ?? 1)
-                                }
-                        }
+    private func uploadAllExercisesPreferencesToCloud() {
+        guard !isRunningInPreview else { return }
+        guard let userId = auth.user?.uid else {
+            print("No authenticated user; skipping cloud preferences upload (all)")
+            return
+        }
+        // Discover all exercises for this session by scanning keys namespaced to this user
+        // We will look for keys that match pattern: user_<uid>.note<ExerciseName>
+        let prefix = "user_\(userId).note"
+        let allKeys = defaults.dictionaryRepresentation().keys
+        let exerciseNames: Set<String> = Set(
+            allKeys.compactMap { key in
+                guard key.hasPrefix(prefix) else { return nil }
+                // strip user_<uid>.note and get exercise name suffix
+                return String(key.dropFirst(prefix.count))
+            }
+            .filter { !$0.isEmpty }
+        )
+
+        // Build a combined payload [exercise: payload]
+        var combined: [String: Any] = [:]
+        for ex in exerciseNames {
+            // Temporarily use current view's state to compute setsCount for each exercise
+            // We will read sets count for that exercise from defaults
+            let setsCount = max(1, defaults.integer(forKey: scopedKey("sets\(ex)")))
+            var setsArray: [[String: Any]] = []
+            for idx in 0..<setsCount {
+                let isIso = defaults.bool(forKey: scopedKey("iso\(ex)_set\(idx)"))
+                let combinedW = defaults.integer(forKey: scopedKey("weight\(ex)_set\(idx)"))
+                let leftW = defaults.integer(forKey: scopedKey("left\(ex)_set\(idx)"))
+                let rightW = defaults.integer(forKey: scopedKey("right\(ex)_set\(idx)"))
+                let reps = defaults.integer(forKey: scopedKey("reps\(ex)_set\(idx)"))
+                let rest = defaults.integer(forKey: scopedKey("rest\(ex)_set\(idx)"))
+                var setDict: [String: Any] = [
+                    "index": idx,
+                    "iso": isIso,
+                    "reps": reps,
+                    "rest": rest
+                ]
+                if isIso {
+                    setDict["left"] = leftW
+                    setDict["right"] = rightW
+                } else {
+                    setDict["combined"] = combinedW
+                }
+                setsArray.append(setDict)
+            }
+            let noteValue = defaults.string(forKey: scopedKey("note\(ex)")) ?? ""
+            let payload: [String: Any] = [
+                "exercise": ex,
+                "setsCount": setsCount,
+                "sets": setsArray,
+                "note": noteValue,
+                "updatedAt": Date().timeIntervalSince1970
+            ]
+            combined[ex] = payload
+        }
+
+        let db = Firestore.firestore()
+        db.collection("Users")
+            .document(userId)
+            .collection("WeightEntry")
+            .document("ji6X7gqtCCH7zz21Y4qI")
+            .setData(combined, merge: true) { error in
+                if let error = error {
+                    print("Error uploading ALL exercise preferences: \(error.localizedDescription)")
+                } else {
+                    print("All exercise preferences uploaded")
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        showAllSavedCheckmark = true
                     }
-                    // horizontal selector of set numbers
-                    let n = max(1, int(from: setsCountInput))
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(0..<n, id: \.self) { idx in
-                                Button(action: {
-                                    selectedSetIndex = idx
-                                    autofillValues()
-                                }) {
-                                    Text("Set \(idx + 1)")
-                                        .padding(8)
-                                        .background(selectedSetIndex == idx ? ColorPalette.accent.opacity(0.8) : ColorPalette.primary.opacity(0.2))
-                                        .cornerRadius(10)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
-                            }
-                        }.padding(.vertical, 6)
-                    }
-                    
-                    // show detailed inputs for the selected set only
-                    VStack {
-                        HStack {
-                            VStack(spacing: 10) {
-                                if defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)")) {
-                                    HStack {
-                                        SetRow(title: "Left Weight",
-                                               text: binding(for: $leftInputs, index: selectedSetIndex),
-                                               exerciseKey: scopedKey("left\(exercise)_set\(selectedSetIndex)")
-                                        )
-                                        .focused($isFocused, equals: true)
-                                        .onChange(of: leftInputs[selectedSetIndex]) { oldValue, newValue in
-                                            if let value = Int(newValue) {
-                                                defaults.set(value, forKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
-                                            } else {
-                                                defaults.set(0, forKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
-                                            }
-                                        }
-                                        SetRow(title: "Right Weight",
-                                               text: binding(for: $rightInputs, index: selectedSetIndex),
-                                               exerciseKey: scopedKey("right\(exercise)_set\(selectedSetIndex)")
-                                        )
-                                        .focused($isFocused, equals: true)
-                                        .onChange(of: rightInputs[selectedSetIndex]) { oldValue, newValue in
-                                            if let value = Int(newValue) {
-                                                defaults.set(value, forKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
-                                            } else {
-                                                defaults.set(0, forKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    SetRow(title: "Combined Weight",
-                                           text: binding(for: $combinedInputs, index: selectedSetIndex),
-                                           exerciseKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)")
-                                    )
-                                    .focused($isFocused, equals: true)
-                                    .onChange(of: combinedInputs[selectedSetIndex]) { oldValue, newValue in
-                                        if let value = Int(newValue) {
-                                            defaults.set(value, forKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
-                                        } else {
-                                            defaults.set(0, forKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
-                                        }
-                                    }
-                                }
-                                
-                            }
-                            Button {
-                                iso.toggle()
-                                defaults.set(iso, forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
-                            } label: {
-                                Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
-                            }
-                        }
-                        HStack {
-                            SetRow(title: "Reps",
-                                   text: binding(for: $repsInputs, index: selectedSetIndex),
-                                   exerciseKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)")
-                            )
-                            .focused($isFocused, equals: true)
-                            .onChange(of: repsInputs[selectedSetIndex]) { oldValue, newValue in
-                                if let value = Int(newValue) {
-                                    defaults.set(value, forKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
-                                } else {
-                                    defaults.set(0, forKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
-                                }
-                            }
-                            SetRow(title: "Rest",
-                                   text: binding(for: $restInputs, index: selectedSetIndex),
-                                   exerciseKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)")
-                            )
-                            .focused($isFocused, equals: true)
-                            .onChange(of: restInputs[selectedSetIndex]) { oldValue, newValue in
-                                if let value = Int(newValue) {
-                                    defaults.set(value, forKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
-                                } else {
-                                    defaults.set(0, forKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
-                                }
-                            }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showAllSavedCheckmark = false
                         }
                     }
                 }
+            }
+    }
+    
+    var body: some View {
+
+        VStack {
+            Section {
+                VStack {
+                    WorkoutHeaderView(
+                        exercise: exercise,
+                        setsCountInput: $setsCountInput,
+                        selectedSetIndex: $selectedSetIndex,
+                        adjustPerSetArrays: { n in adjustPerSetArrays(to: n) },
+                        scopedKey: { base in scopedKey(base) },
+                        isFocused: $isFocused
+                    )
+                    SetSelectorView(setsCount: max(1, int(from: setsCountInput)), selectedSetIndex: $selectedSetIndex) {
+                        autofillValues()
+                    }
+                    SetDetailInputsView(
+                        exercise: exercise,
+                        selectedSetIndex: $selectedSetIndex,
+                        iso: $iso,
+                        leftInputs: $leftInputs,
+                        rightInputs: $rightInputs,
+                        combinedInputs: $combinedInputs,
+                        repsInputs: $repsInputs,
+                        restInputs: $restInputs,
+                        scopedKey: { base in scopedKey(base) },
+                        isFocused: $isFocused
+                    )
+                }
                 
                 Section {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Note").font(.subheadline).padding(-4)
-
-                            HStack(alignment: .center, spacing: 8) {
-                                // Editor container with fixed height to center-align reliably
-                                ZStack(alignment: .topLeading) {
-                                    if note.isEmpty {
-                                        Text("Note")
-                                            .foregroundColor(.white.opacity(0.5))
-                                            .padding(.vertical, 12)
-                                            .padding(.horizontal, 16)
-                                    }
-
-                                    TextEditor(text: $note)
-                                        .focused($isFocused, equals: true)
-                                        .scrollContentBackground(.hidden)
-                                        .padding(.horizontal, 6)
-                                        .padding(.top, 6)
-                                        .frame(minHeight: 36, maxHeight: 96)
-                                }
-
-                                if !note.isEmpty {
-                                    Button(action: { note = "" }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(ColorPalette.primary)
-                                            .padding(8)
-                                            .contentShape(Rectangle())
-                                    }
-                                    .padding(.trailing, 6)
-                                    .padding(.vertical, 2)
-                                }
-                            }
-                            .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
-                            .onAppear {
-                                    note = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
-                            }
-                            .onChange(of: note) {
-                                defaults.set(note, forKey: scopedKey("note\(exercise)"))
-                            }
-                        }
-                        
-                        Button(action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                        }
-                        .alert(isPresented: $showDeleteConfirmation) {
-                            Alert(
-                                title: Text("Delete Exercise"),
-                                message: Text("Are you sure you want to remove \(exercise) from this session?"),
-                                primaryButton: .destructive(Text("Delete")) { onDelete() },
-                                secondaryButton: .cancel()
-                            )
-                        }
-                    }
+                    NoteAndDeleteView(
+                        exercise: exercise,
+                        note: $note,
+                        showDeleteConfirmation: $showDeleteConfirmation,
+                        scopedKey: { base in scopedKey(base) },
+                        isFocused: $isFocused,
+                        onDelete: onDelete
+                    )
                 }
             }
             .listRowInsets(EdgeInsets())
@@ -259,6 +253,17 @@ struct WorkoutEntryView: View {
                 .alert(isPresented: $emptyEntry) {
                     Alert(title: Text("Error"), message: Text("No valid entry to save. All weight fields are empty."), dismissButton: .default(Text("OK")))
                 }
+                /*
+                Removed the inline Save All button here per instructions:
+                Button {
+                    uploadAllExercisesPreferencesToCloud()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up.on.square")
+                        Text("Save All")
+                    }
+                }
+                */
                 if showSavedCheckmark {
                     Text("Saved")
                         .foregroundColor(.green)
@@ -308,12 +313,52 @@ struct WorkoutEntryView: View {
         .onTapGesture {
             isFocused = nil
         }
+        .overlay(alignment: .top) {
+            if showAllSavedCheckmark {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Saved All")
+                        .foregroundColor(.green)
+                        .font(.headline)
+                }
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.black.opacity(0.3))
+                )
+                .transition(.scale.combined(with: .opacity))
+                .padding(.top, 8)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    uploadAllExercisesPreferencesToCloud()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up.on.square")
+                        Text("Save All")
+                    }
+                }
+            }
+        }
     }
-    // MARK: - Helpers
     
     private func scopedKey(_ base: String) -> String {
-        let uid = auth.user?.uid ?? "guest"
+        let uid = auth.previewUserID ?? auth.user?.uid ?? "guest"
         return "user_\(uid).\(base)"
+    }
+    
+    private func lastNonZero(for baseKey: String, upTo index: Int) -> Int {
+        // Walk backwards from index to 0 to find last non-zero value for this per-set key
+        if index >= 0 {
+            for i in stride(from: index, through: 0, by: -1) {
+                let v = defaults.integer(forKey: scopedKey("\(baseKey)_set\(i)"))
+                if v != 0 { return v }
+            }
+        }
+        return 0
     }
     
     private func int(from s: String) -> Int {
@@ -409,6 +454,7 @@ struct WorkoutEntryView: View {
         print(history.entries.count)
         do {
             try context.save()
+            uploadExercisePreferencesToCloud()
             showSavedCheckmark = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSavedCheckmark = false }
         } catch {
@@ -419,27 +465,27 @@ struct WorkoutEntryView: View {
     private func autofillValues() {
         // Check and autofill leftInput
         if leftInputs[selectedSetIndex].isEmpty {
-            leftInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("left\(exercise)_set0")))"
+            leftInputs[selectedSetIndex] = "\(lastNonZero(for: "left\(exercise)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill rightInput
         if rightInputs[selectedSetIndex].isEmpty {
-            rightInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("right\(exercise)_set0")))"
+            rightInputs[selectedSetIndex] = "\(lastNonZero(for: "right\(exercise)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill combinedInput
         if combinedInputs[selectedSetIndex].isEmpty {
-            combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("weight\(exercise)_set0")))"
+            combinedInputs[selectedSetIndex] = "\(lastNonZero(for: "weight\(exercise)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill repsInput
         if repsInputs[selectedSetIndex].isEmpty {
-            repsInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("reps\(exercise)_set0")))"
+            repsInputs[selectedSetIndex] = "\(lastNonZero(for: "reps\(exercise)", upTo: selectedSetIndex))"
         }
         
-        // Check and autofill combinedInput
+        // Check and autofill restInput
         if restInputs[selectedSetIndex].isEmpty {
-            restInputs[selectedSetIndex] = "\(defaults.integer(forKey: scopedKey("rest\(exercise)_set0")))"
+            restInputs[selectedSetIndex] = "\(lastNonZero(for: "rest\(exercise)", upTo: selectedSetIndex))"
         }
     }
 }
@@ -472,9 +518,203 @@ struct SetRow: View {
     }
 }
 
+struct WorkoutHeaderView: View {
+    let exercise: String
+    @Binding var setsCountInput: String
+    @Binding var selectedSetIndex: Int
+    var adjustPerSetArrays: (Int) -> Void
+    var scopedKey: (String) -> String
+    @EnvironmentObject var auth: AuthManager
+    var defaults = UserDefaults.standard
+    var isFocused: FocusState<Bool?>.Binding
+    var body: some View {
+        HStack {
+            Text(exercise)
+                .foregroundColor(.white)
+                .padding()
+                .font(.title.bold())
+            Spacer()
+            VStack {
+                Text("Sets").font(.subheadline)
+                TextField("Sets", text: $setsCountInput)
+                    .keyboardType(.default)
+                    .frame(width: 60)
+                    .padding(6)
+                    .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
+                    .onChange(of: setsCountInput) {
+                        let n = max(1, Int(setsCountInput) ?? 1)
+                        adjustPerSetArrays(n)
+                        defaults.set(n, forKey: scopedKey("sets\(exercise)"))
+                        if selectedSetIndex >= n { selectedSetIndex = n - 1 }
+                    }
+                    .focused(isFocused, equals: true)
+                    .onAppear {
+                        let n = max(1, defaults.integer(forKey: scopedKey("sets\(exercise)")))
+                        setsCountInput = "\(n == 0 ? 1 : n)"
+                        adjustPerSetArrays(Int(setsCountInput) ?? 1)
+                    }
+            }
+        }
+    }
+}
+
+struct SetSelectorView: View {
+    let setsCount: Int
+    @Binding var selectedSetIndex: Int
+    var onSelect: () -> Void
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(0..<setsCount, id: \.self) { idx in
+                    Button(action: {
+                        selectedSetIndex = idx
+                        onSelect()
+                    }) {
+                        Text("Set \(idx + 1)")
+                            .padding(8)
+                            .background(selectedSetIndex == idx ? ColorPalette.accent.opacity(0.8) : ColorPalette.primary.opacity(0.2))
+                            .cornerRadius(10)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                }
+            }.padding(.vertical, 6)
+        }
+    }
+}
+
+struct SetDetailInputsView: View {
+    let exercise: String
+    @Binding var selectedSetIndex: Int
+    @Binding var iso: Bool
+    @Binding var leftInputs: [String]
+    @Binding var rightInputs: [String]
+    @Binding var combinedInputs: [String]
+    @Binding var repsInputs: [String]
+    @Binding var restInputs: [String]
+    var scopedKey: (String) -> String
+    var defaults = UserDefaults.standard
+    var isFocused: FocusState<Bool?>.Binding
+    var body: some View {
+        VStack {
+            HStack {
+                VStack(spacing: 10) {
+                    if defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)")) {
+                        HStack {
+                            SetRow(title: "Left Weight",
+                                   text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
+                                   exerciseKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
+                            .focused(isFocused, equals: true)
+                            SetRow(title: "Right Weight",
+                                   text: Binding(get: { rightInputs[selectedSetIndex] }, set: { rightInputs[selectedSetIndex] = $0 }),
+                                   exerciseKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
+                            .focused(isFocused, equals: true)
+                        }
+                    } else {
+                        SetRow(title: "Combined Weight",
+                               text: Binding(get: { combinedInputs[selectedSetIndex] }, set: { combinedInputs[selectedSetIndex] = $0 }),
+                               exerciseKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
+                        .focused(isFocused, equals: true)
+                    }
+                }
+                Button {
+                    iso.toggle()
+                    defaults.set(iso, forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
+                } label: {
+                    Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
+                }
+            }
+            HStack {
+                SetRow(title: "Reps",
+                       text: Binding(get: { repsInputs[selectedSetIndex] }, set: { repsInputs[selectedSetIndex] = $0 }),
+                       exerciseKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
+                .focused(isFocused, equals: true)
+                SetRow(title: "Rest",
+                       text: Binding(get: { restInputs[selectedSetIndex] }, set: { restInputs[selectedSetIndex] = $0 }),
+                       exerciseKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
+                .focused(isFocused, equals: true)
+            }
+        }
+        .onAppear {
+            iso = defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
+        }
+    }
+}
+
+struct NoteAndDeleteView: View {
+    let exercise: String
+    @Binding var note: String
+    @Binding var showDeleteConfirmation: Bool
+    var scopedKey: (String) -> String
+    var isFocused: FocusState<Bool?>.Binding
+    var onDelete: () -> Void
+    var defaults = UserDefaults.standard
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Note").font(.subheadline).padding(-4)
+                HStack(alignment: .center, spacing: 8) {
+                    ZStack(alignment: .topLeading) {
+                        if note.isEmpty {
+                            Text("Note")
+                                .foregroundColor(.white.opacity(0.5))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+                        }
+                        TextEditor(text: $note)
+                            .focused(isFocused, equals: true)
+                            .scrollContentBackground(.hidden)
+                            .padding(.horizontal, 6)
+                            .padding(.top, 6)
+                            .frame(minHeight: 36, maxHeight: 96)
+                    }
+                    if !note.isEmpty {
+                        Button(action: { note = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(ColorPalette.primary)
+                                .padding(8)
+                                .contentShape(Rectangle())
+                        }
+                        .padding(.trailing, 6)
+                        .padding(.vertical, 2)
+                    }
+                }
+                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+                .onAppear {
+                    note = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
+                }
+                .onChange(of: note) {
+                    defaults.set(note, forKey: scopedKey("note\(exercise)"))
+                }
+            }
+            Button(action: { showDeleteConfirmation = true }) {
+                Image(systemName: "trash")
+                    .foregroundColor(.red)
+            }
+            .alert(isPresented: $showDeleteConfirmation) {
+                Alert(
+                    title: Text("Delete Exercise"),
+                    message: Text("Are you sure you want to remove \(exercise) from this session?"),
+                    primaryButton: .destructive(Text("Delete")) { onDelete() },
+                    secondaryButton: .cancel()
+                )
+            }
+        }
+    }
+}
+
+final class MockAuthManager: AuthManager {
+    override init() {
+        super.init()
+        self.previewUserID = "preview_user"
+    }
+}
+
 // MARK: - Preview
 
 #Preview {
     WorkoutEntryView(exercise: "Test Exercise", combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", onDelete: {})
+        .environmentObject(MockAuthManager())
+        .modelContainer(for: [WorkoutHistory.self, WorkoutEntry.self], inMemory: true)
 }
 
