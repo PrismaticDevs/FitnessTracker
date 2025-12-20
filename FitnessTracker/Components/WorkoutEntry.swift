@@ -500,7 +500,7 @@ struct SetRow: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline).padding(-4)
             TextField(title, text: $text)
-                .keyboardType(.default)
+                .keyboardType(.numberPad)
                 .padding(8)
                 .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
