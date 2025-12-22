@@ -11,17 +11,20 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var context
     @EnvironmentObject var authManager: AuthManager
-    @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
     
     var body: some View {
         NavigationStack {
-            ProgramMenuView(programs: programs, context: _context, auth: authManager)
+            ProgramMenuView(auth: authManager)
         }
     }
 }
 
 struct ProgramMenuView: View {
-    var programs: [WorkoutProgram]
+    @Query(
+        sort: \WorkoutProgram.title,
+        order: .forward,
+        animation: .default
+        ) private var programs: [WorkoutProgram]
     @Environment(\.modelContext) var context
     @StateObject var auth: AuthManager
     @State private var showSocialPortal = false
@@ -35,7 +38,7 @@ struct ProgramMenuView: View {
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
                     .foregroundColor(ColorPalette.primary)
-                ProgramListView(programs: programs, context: _context)
+                ProgramListView()
             }
         }
         .navigationTitle("Your Programs")
@@ -124,10 +127,10 @@ struct HeaderView: View {
 }
 
 struct ProgramListView: View {
-    var programs: [WorkoutProgram]
-    @Environment(\.modelContext) var context
-    @State private var showAlert = false
-    @State private var programToDeleteIndex: Int? = nil
+    @Query(sort: \WorkoutProgram.title) private var programs: [WorkoutProgram]
+    @Environment(\.modelContext) private var context
+    @State private var showDeleteConfirmation = false
+    @State private var programToDelete: WorkoutProgram?
 
     var body: some View {
         List {
@@ -135,11 +138,8 @@ struct ProgramListView: View {
                 ProgramRowView(program: program)
                     .swipeActions {
                         Button(role: .destructive) {
-                            // Find the index of the program to delete
-                            if let index = programs.firstIndex(where: { $0.id == program.id }) {
-                                programToDeleteIndex = index
-                                showAlert = true
-                            }
+                            programToDelete = program
+                            showDeleteConfirmation = true
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -148,27 +148,27 @@ struct ProgramListView: View {
         }
         .scrollContentBackground(.hidden)
         .padding()
-        .alert(isPresented: $showAlert) {
-            Alert(
-                title: Text("Delete Program"),
-                message: Text("Are you sure you want to delete \(programs[programToDeleteIndex ?? 0].title)?"),
-                primaryButton: .destructive(Text("Delete")) {
-                    if let index = programToDeleteIndex {
-                        deleteProgram(at: index)
-                    }
-                },
-                secondaryButton: .cancel()
-            )
+        .alert("Delete Program",
+               isPresented: $showDeleteConfirmation,
+               presenting: programToDelete) { program in
+            Button("Delete", role: .destructive) {
+                deleteProgram(program)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { program in
+            Text("Are you sure you want to delete \(program.title)?")
         }
     }
     
-    private func deleteProgram(at index: Int) {
-        let programToDelete = programs[index]
-        context.delete(programToDelete)
-        do {
-            try context.save()
-        } catch {
-            print("Error deleting program: \(error)")
+    private func deleteProgram(_ program: WorkoutProgram) {
+        withAnimation {
+            context.delete(program)
+            do {
+                try context.save()
+                print("Program Successfully Deleted")
+            } catch {
+                print("Error deleting program: \(error)")
+            }
         }
     }
 }
@@ -192,7 +192,7 @@ struct ProgramRowView: View {
             
             Spacer()
             
-            NavigationLink(destination: SessionsView(program: $program)) {
+            NavigationLink(destination: SessionsView(program: program)) {
                 Text(program.title)
                     .foregroundColor(.white) // Optional: Set text color for better visibility
             }
@@ -271,3 +271,4 @@ struct SocialEntry: View {
     ContentView()
         .environmentObject(AuthManager())
 }
+

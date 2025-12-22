@@ -113,7 +113,7 @@ struct PrebuiltProgramsView: View {
     
      func addProgramToUserList(_ program: WorkoutProgram) {
         // Create a new instance of WorkoutProgram and add it to the user's list
-        let newProgram = WorkoutProgram(title: "\(program.title) CUSTOM", sessions: program.sessions)
+        let newProgram = WorkoutProgram(title: "\(program.title)", sessions: program.sessions)
         context.insert(newProgram)
         
         do {

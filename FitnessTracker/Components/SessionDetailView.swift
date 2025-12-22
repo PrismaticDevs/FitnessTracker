@@ -10,7 +10,7 @@ import SwiftData
 
 struct SessionDetailView: View {
     var defaults = UserDefaults.standard
-    @Binding var session: Session
+    var session: Session
     var workoutProgram: WorkoutProgram
     @Environment(\.modelContext) var context
     @State private var showingAddExerciseView = false
@@ -23,10 +23,8 @@ struct SessionDetailView: View {
         ZStack {
             ScrollView {
                 VStack {
-                    ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
-                        WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
-                            deleteExercise(named: exercise.name)
-                        })
+                    ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
+                        WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
                     }
                 }
             }
@@ -139,16 +137,19 @@ struct SessionDetailView: View {
     }
 }
 
-#Preview {    
-    // Create a mock session
-    @State var previewSession = Session(name: "Morning Workout", exercises: [
-        Exercise(name: "Pushup"),
+#Preview {
+    // Create mock exercises
+    let exercises = [
+        Exercise(name: "Push Up"),
         Exercise(name: "Squat"),
         Exercise(name: "Lunge")
-    ])
+    ]
     
-    @State var previewProgram = WorkoutProgram(title: "Test Program", sessions: [previewSession])
+    // Create a mock session
+    let session = Session(name: "Morning Workout", exercises: exercises)
+    
+    let workoutProgram = WorkoutProgram(title: "Test Program", sessions: [session])
     
     // Pass the mock session to the preview
-    SessionDetailView(session: $previewSession, workoutProgram: previewProgram)
+    SessionDetailView(session: session, workoutProgram: workoutProgram)
 }

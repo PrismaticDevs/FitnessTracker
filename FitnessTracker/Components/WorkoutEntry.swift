@@ -12,6 +12,7 @@ struct WorkoutEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
     @EnvironmentObject var auth: AuthManager
+    private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
     @State var id: UUID = UUID()
     @State var exercise: String
@@ -47,7 +48,7 @@ struct WorkoutEntryView: View {
     
     @FocusState private var isFocused: Bool?
     
-    var onDelete: () -> Void
+    var deleteExercise: (String) -> Void
 
     // MARK: - Helpers
 
@@ -60,12 +61,12 @@ struct WorkoutEntryView: View {
         var setsArray: [[String: Any]] = []
 
         for idx in 0..<n {
-            let isIso = defaults.bool(forKey: scopedKey("iso\(exercise)_set\(idx)"))
-            let combined = defaults.integer(forKey: scopedKey("weight\(exercise)_set\(idx)"))
-            let left = defaults.integer(forKey: scopedKey("left\(exercise)_set\(idx)"))
-            let right = defaults.integer(forKey: scopedKey("right\(exercise)_set\(idx)"))
-            let reps = defaults.integer(forKey: scopedKey("reps\(exercise)_set\(idx)"))
-            let rest = defaults.integer(forKey: scopedKey("rest\(exercise)_set\(idx)"))
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(idx)"))
+            let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise)_set\(idx)"))
+            let left = defaults.integer(forKey: keyScope.scoped("left\(exercise)_set\(idx)"))
+            let right = defaults.integer(forKey: keyScope.scoped("right\(exercise)_set\(idx)"))
+            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise)_set\(idx)"))
+            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise)_set\(idx)"))
 
             var setDict: [String: Any] = [
                 "index": idx,
@@ -82,7 +83,7 @@ struct WorkoutEntryView: View {
             setsArray.append(setDict)
         }
 
-        let noteValue = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
+        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
 
         return [
             "exercise": exercise,
@@ -138,15 +139,15 @@ struct WorkoutEntryView: View {
         for ex in exerciseNames {
             // Temporarily use current view's state to compute setsCount for each exercise
             // We will read sets count for that exercise from defaults
-            let setsCount = max(1, defaults.integer(forKey: scopedKey("sets\(ex)")))
+            let setsCount = max(1, defaults.integer(forKey: keyScope.scoped("sets\(ex)")))
             var setsArray: [[String: Any]] = []
             for idx in 0..<setsCount {
-                let isIso = defaults.bool(forKey: scopedKey("iso\(ex)_set\(idx)"))
-                let combinedW = defaults.integer(forKey: scopedKey("weight\(ex)_set\(idx)"))
-                let leftW = defaults.integer(forKey: scopedKey("left\(ex)_set\(idx)"))
-                let rightW = defaults.integer(forKey: scopedKey("right\(ex)_set\(idx)"))
-                let reps = defaults.integer(forKey: scopedKey("reps\(ex)_set\(idx)"))
-                let rest = defaults.integer(forKey: scopedKey("rest\(ex)_set\(idx)"))
+                let isIso = defaults.bool(forKey: keyScope.scoped("iso\(ex)_set\(idx)"))
+                let combinedW = defaults.integer(forKey: keyScope.scoped("weight\(ex)_set\(idx)"))
+                let leftW = defaults.integer(forKey: keyScope.scoped("left\(ex)_set\(idx)"))
+                let rightW = defaults.integer(forKey: keyScope.scoped("right\(ex)_set\(idx)"))
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(ex)_set\(idx)"))
+                let rest = defaults.integer(forKey: keyScope.scoped("rest\(ex)_set\(idx)"))
                 var setDict: [String: Any] = [
                     "index": idx,
                     "iso": isIso,
@@ -161,7 +162,7 @@ struct WorkoutEntryView: View {
                 }
                 setsArray.append(setDict)
             }
-            let noteValue = defaults.string(forKey: scopedKey("note\(ex)")) ?? ""
+            let noteValue = defaults.string(forKey: keyScope.scoped("note\(ex)")) ?? ""
             let payload: [String: Any] = [
                 "exercise": ex,
                 "setsCount": setsCount,
@@ -204,7 +205,7 @@ struct WorkoutEntryView: View {
                         setsCountInput: $setsCountInput,
                         selectedSetIndex: $selectedSetIndex,
                         adjustPerSetArrays: { n in adjustPerSetArrays(to: n) },
-                        scopedKey: { base in scopedKey(base) },
+                        keyScope: keyScope,
                         isFocused: $isFocused
                     )
                     SetSelectorView(setsCount: max(1, int(from: setsCountInput)), selectedSetIndex: $selectedSetIndex) {
@@ -219,7 +220,7 @@ struct WorkoutEntryView: View {
                         combinedInputs: $combinedInputs,
                         repsInputs: $repsInputs,
                         restInputs: $restInputs,
-                        scopedKey: { base in scopedKey(base) },
+                        keyScope: keyScope,
                         isFocused: $isFocused
                     )
                 }
@@ -229,9 +230,9 @@ struct WorkoutEntryView: View {
                         exercise: exercise,
                         note: $note,
                         showDeleteConfirmation: $showDeleteConfirmation,
-                        scopedKey: { base in scopedKey(base) },
+                        keyScope: keyScope,
                         isFocused: $isFocused,
-                        onDelete: onDelete
+                        deleteExercise: deleteExercise
                     )
                 }
             }
@@ -346,8 +347,7 @@ struct WorkoutEntryView: View {
     }
     
     private func scopedKey(_ base: String) -> String {
-        let uid = auth.previewUserID ?? auth.user?.uid ?? "guest"
-        return "user_\(uid).\(base)"
+        keyScope.scoped(base)
     }
     
     private func lastNonZero(for baseKey: String, upTo index: Int) -> Int {
@@ -523,7 +523,7 @@ struct WorkoutHeaderView: View {
     @Binding var setsCountInput: String
     @Binding var selectedSetIndex: Int
     var adjustPerSetArrays: (Int) -> Void
-    var scopedKey: (String) -> String
+    var keyScope: DefaultsKeyScope
     @EnvironmentObject var auth: AuthManager
     var defaults = UserDefaults.standard
     var isFocused: FocusState<Bool?>.Binding
@@ -544,12 +544,12 @@ struct WorkoutHeaderView: View {
                     .onChange(of: setsCountInput) {
                         let n = max(1, Int(setsCountInput) ?? 1)
                         adjustPerSetArrays(n)
-                        defaults.set(n, forKey: scopedKey("sets\(exercise)"))
+                        defaults.set(n, forKey: keyScope.scoped("sets\(exercise)"))
                         if selectedSetIndex >= n { selectedSetIndex = n - 1 }
                     }
                     .focused(isFocused, equals: true)
                     .onAppear {
-                        let n = max(1, defaults.integer(forKey: scopedKey("sets\(exercise)")))
+                        let n = max(1, defaults.integer(forKey: keyScope.scoped("sets\(exercise)")))
                         setsCountInput = "\(n == 0 ? 1 : n)"
                         adjustPerSetArrays(Int(setsCountInput) ?? 1)
                     }
@@ -592,34 +592,34 @@ struct SetDetailInputsView: View {
     @Binding var combinedInputs: [String]
     @Binding var repsInputs: [String]
     @Binding var restInputs: [String]
-    var scopedKey: (String) -> String
+    var keyScope: DefaultsKeyScope
     var defaults = UserDefaults.standard
     var isFocused: FocusState<Bool?>.Binding
     var body: some View {
         VStack {
             HStack {
                 VStack(spacing: 10) {
-                    if defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)")) {
+                    if defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)")) {
                         HStack {
                             SetRow(title: "Left Weight",
                                    text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: scopedKey("left\(exercise)_set\(selectedSetIndex)"))
+                                   exerciseKey: keyScope.scoped("left\(exercise)_set\(selectedSetIndex)"))
                             .focused(isFocused, equals: true)
                             SetRow(title: "Right Weight",
                                    text: Binding(get: { rightInputs[selectedSetIndex] }, set: { rightInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: scopedKey("right\(exercise)_set\(selectedSetIndex)"))
+                                   exerciseKey: keyScope.scoped("right\(exercise)_set\(selectedSetIndex)"))
                             .focused(isFocused, equals: true)
                         }
                     } else {
                         SetRow(title: "Combined Weight",
                                text: Binding(get: { combinedInputs[selectedSetIndex] }, set: { combinedInputs[selectedSetIndex] = $0 }),
-                               exerciseKey: scopedKey("weight\(exercise)_set\(selectedSetIndex)"))
+                               exerciseKey: keyScope.scoped("weight\(exercise)_set\(selectedSetIndex)"))
                         .focused(isFocused, equals: true)
                     }
                 }
                 Button {
                     iso.toggle()
-                    defaults.set(iso, forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
+                    defaults.set(iso, forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
                 } label: {
                     Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
                 }
@@ -627,16 +627,16 @@ struct SetDetailInputsView: View {
             HStack {
                 SetRow(title: "Reps",
                        text: Binding(get: { repsInputs[selectedSetIndex] }, set: { repsInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: scopedKey("reps\(exercise)_set\(selectedSetIndex)"))
+                       exerciseKey: keyScope.scoped("reps\(exercise)_set\(selectedSetIndex)"))
                 .focused(isFocused, equals: true)
                 SetRow(title: "Rest",
                        text: Binding(get: { restInputs[selectedSetIndex] }, set: { restInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: scopedKey("rest\(exercise)_set\(selectedSetIndex)"))
+                       exerciseKey: keyScope.scoped("rest\(exercise)_set\(selectedSetIndex)"))
                 .focused(isFocused, equals: true)
             }
         }
         .onAppear {
-            iso = defaults.bool(forKey: scopedKey("iso\(exercise)_set\(selectedSetIndex)"))
+            iso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
         }
     }
 }
@@ -645,9 +645,9 @@ struct NoteAndDeleteView: View {
     let exercise: String
     @Binding var note: String
     @Binding var showDeleteConfirmation: Bool
-    var scopedKey: (String) -> String
+    var keyScope: DefaultsKeyScope
     var isFocused: FocusState<Bool?>.Binding
-    var onDelete: () -> Void
+    var deleteExercise: (String) -> Void
     var defaults = UserDefaults.standard
     var body: some View {
         HStack {
@@ -681,23 +681,32 @@ struct NoteAndDeleteView: View {
                 }
                 .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
                 .onAppear {
-                    note = defaults.string(forKey: scopedKey("note\(exercise)")) ?? ""
+                    note = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
                 }
                 .onChange(of: note) {
-                    defaults.set(note, forKey: scopedKey("note\(exercise)"))
+                    defaults.set(note, forKey: keyScope.scoped("note\(exercise)"))
                 }
             }
-            Button(action: { showDeleteConfirmation = true }) {
+            Button(action: {
+                isFocused.wrappedValue = nil
+                showDeleteConfirmation = true
+            }) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
             }
-            .alert(isPresented: $showDeleteConfirmation) {
-                Alert(
-                    title: Text("Delete Exercise"),
-                    message: Text("Are you sure you want to remove \(exercise) from this session?"),
-                    primaryButton: .destructive(Text("Delete")) { onDelete() },
-                    secondaryButton: .cancel()
-                )
+            .accessibilityLabel("Delete exercise")
+            .confirmationDialog("Delete Exercise",
+                                isPresented: $showDeleteConfirmation,
+                                titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    print("🚨 Delete confirmed for exercise: \(exercise)")
+                    deleteExercise(exercise)
+                }
+                Button("Cancel", role: .cancel) {
+                    print("🚫 Delete cancelled for exercise: \(exercise)")
+                }
+            } message: {
+                Text("Are you sure you want to remove \(exercise) from this session?")
             }
         }
     }
@@ -713,8 +722,9 @@ final class MockAuthManager: AuthManager {
 // MARK: - Preview
 
 #Preview {
-    WorkoutEntryView(exercise: "Test Exercise", combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", onDelete: {})
-        .environmentObject(MockAuthManager())
+    let mockAuthManager = MockAuthManager()
+    WorkoutEntryView(exercise: "Test Exercise", combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
+        .environmentObject(mockAuthManager)
         .modelContainer(for: [WorkoutHistory.self, WorkoutEntry.self], inMemory: true)
 }
 
