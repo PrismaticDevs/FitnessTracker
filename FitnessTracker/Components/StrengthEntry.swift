@@ -8,14 +8,14 @@ import SwiftUI
 import SwiftData
 import FirebaseFirestore
 
-struct WorkoutEntryView: View {
+struct StrengthEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
     @EnvironmentObject var auth: AuthManager
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
     @State var id: UUID = UUID()
-    @State var exercise: String
+    @State var exercise: Exercise
     @State var combined: Int = 0
     @State var left: Int = 0
     @State var right: Int = 0
@@ -34,7 +34,7 @@ struct WorkoutEntryView: View {
     @State var note: String = ""
     @State var date: Date = Date()
     @State var iso: Bool = false
-    @State var itemToDelete: WorkoutEntry?
+    @State var itemToDelete: StrengthEntry?
     @State var showConfirmationDialogue = false
     @State var showHistory: Bool = false
     @State private var showSavedCheckmark = false
@@ -106,7 +106,7 @@ struct WorkoutEntryView: View {
             .document(userId)
             .collection("settings")
             .document("preferences_exercises")
-            .setData([exercise: payload], merge: true) { error in
+            .setData([exercise.name: payload], merge: true) { error in
                 if let error = error {
                     print("Error uploading exercise preferences: \(error.localizedDescription)")
                 } else {
@@ -201,7 +201,7 @@ struct WorkoutEntryView: View {
             Section {
                 VStack {
                     WorkoutHeaderView(
-                        exercise: exercise,
+                        exercise: exercise.name,
                         setsCountInput: $setsCountInput,
                         selectedSetIndex: $selectedSetIndex,
                         adjustPerSetArrays: { n in adjustPerSetArrays(to: n) },
@@ -212,7 +212,7 @@ struct WorkoutEntryView: View {
                         autofillValues()
                     }
                     SetDetailInputsView(
-                        exercise: exercise,
+                        exercise: exercise.name,
                         selectedSetIndex: $selectedSetIndex,
                         iso: $iso,
                         leftInputs: $leftInputs,
@@ -227,7 +227,7 @@ struct WorkoutEntryView: View {
                 
                 Section {
                     NoteAndDeleteView(
-                        exercise: exercise,
+                        exercise: exercise.name,
                         note: $note,
                         showDeleteConfirmation: $showDeleteConfirmation,
                         keyScope: keyScope,
@@ -434,9 +434,9 @@ struct WorkoutEntryView: View {
             return
         }
         
-        // Build a WorkoutEntry (match your WorkoutEntry @Model initializer)
-        let workoutEntry = WorkoutEntry(
-            exercise: exercise,
+        // Build a StrengthEntry (match your StrengthEntry @Model initializer)
+        let workoutEntry = StrengthEntry(
+            exercise: exercise.name,
             date: date,
             sets: setRecs,
             note: note,
@@ -446,7 +446,7 @@ struct WorkoutEntryView: View {
         let history = WorkoutHistory(
             id: UUID(),
             date: date,
-            exercise: exercise,
+            exercise: exercise.name,
             entries: [workoutEntry]
         )
         
@@ -465,27 +465,27 @@ struct WorkoutEntryView: View {
     private func autofillValues() {
         // Check and autofill leftInput
         if leftInputs[selectedSetIndex].isEmpty {
-            leftInputs[selectedSetIndex] = "\(lastNonZero(for: "left\(exercise)", upTo: selectedSetIndex))"
+            leftInputs[selectedSetIndex] = "\(lastNonZero(for: "left\(exercise.name)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill rightInput
         if rightInputs[selectedSetIndex].isEmpty {
-            rightInputs[selectedSetIndex] = "\(lastNonZero(for: "right\(exercise)", upTo: selectedSetIndex))"
+            rightInputs[selectedSetIndex] = "\(lastNonZero(for: "right\(exercise.name)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill combinedInput
         if combinedInputs[selectedSetIndex].isEmpty {
-            combinedInputs[selectedSetIndex] = "\(lastNonZero(for: "weight\(exercise)", upTo: selectedSetIndex))"
+            combinedInputs[selectedSetIndex] = "\(lastNonZero(for: "weight\(exercise.name)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill repsInput
         if repsInputs[selectedSetIndex].isEmpty {
-            repsInputs[selectedSetIndex] = "\(lastNonZero(for: "reps\(exercise)", upTo: selectedSetIndex))"
+            repsInputs[selectedSetIndex] = "\(lastNonZero(for: "reps\(exercise.name)", upTo: selectedSetIndex))"
         }
         
         // Check and autofill restInput
         if restInputs[selectedSetIndex].isEmpty {
-            restInputs[selectedSetIndex] = "\(lastNonZero(for: "rest\(exercise)", upTo: selectedSetIndex))"
+            restInputs[selectedSetIndex] = "\(lastNonZero(for: "rest\(exercise.name)", upTo: selectedSetIndex))"
         }
     }
 }
@@ -723,8 +723,9 @@ final class MockAuthManager: AuthManager {
 
 #Preview {
     let mockAuthManager = MockAuthManager()
-    WorkoutEntryView(exercise: "Test Exercise", combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
+    let previewExercise = Exercise(name: "Preview Exercise")
+    StrengthEntryView(exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
         .environmentObject(mockAuthManager)
-        .modelContainer(for: [WorkoutHistory.self, WorkoutEntry.self], inMemory: true)
+        .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
 }
 

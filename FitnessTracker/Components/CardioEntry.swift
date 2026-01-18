@@ -19,7 +19,6 @@ struct CardioEntryView: View {
     @State var note: String = ""
     @State var caloriesBurned: Double = 0.0
     @State var showDeleteConfirmation = false
-    var onDelete: () -> Void
 
     var body: some View {
         VStack {
@@ -34,7 +33,7 @@ struct CardioEntryView: View {
                     HStack {
                         VStack {
                             Text("Duration (min)")
-                                .font(.subheadline)
+                                .font(.caption)
                             TextField("Duration", text: $duration)
                                 .keyboardType(.numberPad)
                                 .padding()
@@ -46,7 +45,7 @@ struct CardioEntryView: View {
                         }
                         VStack {
                             Text("Elevation (m)")
-                                .font(.subheadline)
+                                .font(.caption)
                             TextField("Elevation", text: $elevation)
                                 .keyboardType(.numberPad)
                                 .padding()
@@ -58,7 +57,7 @@ struct CardioEntryView: View {
                         }
                         VStack {
                             Text("Heart Rate (bpm)")
-                                .font(.subheadline)
+                                .font(.caption)
                             TextField("Heart Rate", text: $heartRate)
                                 .keyboardType(.numberPad)
                                 .padding()
@@ -98,7 +97,6 @@ struct CardioEntryView: View {
                         Alert(title: Text("Delete Cardio Entry"),
                               message: Text("Are you sure you want to remove this entry?"),
                               primaryButton: .destructive(Text("Delete")) {
-                            onDelete()
                         },
                               secondaryButton: .cancel()
                         )
@@ -125,5 +123,5 @@ struct CardioEntryView: View {
 }
 
 #Preview {
-    CardioEntryView(exercise: "Running", onDelete: {})
+    CardioEntryView(exercise: "Running")
 }

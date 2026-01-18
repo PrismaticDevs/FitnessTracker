@@ -7,7 +7,7 @@
 import Foundation
 import FirebaseFirestore
 
-private func convertToFirestoreDocument(entry: WorkoutEntry, userId: String) -> [String: Any] {
+private func convertToFirestoreDocument(entry: StrengthEntry, userId: String) -> [String: Any] {
     return [
         "userId": userId,
         "exercise": entry.exercise,
@@ -26,7 +26,7 @@ private func convertToFirestoreDocument(entry: WorkoutEntry, userId: String) -> 
     ]
 }
 
-private func convertFirestoreDocumentToWorkoutEntry(data: [String: Any]) -> WorkoutEntry? {
+private func convertFirestoreDocumentToStrengthEntry(data: [String: Any]) -> StrengthEntry? {
     guard
         let exercise = data["exercise"] as? String,
         let date = data["date"] as? Date,
@@ -54,7 +54,7 @@ private func convertFirestoreDocumentToWorkoutEntry(data: [String: Any]) -> Work
         )
     }
     
-    return WorkoutEntry(
+    return StrengthEntry(
         exercise: exercise,
         date: date,
         sets: sets,
@@ -67,7 +67,7 @@ class FirestoreService: ObservableObject {
 private let db = Firestore.firestore()
 
 /// Save a workout entry to Firestore
-    func saveWorkoutEntry(for authManager: AuthManager, entry: WorkoutEntry) {
+    func saveStrengthEntry(for authManager: AuthManager, entry: StrengthEntry) {
         // Ensure user is authenticated
         guard let userId = authManager.user?.uid else {
             print("No authenticated user")
@@ -93,7 +93,7 @@ private let db = Firestore.firestore()
     }
     
 /// Fetch workout entries for a specific exercise
-    func fetchWorkoutEntries(for authManager: AuthManager, exercise: String, completion: @escaping ([WorkoutEntry]) -> Void) {
+    func fetchWorkoutEntries(for authManager: AuthManager, exercise: String, completion: @escaping ([StrengthEntry]) -> Void) {
         guard let userId = authManager.user?.uid else {
             print("No authenticated user")
             completion([])
@@ -110,9 +110,9 @@ private let db = Firestore.firestore()
                     return
                 }
                 
-                let entries: [WorkoutEntry] = querySnapshot?.documents.compactMap { document in
+                let entries: [StrengthEntry] = querySnapshot?.documents.compactMap { document in
                     let data = document.data()
-                    return convertFirestoreDocumentToWorkoutEntry(data: data)
+                    return convertFirestoreDocumentToStrengthEntry(data: data)
                 } ?? []
                 
                 completion(entries)

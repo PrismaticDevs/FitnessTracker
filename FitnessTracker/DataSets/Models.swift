@@ -8,16 +8,24 @@
 import Foundation
 import SwiftData
 
+enum ExerciseType: String, Codable {
+    case cardio
+    case strength
+    case mobility
+}
+
 // Define an Exercise model
 @Model
 class Exercise {
     @Attribute(.unique) var id: UUID
     var name: String
+    var type: ExerciseType?
     
-    init(name: String) {
+    init(name: String, type: ExerciseType = .strength) {
         self.id = UUID()
         self.name = name
-    }
+        self.type = type
+    }   
 }
 
 // Define an ExerciseCategory model
@@ -84,7 +92,7 @@ class SetRecord: Identifiable {
 }
 
 @Model
-class WorkoutEntry: Identifiable {
+class StrengthEntry: Identifiable {
     @Attribute(.unique) var id: UUID
     var exercise: String
     var date: Date
@@ -105,9 +113,9 @@ final class WorkoutHistory: Identifiable {
     @Attribute(.unique) var id: UUID
     var date: Date
     var exercise: String
-    var entries: [WorkoutEntry]
+    var entries: [StrengthEntry]
 
-    init(id: UUID = UUID(), date: Date = Date(), exercise: String = "", entries: [WorkoutEntry] = []) {
+    init(id: UUID = UUID(), date: Date = Date(), exercise: String = "", entries: [StrengthEntry] = []) {
         self.id = id
         self.date = date
         self.exercise = exercise

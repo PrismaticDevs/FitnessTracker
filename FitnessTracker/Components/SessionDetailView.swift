@@ -24,7 +24,16 @@ struct SessionDetailView: View {
             ScrollView {
                 VStack {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
-                        WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
+                        StrengthEntryView(exercise: exercise, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
+                        Text(exercise.type?.rawValue ?? "strength")
+//                        switch exercise.type {
+ //                       case .strength:
+ //                           StrengthEntryView(exercise: exercise, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
+ //                       case .cardio:
+ //                           CardioEntryView(exercise: exercise, distance: defaults.integer(forKey: "distance\(exercise.name)"), duration: defaults.integer(forKey: "duration\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
+ //                       case .mobility:
+ //                           MobilityEntryView()
+ //                        }
                     }
                 }
             }

@@ -1,5 +1,24 @@
 import SwiftUI
 import Combine
+import SwiftData
+
+@MainActor
+class ExerciseSeeder {
+    static func seed(context: ModelContext) {
+        let descriptor = FetchDescriptor<ExerciseCategory>()
+        let existingCount = (try? context.fetchCount(descriptor)) ?? 0
+        
+        guard existingCount == 0 else { return }
+        
+        let seedData = ExerciseList().categories
+        
+        for category in seedData {
+            context.insert(category)
+        }
+        
+        try? context.save()
+    }
+}
 
 // Define the ExerciseList class
 class ExerciseList: ObservableObject {

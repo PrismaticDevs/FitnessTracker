@@ -10,7 +10,7 @@
 //struct WorkoutHistoryView: View {
 //    @Environment(\.modelContext) var context
 //    @Environment(\.defaultMinListRowHeight) var minRowHeight
-//    @Query var workoutHistory: [WorkoutEntry]
+//    @Query var workoutHistory: [StrengthEntry]
 //    // Bidings
 //    @Binding var date: Date
 //    @Binding var exercise: String
@@ -73,7 +73,7 @@
 //                            } else {
 //                                List {
 //                                    ForEach(workoutHistory.filter { $0.exercise == exercise}.sorted(by: { $0.date > $1.date }), id: \.id) { entry in
-//                                        WorkoutEntryItem(entry: entry)
+//                                        StrengthEntryItem(entry: entry)
 //                                    }
 //                                    .padding(3)
 //                                    .cornerRadius(10)
@@ -105,7 +105,7 @@
 //        
 //        emptyEntry = false
 //        
-//        let newEntry = WorkoutEntry(
+//        let newEntry = StrengthEntry(
 //            exercise: exercise,
 //            date: Date(),
 //            combined: Int(combined),
@@ -135,10 +135,10 @@
 //    WorkoutHistoryView(date: .constant(Date()), exercise: .constant("Incline Bench Press"), combined: .constant(0), left: .constant(0), right: .constant(0), sets: .constant(0), reps: .constant(0), rest: .constant(0), note: .constant("") )
 //}
 //
-//struct WorkoutEntryItem: View {
+//struct StrengthEntryItem: View {
 //    @Environment(\.modelContext) var context
 //    @State private var showHistoryItemDeleteAlert: Bool = false
-//    @State var entry: WorkoutEntry
+//    @State var entry: StrengthEntry
 //
 //    var body: some View {
 //        var dateFormatter: DateFormatter {

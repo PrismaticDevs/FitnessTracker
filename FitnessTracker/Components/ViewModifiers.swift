@@ -65,3 +65,31 @@ struct NavigationBarModifier: ViewModifier {
         content
     }
 }
+
+struct FormBackgroundClear: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        DispatchQueue.main.async {
+            if let table = view.closestSuperview(ofType: UITableView.self) {
+                table.backgroundColor = .clear
+                table.backgroundView = nil
+                table.separatorStyle = .none
+            }
+            view.superview?.backgroundColor = .clear
+            view.superview?.superview?.backgroundColor = .clear
+        }
+        return view
+    }
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+extension UIView {
+    func closestSuperview<T: UIView>(ofType type: T.Type) -> T? {
+        var parent = self.superview
+        while let p = parent {
+            if let match = p as? T { return match }
+            parent = p.superview
+        }
+        return nil
+    }
+}
