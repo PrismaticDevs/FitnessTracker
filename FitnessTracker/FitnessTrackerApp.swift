@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 import Firebase
+import FirebaseFirestore
 import GoogleSignIn
 
 @main
@@ -16,6 +17,12 @@ struct FitnessTrackerApp: App {
     @StateObject private var authManager = AuthManager()
     init() {
         FirebaseApp.configure()
+        // 1. Explicitly Enable Offline Persistence
+        let settings = FirestoreSettings()
+        // Use the modern cache configuration for better performance
+        settings.cacheSettings = PersistentCacheSettings()
+        Firestore.firestore().settings = settings
+
         guard let clientID = FirebaseApp.app()?.options.clientID else {
             fatalError("Couldn't get clientID from FirebaseApp")
         }

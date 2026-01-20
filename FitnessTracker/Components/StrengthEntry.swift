@@ -12,6 +12,7 @@ struct StrengthEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
     @EnvironmentObject var auth: AuthManager
+    @StateObject private var sync = SyncManager.shared
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
     @State var id: UUID = UUID()
@@ -254,17 +255,6 @@ struct StrengthEntryView: View {
                 .alert(isPresented: $emptyEntry) {
                     Alert(title: Text("Error"), message: Text("No valid entry to save. All weight fields are empty."), dismissButton: .default(Text("OK")))
                 }
-                /*
-                Removed the inline Save All button here per instructions:
-                Button {
-                    uploadAllExercisesPreferencesToCloud()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                        Text("Save All")
-                    }
-                }
-                */
                 if showSavedCheckmark {
                     Text("Saved")
                         .foregroundColor(.green)
@@ -274,6 +264,14 @@ struct StrengthEntryView: View {
                 }
                 Spacer()
             }
+            
+            // Kick off a background sync when a user is available
+            Group {}.task {
+                if let uid = auth.user?.uid {
+                    sync.uploadAllToCloud(userId: uid, keyScope: keyScope)
+                }
+            }
+            
             if !showHistory {
                 WorkoutHistoryList()
             }
@@ -343,6 +341,15 @@ struct StrengthEntryView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            if let userId = auth.user?.uid {
+                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataSynced"))) { _ in
+            // This forces the view to reload its local @State arrays from the now-updated UserDefaults
+            autofillValues()
         }
     }
     
