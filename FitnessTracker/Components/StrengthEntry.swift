@@ -117,85 +117,17 @@ struct StrengthEntryView: View {
     }
     
     private func uploadAllExercisesPreferencesToCloud() {
-        guard !isRunningInPreview else { return }
-        guard let userId = auth.user?.uid else {
-            print("No authenticated user; skipping cloud preferences upload (all)")
-            return
+        guard let userId = auth.user?.uid else { return }
+        
+        // Use the SyncManager instead of rewriting Firestore code here
+        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
+        
+        // UI feedback logic remains in the view
+        withAnimation(.spring()) { showAllSavedCheckmark = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation { showAllSavedCheckmark = false }
         }
-        // Discover all exercises for this session by scanning keys namespaced to this user
-        // We will look for keys that match pattern: user_<uid>.note<ExerciseName>
-        let prefix = "user_\(userId).note"
-        let allKeys = defaults.dictionaryRepresentation().keys
-        let exerciseNames: Set<String> = Set(
-            allKeys.compactMap { key in
-                guard key.hasPrefix(prefix) else { return nil }
-                // strip user_<uid>.note and get exercise name suffix
-                return String(key.dropFirst(prefix.count))
-            }
-            .filter { !$0.isEmpty }
-        )
-
-        // Build a combined payload [exercise: payload]
-        var combined: [String: Any] = [:]
-        for ex in exerciseNames {
-            // Temporarily use current view's state to compute setsCount for each exercise
-            // We will read sets count for that exercise from defaults
-            let setsCount = max(1, defaults.integer(forKey: keyScope.scoped("sets\(ex)")))
-            var setsArray: [[String: Any]] = []
-            for idx in 0..<setsCount {
-                let isIso = defaults.bool(forKey: keyScope.scoped("iso\(ex)_set\(idx)"))
-                let combinedW = defaults.integer(forKey: keyScope.scoped("weight\(ex)_set\(idx)"))
-                let leftW = defaults.integer(forKey: keyScope.scoped("left\(ex)_set\(idx)"))
-                let rightW = defaults.integer(forKey: keyScope.scoped("right\(ex)_set\(idx)"))
-                let reps = defaults.integer(forKey: keyScope.scoped("reps\(ex)_set\(idx)"))
-                let rest = defaults.integer(forKey: keyScope.scoped("rest\(ex)_set\(idx)"))
-                var setDict: [String: Any] = [
-                    "index": idx,
-                    "iso": isIso,
-                    "reps": reps,
-                    "rest": rest
-                ]
-                if isIso {
-                    setDict["left"] = leftW
-                    setDict["right"] = rightW
-                } else {
-                    setDict["combined"] = combinedW
-                }
-                setsArray.append(setDict)
-            }
-            let noteValue = defaults.string(forKey: keyScope.scoped("note\(ex)")) ?? ""
-            let payload: [String: Any] = [
-                "exercise": ex,
-                "setsCount": setsCount,
-                "sets": setsArray,
-                "note": noteValue,
-                "updatedAt": Date().timeIntervalSince1970
-            ]
-            combined[ex] = payload
-        }
-
-        let db = Firestore.firestore()
-        db.collection("Users")
-            .document(userId)
-            .collection("WeightEntry")
-            .document("ji6X7gqtCCH7zz21Y4qI")
-            .setData(combined, merge: true) { error in
-                if let error = error {
-                    print("Error uploading ALL exercise preferences: \(error.localizedDescription)")
-                } else {
-                    print("All exercise preferences uploaded")
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                        showAllSavedCheckmark = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            showAllSavedCheckmark = false
-                        }
-                    }
-                }
-            }
     }
-    
     var body: some View {
 
         VStack {
@@ -263,13 +195,6 @@ struct StrengthEntryView: View {
                         .transition(.scale)
                 }
                 Spacer()
-            }
-            
-            // Kick off a background sync when a user is available
-            Group {}.task {
-                if let uid = auth.user?.uid {
-                    sync.uploadAllToCloud(userId: uid, keyScope: keyScope)
-                }
             }
             
             if !showHistory {
@@ -509,6 +434,7 @@ struct SetRow: View {
             TextField(title, text: $text)
                 .keyboardType(.numberPad)
                 .padding(8)
+                .submitLabel(.done)
                 .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
                     if let value = Int(newValue) {

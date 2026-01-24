@@ -12,6 +12,11 @@ import FirebaseCore
 import FirebaseAuth
 import UIKit
 
+enum AuthField {
+    case email
+    case password
+}
+
 struct FirebaseAuthView: View {
     @EnvironmentObject var auth: AuthManager
     @State private var email = ""
@@ -19,6 +24,7 @@ struct FirebaseAuthView: View {
     @State private var shouldNavigateToHome = false
     @State private var showAuthError = false
     @State private var authErrorMessage: String = ""
+    @FocusState private var focusedField: AuthField?
 
     private let fieldHeight: CGFloat = 48
     private let corner: CGFloat = 10
@@ -40,7 +46,16 @@ struct FirebaseAuthView: View {
                 // Inputs
                 VStack(spacing: 12) {
                     InputField(placeholder: "Email", text: $email, keyboard: .emailAddress)
+                        .focused($focusedField, equals: .email)
                     InputField(placeholder: "Password", text: $password, isSecure: true)
+                        .focused($focusedField, equals: .password)
+                }
+                .onSubmit {
+                    if focusedField == .email {
+                        focusedField = .password
+                    } else {
+                        focusedField = nil
+                    }
                 }
 
                 // Primary auth actions
@@ -99,6 +114,10 @@ struct FirebaseAuthView: View {
                 Spacer()
             }
             .padding()
+            .contentShape(Rectangle())
+            .onTapGesture {
+                focusedField = nil
+            }
             .applyGradientBackground()
             .alert("Sign-In Error", isPresented: $showAuthError) {
                 Button("OK", role: .cancel) { }
