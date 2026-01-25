@@ -25,6 +25,7 @@ struct FirebaseAuthView: View {
     @State private var showAuthError = false
     @State private var authErrorMessage: String = ""
     @FocusState private var focusedField: AuthField?
+    @State private var showGmailRedirect = false
 
     private let fieldHeight: CGFloat = 48
     private let corner: CGFloat = 10
@@ -95,11 +96,22 @@ struct FirebaseAuthView: View {
                             showAuthError = true
                             return
                         }
+                        
+                        if trimmedEmail.lowercased().hasSuffix("@gmail.com") {
+                            showGmailRedirect = true
+                            return
+                        }
+                        
                         auth.registerUser(email: trimmedEmail, password: trimmedPassword)
                     },
                     corner: corner,
                     height: fieldHeight
                 )
+                .alert("Use Google Sign-In", isPresented: $showGmailRedirect) {
+                                Button("OK", role: .cancel) { }
+                } message: {
+                    Text("Gmail users are required to use the 'Sign in with Google' button below for a safer experience.")
+                }
 
                 // Third-party sign in
                 VStack(spacing: 12) {
