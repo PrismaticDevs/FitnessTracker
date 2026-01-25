@@ -20,7 +20,7 @@ struct SessionDetailView: View {
 
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             ScrollView {
                 VStack {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
@@ -144,7 +144,34 @@ struct SessionDetailView: View {
             print("Failed to save context after renaming session: \(error)")
         }
     }
+    private func generateSessionContext() -> String {
+        var contextString = "Current Session: \(session.name)\n"
+        
+        for exercise in session.exercises {
+            contextString += "\nExercise: \(exercise.name)\n"
+            
+            // Fetch the data from UserDefaults (matches your EntryView keys)
+            let sets = defaults.integer(forKey: "sets\(exercise.name)")
+            let note = defaults.string(forKey: "note\(exercise.name)") ?? "No notes"
+            
+            contextString += "- Configured Sets: \(sets)\n"
+            
+            // Loop through the individual sets to get the weight/reps
+            // Assuming your keys follow the pattern: weightExerciseName_set0
+            for i in 0..<max(1, sets) {
+                let weight = defaults.integer(forKey: "weight\(exercise.name)_set\(i)")
+                let reps = defaults.integer(forKey: "reps\(exercise.name)_set\(i)")
+                if weight > 0 || reps > 0 {
+                    contextString += "  [Set \(i+1)]: \(weight)kg x \(reps) reps\n"
+                }
+            }
+            contextString += "- Note: \(note)\n"
+        }
+        return contextString
+    }
 }
+
+
 
 #Preview {
     // Create mock exercises

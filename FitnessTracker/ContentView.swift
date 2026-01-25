@@ -11,10 +11,20 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var context
     @EnvironmentObject var authManager: AuthManager
+    @State private var globalWorkoutContext: String = "User is browsing the main menu"
     
     var body: some View {
-        NavigationStack {
-            ProgramMenuView(auth: authManager)
+        ZStack(alignment: .bottomTrailing) {
+            NavigationStack {
+                ProgramMenuView(auth: authManager)
+            }
+            FloatingChatView(workoutContext: globalWorkoutContext)
+                .padding(20)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UpdateAIContext"))) { note in
+            if let newContext = note.object as? String {
+                globalWorkoutContext = newContext
+            }
         }
     }
 }
