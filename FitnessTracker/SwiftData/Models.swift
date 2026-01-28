@@ -7,11 +7,25 @@
 
 import Foundation
 import SwiftData
+import FirebaseAuth
 
 enum ExerciseType: String, Codable {
     case cardio
     case strength
     case mobility
+}
+
+typealias FBAuth = FirebaseAuth.Auth
+
+@Model
+class UserPrograms {
+    var userID: String
+    var programs: [WorkoutProgram]
+    
+    init(userID: String, programs: [WorkoutProgram]) {
+        self.userID = userID
+        self.programs = programs
+    }
 }
 
 // Define an Exercise model
@@ -122,3 +136,4 @@ final class WorkoutHistory: Identifiable {
         self.entries = entries
     }
 }
+

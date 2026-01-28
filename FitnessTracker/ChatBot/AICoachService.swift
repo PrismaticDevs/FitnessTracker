@@ -12,7 +12,7 @@ struct AICoachService {
     private let ai = FirebaseAI.firebaseAI(backend: .googleAI())
     
     private var model: GenerativeModel {
-        ai.generativeModel(modelName: "gemini-3-flash")
+        ai.generativeModel(modelName: "gemini-2.5-flash")
     }
     
     func getWorkoutAdvice(context: String, userQuery: String) async throws -> String {
@@ -49,6 +49,11 @@ class ChatViewModel: ObservableObject {
             messages.append((text: response, isUser: false))
         } catch {
             messages.append((text: "Sorry, I'm having trouble connecting to my fitness brain.", isUser: false))
+            let nsError = error as NSError
+            print("❌ Gemini Error: \(nsError.localizedDescription)")
+            print("Detailed Code: \(nsError.code)")
+            print("Domain: \(nsError.domain)")
+            print("User Info: \(nsError.userInfo)")
         }
         
         isLoading = false
