@@ -21,10 +21,45 @@ struct ContentView: View {
             FloatingChatView(workoutContext: globalWorkoutContext)
                 .padding(20)
         }
+        // Migration starts here
+        .task(id: authManager.user?.uid) {
+            if let uid = authManager.user?.uid {
+                migrateAllUserOwnedData(to: uid)
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UpdateAIContext"))) { note in
             if let newContext = note.object as? String {
                 globalWorkoutContext = newContext
             }
+        }
+    }
+
+    private func migrateAllUserOwnedData(to uid: String) {
+        // Migrate each root type
+        migrate(WorkoutProgram.self, to: uid)
+        migrate(Exercise.self, to: uid)
+        migrate(ExerciseCategory.self, to: uid)
+        migrate(WorkoutHistory.self, to: uid)
+        
+        // Save the changes
+        try? context.save()
+    }
+
+    private func migrate<T>(_ type: T.Type, to uid: String) where T: PersistentModel & UserOwned {
+        // Ensure UserOwned exposes a mutable String `userID` property.
+        // Fetch all items whose userID is empty and assign the current uid.
+        let descriptor = FetchDescriptor<T>(predicate: #Predicate { item in
+            item.userId == ""
+        })
+
+        do {
+            let itemsToMigrate = try context.fetch(descriptor)
+            for item in itemsToMigrate {
+                item.userId = uid
+            }
+            print("Migrated \(itemsToMigrate.count) items of type \(type) to user \(uid)")
+        } catch {
+            print("Migration error for \(type): \(error)")
         }
     }
 }
@@ -48,7 +83,12 @@ struct ProgramMenuView: View {
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
                     .foregroundColor(ColorPalette.primary)
-                ProgramListView()
+                if let uid = auth.user?.uid {
+                    ProgramListView(userId: uid)
+                } else {
+                    ProgressView("Loading your programs...")
+                        .tint(ColorPalette.primary)
+                }
             }
         }
         .navigationTitle("Your Programs")
@@ -137,10 +177,18 @@ struct HeaderView: View {
 }
 
 struct ProgramListView: View {
-    @Query(sort: \WorkoutProgram.title) private var programs: [WorkoutProgram]
+    @Query private var programs: [WorkoutProgram]
     @Environment(\.modelContext) private var context
     @State private var showDeleteConfirmation = false
     @State private var programToDelete: WorkoutProgram?
+    
+    init(userId: String) {
+            // This predicate tells SwiftData: "Only fetch programs where userId matches the logged-in user"
+            let filter = #Predicate<WorkoutProgram> { program in
+                program.userId == userId
+            }
+            _programs = Query(filter: filter, sort: \.title)
+        }
 
     var body: some View {
         List {

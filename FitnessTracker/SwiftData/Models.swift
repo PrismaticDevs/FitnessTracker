@@ -9,6 +9,10 @@ import Foundation
 import SwiftData
 import FirebaseAuth
 
+protocol UserOwned: PersistentModel {
+    var userId: String { get set }
+}
+
 enum ExerciseType: String, Codable {
     case cardio
     case strength
@@ -18,25 +22,27 @@ enum ExerciseType: String, Codable {
 typealias FBAuth = FirebaseAuth.Auth
 
 @Model
-class UserPrograms {
-    var userID: String
+class UserPrograms: UserOwned {
+    var userId: String
     var programs: [WorkoutProgram]
     
     init(userID: String, programs: [WorkoutProgram]) {
-        self.userID = userID
+        self.userId = userID
         self.programs = programs
     }
 }
 
 // Define an Exercise model
 @Model
-class Exercise {
+class Exercise: UserOwned {
     @Attribute(.unique) var id: UUID
+    var userId: String = ""
     var name: String
     var type: ExerciseType?
     
-    init(name: String, type: ExerciseType = .strength) {
+    init(userId: String = "", name: String, type: ExerciseType = .strength) {
         self.id = UUID()
+        self.userId = userId
         self.name = name
         self.type = type
     }   
@@ -44,13 +50,15 @@ class Exercise {
 
 // Define an ExerciseCategory model
 @Model
-class ExerciseCategory {
+class ExerciseCategory: UserOwned {
     @Attribute(.unique) var id: UUID
+    var userId: String = ""
     var name: String
     var exercises: [Exercise]
     
-    init(name: String, exercises: [Exercise] = []) {
+    init(userId: String = "", name: String, exercises: [Exercise] = []) {
         self.id = UUID() // Automatically generate a unique ID
+        self.userId = userId
         self.name = name
         self.exercises = exercises
     }
@@ -72,14 +80,16 @@ class Session {
 
 // Define a WorkoutProgram model
 @Model
-class WorkoutProgram  {
+class WorkoutProgram: UserOwned  {
     @Attribute(.unique) var id: UUID
+    var userId: String = ""
     var title: String
     var sessions: [Session]
     var starred: Bool = false
 
-    init(title: String, sessions: [Session]) {
+    init (userId: String = "", title: String, sessions: [Session]) {
         self.id = UUID()
+        self.userId = userId
         self.title = title
         self.sessions = sessions
         self.starred = false
@@ -123,14 +133,16 @@ class StrengthEntry: Identifiable {
 }
 
 @Model
-final class WorkoutHistory: Identifiable {
+final class WorkoutHistory: UserOwned {
     @Attribute(.unique) var id: UUID
+    var userId: String = ""
     var date: Date
     var exercise: String
     var entries: [StrengthEntry]
 
-    init(id: UUID = UUID(), date: Date = Date(), exercise: String = "", entries: [StrengthEntry] = []) {
+    init(id: UUID = UUID(), userId: String = "", date: Date = Date(), exercise: String = "", entries: [StrengthEntry] = []) {
         self.id = id
+        self.userId = userId
         self.date = date
         self.exercise = exercise
         self.entries = entries

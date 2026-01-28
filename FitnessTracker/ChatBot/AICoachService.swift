@@ -177,8 +177,11 @@ struct FloatingChatView: View {
                     }
                     .padding(.vertical)
                 }
-                .onChange(of: vm.messages.count) { _ in
-                    withAnimation { proxy.scrollTo(vm.messages.count - 1) }
+                .onChange(of: vm.messages.count) { oldValue, newValue in
+                    guard newValue > 0 else { return }
+                    withAnimation {
+                        proxy.scrollTo(newValue - 1)
+                    }
                 }
             }
             
