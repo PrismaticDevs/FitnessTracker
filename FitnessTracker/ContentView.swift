@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var aiManager = AIContextManager()
     @Environment(\.modelContext) var context
     @EnvironmentObject var authManager: AuthManager
     @State private var globalWorkoutContext: String = "User is browsing the main menu"
@@ -21,6 +22,7 @@ struct ContentView: View {
             FloatingChatView(workoutContext: globalWorkoutContext)
                 .padding(20)
         }
+        .environment(aiManager)
         // Migration starts here
         .task(id: authManager.user?.uid) {
             if let uid = authManager.user?.uid {

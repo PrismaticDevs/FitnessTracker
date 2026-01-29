@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct SessionsView: View {
+    @Environment(AIContextManager.self) var aiManager
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss // Correctly access the dismiss environment
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
@@ -12,7 +13,6 @@ struct SessionsView: View {
     @State private var newProgramTitle: String = ""
 
     var body: some View {
-        NavigationStack {
             ZStack {
                 VStack {
                     List {
@@ -30,6 +30,13 @@ struct SessionsView: View {
                     .background(Color.clear)
                     .padding()
                     .font(.system(size: 24))
+                }
+                .onAppear {
+                    // Update the context the moment this view slides into place
+                    aiManager.updateContext(
+                        screen: "Session View",
+                        details: "User is viewing the workout program: \(program.title)"
+                    )
                 }
                 .navigationBarTitleTextColor(.white)
                 .navigationBarTitleDisplayMode(.inline)
@@ -90,8 +97,6 @@ struct SessionsView: View {
                .applyGradientBackground()
            }
         }
-    }
-    
     private func renameProgram() {
         // Update the program title
         program.title = newProgramTitle
@@ -122,7 +127,6 @@ struct SessionsView: View {
             }
         }
     }
-
 }
 
 #Preview {

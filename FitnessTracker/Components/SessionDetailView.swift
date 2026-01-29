@@ -13,6 +13,7 @@ struct SessionDetailView: View {
     var session: Session
     var workoutProgram: WorkoutProgram
     @Environment(\.modelContext) var context
+    @Environment(AIContextManager.self) var aiManager
     @State private var showingAddExerciseView = false
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
@@ -37,6 +38,9 @@ struct SessionDetailView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            updateAIWithLiveSessionData()
         }
         .applyGradientBackground()
         .navigationTitle("\(session.name) Exercises")
@@ -81,6 +85,30 @@ struct SessionDetailView: View {
             .applyGradientBackground()
         }
     }
+    
+    private func updateAIWithLiveSessionData() {
+            // 1. Collect exercise names
+            let exercises = session.exercises.map { $0.name }.joined(separator: ", ")
+            
+            // 2. Build a summary of user-inputted values from UserDefaults
+            // Example: Pulling weight/reps for each exercise in this session
+            var liveStats = ""
+            for exercise in session.exercises {
+                let weight = UserDefaults.standard.double(forKey: "\(exercise.name)_weight")
+                let reps = UserDefaults.standard.integer(forKey: "\(exercise.name)_reps")
+                if weight > 0 {
+                    liveStats += "\(exercise.name): \(weight)kg x \(reps) reps. "
+                }
+            }
+            
+            let details = """
+            User is performing session '\(session.name)'. 
+            Exercises: \(exercises). 
+            Current Live Progress: \(liveStats.isEmpty ? "No sets recorded yet." : liveStats)
+            """
+            
+            aiManager.updateContext(screen: "Active Workout", details: details)
+        }
     
     private func addExercise(named exerciseName: String) {
         let newExercise = Exercise(name: exerciseName)

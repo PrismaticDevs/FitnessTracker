@@ -8,6 +8,18 @@
 import FirebaseAILogic
 import SwiftUI
 
+@Observable
+class AIContextManager {
+    // This is what the AI will read before answering
+    var currentContext: String = "User is browsing the main menu."
+
+    // Call this whenever you navigate to a new screen
+    func updateContext(screen: String, details: String) {
+        self.currentContext = "Location: \(screen). Context: \(details)"
+        print("DEBUG: AI Context is now: \(currentContext)")
+    }
+}
+
 struct AICoachService {
     private let ai = FirebaseAI.firebaseAI(backend: .googleAI())
     
@@ -61,6 +73,7 @@ class ChatViewModel: ObservableObject {
 }
 
 struct FloatingChatView: View {
+    @Environment(AIContextManager.self) var aiManager
     @StateObject private var vm = ChatViewModel()
     @State private var isExpanded = false
     @State private var inputText = ""
@@ -174,6 +187,19 @@ struct FloatingChatView: View {
                             ChatBubble(text: vm.messages[i].text, isUser: vm.messages[i].isUser)
                                 .id(i)
                         }
+                        if vm.isLoading {
+                            HStack {
+                                ProgressView()
+                                    .tint(.purple)
+                                    .scaleEffect(0.8)
+                                Text("Coach is thinking...")
+                                    .font(.caption)
+                                    .italic()
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+                            .id("loadingIndicator") // ID for auto-scrolling
+                        }
                     }
                     .padding(.vertical)
                 }
@@ -210,11 +236,20 @@ struct FloatingChatView: View {
     }
 
     private func sendMessage() {
-        let text = inputText
-        guard !text.isEmpty else { return }
-        inputText = ""
-        Task { await vm.sendMessage(text, workoutContext: workoutContext) }
-    }
+            let text = inputText
+            guard !text.isEmpty else { return }
+            
+            // 2. Fetch the LIVE context string from the manager
+            let liveContext = aiManager.currentContext
+            print("DEBUG: Sending to AI with LIVE context: \(liveContext)")
+            
+            inputText = ""
+            
+            Task {
+                // 3. Pass the fresh string to the VM
+                await vm.sendMessage(text, workoutContext: liveContext)
+            }
+        }
 
     private func snapToHorizontalEdges() {
         let screenWidth = UIScreen.main.bounds.width
