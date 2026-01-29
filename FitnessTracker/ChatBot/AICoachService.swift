@@ -8,6 +8,35 @@
 import FirebaseAILogic
 import SwiftUI
 
+extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition { transform(self) } else { self }
+    }
+}
+
+final class KeyboardObserver: ObservableObject {
+    @Published var height: CGFloat = 0
+
+    private var willShow: NSObjectProtocol?
+    private var willHide: NSObjectProtocol?
+
+    init() {
+        willShow = NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notification in
+            guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+            self?.height = frame.height
+        }
+        willHide = NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.height = 0
+        }
+    }
+
+    deinit {
+        if let willShow { NotificationCenter.default.removeObserver(willShow) }
+        if let willHide { NotificationCenter.default.removeObserver(willHide) }
+    }
+}
+
 @Observable
 class AIContextManager {
     // This is what the AI will read before answering
@@ -75,7 +104,9 @@ class ChatViewModel: ObservableObject {
 struct FloatingChatView: View {
     @Environment(AIContextManager.self) var aiManager
     @StateObject private var vm = ChatViewModel()
+    @StateObject private var keyboard = KeyboardObserver()
     @State private var isExpanded = false
+    @State private var isFullScreen = false
     @State private var inputText = ""
     let workoutContext: String
     
@@ -127,6 +158,32 @@ struct FloatingChatView: View {
                     }
                 }
                 .offset(currentTotalOffset)
+                .fullScreenCover(isPresented: $isFullScreen) {
+                    ZStack {
+                        // Reuse the chat window content but make it fill the screen
+                        chatWindowView
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color(.systemBackground))
+                            .ignoresSafeArea()
+                            .toolbar(.hidden, for: .navigationBar)
+                        
+                        // Minimize button overlay (top trailing)
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Button(action: { isFullScreen = false }) {
+                                    Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                        .font(.title2)
+                                        .padding(10)
+                                        .background(Color(.tertiarySystemBackground))
+                                        .clipShape(Circle())
+                                }
+                                .padding()
+                            }
+                            Spacer()
+                        }
+                    }
+                }
     }
     // --- SUBVIEWS ---
     
@@ -172,6 +229,14 @@ struct FloatingChatView: View {
             HStack {
                 Text("AI Coach").bold()
                 Spacer()
+                // Expand button only when not full screen
+                if !isFullScreen {
+                    Button(action: { withAnimation { isFullScreen = true } }) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 8)
+                }
                 Button(action: { withAnimation { isExpanded = false }}) {
                     Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
                 }
@@ -209,6 +274,13 @@ struct FloatingChatView: View {
                         proxy.scrollTo(newValue - 1)
                     }
                 }
+                .onChange(of: keyboard.height) { oldValue, newValue in
+                    if newValue > 0 {
+                        withAnimation {
+                            proxy.scrollTo("loadingIndicator", anchor: .bottom)
+                        }
+                    }
+                }
             }
             
             Divider()
@@ -229,10 +301,20 @@ struct FloatingChatView: View {
             }
             .padding()
         }
-        .frame(width: 280, height: 400)
+        .padding(.bottom, isFullScreen ? keyboard.height : 0)
         .background(Color(.systemBackground))
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.2), radius: 15)
+        .if(!isFullScreen) { view in
+            view
+                .frame(width: 280, height: 400)
+                .cornerRadius(20)
+                .shadow(color: .black.opacity(0.2), radius: 15)
+        }
+        .if(isFullScreen) { view in
+            view
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+                .onTapGesture { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+        }
     }
 
     private func sendMessage() {
