@@ -26,7 +26,7 @@ struct ContentView: View {
         // Migration starts here
         .task(id: authManager.user?.uid) {
             if let uid = authManager.user?.uid {
-                migrateAllUserOwnedData(to: uid)
+                DataMigration.runAll(context: context, userId: uid)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UpdateAIContext"))) { note in

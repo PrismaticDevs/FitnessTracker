@@ -5,39 +5,68 @@
 
 import Foundation
 
-/// Handles one-time migration from legacy UserDefaults keys to new per-user namespaced keys.
-/// New key format: "<userId>.<key>"
-struct UserDefaultsMigrationService {
+import Foundation
+
+class UserDefaultsMigrationService {
     private let defaults: UserDefaults
-    private let migrationFlagBase = "com.fitnesstracker.migration.v1"
+    private let migrationFlagBase = "com.fitnesstracker.migration.v2"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
     }
 
-    /// Migrate legacy keys to per-user keys. Safe to call multiple times; runs once per user.
-    /// - Parameters:
-    ///   - userId: The authenticated user's id used for namespacing.
-    ///   - oldToNewKeyMap: Map of legacy key -> new key name (without userId prefix).
-    func migrateIfNeeded(for userId: String, oldToNewKeyMap: [String: String]) {
-        let flagKey = "\(migrationFlagBase).\(userId)"
+    /// LEVEL 2 MIGRATION: Migrates from user-namespaced keys to Program/Session specific keys.
+    /// New Key: user_<userId>.<programId>.<sessionId>.<baseKey>
+    func migrateToContextual(userId: String, programId: String, sessionId: String, exercises: [String]) {
+        let flagKey = "\(migrationFlagBase).\(userId).\(programId).\(sessionId)"
         if defaults.bool(forKey: flagKey) { return }
 
-        for (oldKey, newKey) in oldToNewKeyMap {
-            let namespaced = namespacedKey(userId: userId, key: newKey)
-            if defaults.object(forKey: namespaced) != nil {
-                continue // already migrated for this key
+        // We are moving data FROM: "user_<userId>.<baseKey>"
+        // TO: "user_<userId>.<programId>.<sessionId>.<baseKey>"
+        
+        for exName in exercises {
+            // Define the base patterns we need to move for each exercise
+            let patterns = [
+                "sets\(exName)",
+                "note\(exName)",
+                "iso\(exName)"
+            ]
+            
+            // 1. Move basic exercise settings
+            for pattern in patterns {
+                let sourceKey = "user_\(userId).\(pattern)"
+                let destinationKey = "user_\(userId).\(programId).\(sessionId).\(pattern)"
+                copyValue(from: sourceKey, to: destinationKey)
             }
-            if let value = defaults.object(forKey: oldKey) {
-                defaults.set(value, forKey: namespaced)
+
+            // 2. Move Set-specific data (loops through up to 15 sets)
+            for i in 0..<15 {
+                let setPatterns = [
+                    "reps\(exName)_set\(i)",
+                    "weight\(exName)_set\(i)",
+                    "rest\(exName)_set\(i)",
+                    "left\(exName)_set\(i)",
+                    "right\(exName)_set\(i)",
+                    "iso\(exName)_set\(i)"
+                ]
+                
+                for pattern in setPatterns {
+                    let sourceKey = "user_\(userId).\(pattern)"
+                    let destinationKey = "user_\(userId).\(programId).\(sessionId).\(pattern)"
+                    copyValue(from: sourceKey, to: destinationKey)
+                }
             }
         }
 
         defaults.set(true, forKey: flagKey)
+        print("✅ Contextual Migration Complete for \(programId) / \(sessionId)")
     }
 
-    /// Utility to build namespaced keys consistently.
-    func namespacedKey(userId: String, key: String) -> String {
-        return "\(userId).\(key)"
+    private func copyValue(from source: String, to destination: String) {
+        // Only copy if source exists and destination is currently empty
+        if let value = defaults.object(forKey: source),
+           defaults.object(forKey: destination) == nil {
+            defaults.set(value, forKey: destination)
+        }
     }
 }

@@ -661,4 +661,3 @@ final class MockAuthManager: AuthManager {
         .environmentObject(mockAuthManager)
         .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
 }
-

@@ -28,8 +28,8 @@ class SyncManager: ObservableObject {
         
         // 1. If we have a specific exercise being saved right now, prioritize its data
         if let name = exerciseName, let payload = manualPayload {
-            db.collection("Users").document(userId)
-              .collection("weightEntries").document(name)
+            db.collection("users").document(userId)
+              .collection("workout_blueprints").document(name)
               .setData(payload, merge: true)
         }
 
@@ -70,7 +70,7 @@ class SyncManager: ObservableObject {
             ]
 
             db.collection("Users").document(userId)
-              .collection("weightEntries").document(ex)
+              .collection("workout_blueprints").document(ex)
               .setData(payload, merge: true)
         }
     }
