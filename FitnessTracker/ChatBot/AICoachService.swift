@@ -73,46 +73,51 @@ struct AICoachService {
 
 @MainActor
 class ChatViewModel: ObservableObject {
-    @Published var messages: [(text: String, isUser: Bool)] = []
+    // Grouped by the start of the day
+    @Published var groupedMessages: [Date: [(text: String, isUser: Bool)]] = [:]
+    @Published var selectedDate: Date = Calendar.current.startOfDay(for: Date())
     @Published var isLoading = false
+    
+    // Computed property for the UI to display the current selection
+    var currentDisplayMessages: [(text: String, isUser: Bool)] {
+        groupedMessages[selectedDate] ?? []
+    }
+    
+    // Sorted list of dates that have chat history
+    var availableDates: [Date] {
+        groupedMessages.keys.sorted(by: { $0 > $1 }) // Newest first
+    }
+
     private let coachService = AICoachService()
     private let db = Firestore.firestore()
     
     func loadHistory(for userId: String) async {
         isLoading = true
-        
-        // 1. Clear current messages so the user sees something is happening
-        self.messages.removeAll()
-        
         do {
             let snapshot = try await db.collection("users").document(userId)
                 .collection("chat_history")
                 .order(by: "timestamp", descending: false)
                 .getDocuments()
             
-            let fetchedMessages = snapshot.documents.compactMap { doc -> (text: String, isUser: Bool)? in
+            var newGroups: [Date: [(text: String, isUser: Bool)]] = [:]
+            
+            for doc in snapshot.documents {
                 let data = doc.data()
+                let text = data["text"] as? String ?? ""
+                let isUser = data["isUser"] as? Bool ?? false
                 
-                // DEBUG: This will print every message to your Xcode console
-                print("DEBUG: Firestore Data -> \(data)")
+                // Get the date at midnight for grouping
+                let timestamp = data["timestamp"] as? Timestamp ?? Timestamp(date: Date())
+                let dateKey = Calendar.current.startOfDay(for: timestamp.dateValue())
                 
-                // We use '??' to provide defaults so the message doesn't get skipped (nil)
-                let text = data["text"] as? String ?? "[Empty Message]"
-                let isUser = data["isUser"] as? Bool ?? false // Defaults to Coach if missing
-                
-                return (text: text, isUser: isUser)
+                newGroups[dateKey, default: []].append((text: text, isUser: isUser))
             }
             
-            // 2. Use withAnimation so the history "slides" in
-            withAnimation(.easeInOut) {
-                self.messages = fetchedMessages
+            withAnimation {
+                self.groupedMessages = newGroups
             }
-            
-            print("DEBUG: Successfully loaded \(messages.count) messages.")
-            
         } catch {
-            // Look for a URL in this print statement in your console!
-            print("❌ Firestore Error: \(error.localizedDescription)")
+            print("❌ Firestore Error: \(error)")
         }
         isLoading = false
     }
@@ -125,29 +130,33 @@ class ChatViewModel: ObservableObject {
         ])
     }
     
+    /// CONSOLIDATED SEND MESSAGE: Handles both UI grouping and Firestore saving
     func sendMessage(_ text: String, workoutContext: String, userId: String) async {
+        let today = Calendar.current.startOfDay(for: Date())
         let userMessage = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !userMessage.isEmpty else { return }
 
-        // --- 1. SAVE USER MESSAGE (This part is working) ---
-        self.messages.append((text: userMessage, isUser: true))
+        // Switch UI to today immediately
+        self.selectedDate = today
+        
+        // 1. Local Update (User Message)
+        self.groupedMessages[today, default: []].append((text: userMessage, isUser: true))
         self.saveToFirestore(text: userMessage, isUser: true, userId: userId)
         
         self.isLoading = true
         
         do {
-            // --- 2. GET THE AI RESPONSE ---
+            // 2. Get AI Advice
             let response = try await coachService.getWorkoutAdvice(context: workoutContext, userQuery: userMessage)
             
-            // --- 3. SAVE THE AI RESPONSE (This is likely the missing part!) ---
-            self.messages.append((text: response, isUser: false))
-            self.saveToFirestore(text: response, isUser: false, userId: userId) // SAVE TO CLOUD
+            // 3. Local Update (AI Response)
+            self.groupedMessages[today, default: []].append((text: response, isUser: false))
+            self.saveToFirestore(text: response, isUser: false, userId: userId)
             
         } catch {
             print("❌ AI Error: \(error)")
-            let errorMsg = "Service error."
-            self.messages.append((text: errorMsg, isUser: false))
-            // IF THIS LINE BELOW IS MISSING, NOTHING SAVES ON FAILURE
+            let errorMsg = "Sorry, I'm having trouble connecting to my brain right now."
+            self.groupedMessages[today, default: []].append((text: errorMsg, isUser: false))
             self.saveToFirestore(text: errorMsg, isUser: false, userId: userId)
         }
         
@@ -258,22 +267,38 @@ struct FloatingChatView: View {
 
     private var chatWindowView: some View {
         VStack(spacing: 0) {
-            // The ScrollView will now naturally respect the Safe Area
+            headerView
+            
+            // --- DATE SELECTOR ---
+            datePickerHorizontal
+            
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(0..<vm.messages.count, id: \.self) { i in
-                            ChatBubble(text: vm.messages[i].text, isUser: vm.messages[i].isUser)
+                        let messages = vm.currentDisplayMessages
+                        
+                        if messages.isEmpty && !vm.isLoading {
+                            ContentUnavailableView("No history for this day", systemImage: "bubble.left")
+                                .scaleEffect(0.7)
+                        }
+                        
+                        ForEach(0..<messages.count, id: \.self) { i in
+                            ChatBubble(text: messages[i].text, isUser: messages[i].isUser)
                                 .id(i)
                         }
+                        
                         if vm.isLoading {
                             loadingIndicator.id("loadingIndicator")
                         }
                     }
                     .padding(.vertical)
                 }
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    headerView // The button is now inside here
+                .onChange(of: vm.currentDisplayMessages.count) { oldValue, newValue in
+                    // newValue is the updated count
+                    guard newValue > 0 else { return }
+                    withAnimation {
+                        proxy.scrollTo(newValue - 1, anchor: .bottom)
+                    }
                 }
             }
             
@@ -282,12 +307,40 @@ struct FloatingChatView: View {
         }
         .background(Color(.systemBackground))
         .if(!isFullScreen) { view in
-            view
-                .frame(width: 280, height: 400)
+            view.frame(width: 280, height: 450) // Increased height for picker
                 .cornerRadius(20)
                 .shadow(color: .black.opacity(0.2), radius: 15)
         }
-        // REMOVED: .ignoresSafeArea from here to prevent the freeze and the "floating" button
+    }
+
+    private var datePickerHorizontal: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                // Ensure Today is always an option even if empty
+                let today = Calendar.current.startOfDay(for: Date())
+                let dates = vm.groupedMessages.keys.contains(today) ? vm.availableDates : ([today] + vm.availableDates).sorted(by: >)
+                
+                ForEach(dates, id: \.self) { date in
+                    Button(action: { withAnimation { vm.selectedDate = date } }) {
+                        VStack(spacing: 4) {
+                            Text(date.formatted(.dateTime.day().month(.abbreviated)))
+                                .font(.caption2).bold()
+                            if date == today {
+                                Text("Today").font(.system(size: 8))
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(vm.selectedDate == date ? Color.purple : Color.gray.opacity(0.1))
+                        .foregroundColor(vm.selectedDate == date ? .white : .primary)
+                        .cornerRadius(15)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+        .background(Color(.secondarySystemBackground).opacity(0.5))
     }
     
     // MARK: - Sub-properties
