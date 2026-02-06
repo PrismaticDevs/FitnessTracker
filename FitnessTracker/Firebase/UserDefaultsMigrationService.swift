@@ -19,7 +19,12 @@ class UserDefaultsMigrationService {
     /// New Key: user_<userId>.<programId>.<sessionId>.<baseKey>
     func migrateToContextual(userId: String, programId: String, sessionId: String, exercises: [String]) {
         let flagKey = "\(migrationFlagBase).\(userId).\(programId).\(sessionId)"
-        if defaults.bool(forKey: flagKey) { return }
+        if defaults.bool(forKey: flagKey) {
+                    print("ℹ️ Migration already completed for this session.")
+                    return
+                }
+
+                print("🚀 Starting Contextual Migration for \(programId) / \(sessionId)...")
 
         // We are moving data FROM: "user_<userId>.<baseKey>"
         // TO: "user_<userId>.<programId>.<sessionId>.<baseKey>"
