@@ -25,7 +25,7 @@ struct SessionDetailView: View {
                 ScrollView {
                     VStack {
                         ForEach(session.exercises.sorted(by: { $0.name < $1.name })) { exercise in
-                            WorkoutEntryView(exercise: exercise.name, weight: defaults.integer(forKey: "weight\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), sets: defaults.string(forKey: "sets\(exercise.name)") ?? "", reps: defaults.string(forKey: "reps\(exercise.name)") ?? "", rest: defaults.string(forKey: "rest\(exercise.name)") ?? "", note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
+                            WorkoutEntryView(exercise: exercise.name, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", onDelete: {
                                 deleteExercise(named: exercise.name)
                             })
                         }
@@ -101,7 +101,7 @@ struct SessionDetailView: View {
             session.exercises.remove(at: index)
             
             // Remove associated data from UserDefaults
-            defaults.removeObject(forKey: "weight\(exerciseName)")
+            defaults.removeObject(forKey: "combined\(exerciseName)")
             defaults.removeObject(forKey: "left\(exerciseName)")
             defaults.removeObject(forKey: "right\(exerciseName)")
             defaults.removeObject(forKey: "sets\(exerciseName)")
