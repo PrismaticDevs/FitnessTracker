@@ -45,31 +45,55 @@ public struct DataMigration {
         }
     }
 
-    /// Moves legacy global keys (e.g. "bench_press_weight")
-    /// to the first-tier namespace (e.g. "user_123.bench_press_weight").
     private static func runOneTimeNamespaceMigration(userId: String) {
         let defaults = UserDefaults.standard
         let flagKey = "\(didRunNamespaceMigrationKey).\(userId)"
         guard !defaults.bool(forKey: flagKey) else { return }
 
-        // We don't need a map here; we can just find all keys that
-        // don't start with "user_" and prefix them.
         let allKeys = defaults.dictionaryRepresentation().keys
         
+        // 1. Migrate base keys (setsCount, notes, etc.)
         for key in allKeys {
-            // Avoid migrating system keys or keys already namespaced
-            if !key.contains(".") && !key.hasPrefix("apple") && !key.hasPrefix("com.apple") {
+            // Skip keys already namespaced or system keys
+            if !key.hasPrefix("user_") && !key.hasPrefix("apple") && !key.hasPrefix("com.apple") {
                 let value = defaults.object(forKey: key)
                 let namespacedKey = "user_\(userId).\(key)"
                 
                 // Only copy if the namespaced version doesn't exist yet
                 if defaults.object(forKey: namespacedKey) == nil {
-                    defaults.set(value, forKey: namespacedKey)
+                    defaults.set(value, forKey: namespacedKey) // Fixed the argument label here
+                }
+            }
+        }
+
+        // 2. Explicitly migrate per-set keys
+        // We find every key that looks like "setsExerciseName" to identify the exercises
+        let setCountKeys = allKeys.filter { $0.hasPrefix("sets") && !$0.hasPrefix("user_") }
+        
+        for fullSetKey in setCountKeys {
+            // Extract the exercise name (e.g., "Bench Press" from "setsBench Press")
+            let exerciseName = fullSetKey.replacingOccurrences(of: "sets", with: "")
+            let setCount = defaults.integer(forKey: fullSetKey)
+            
+            // Loop through the sets to move the set-specific data
+            for i in 0..<setCount {
+                let suffixes = ["weight", "left", "right", "reps", "rest", "iso"]
+                for suffix in suffixes {
+                    let oldKey = "\(suffix)\(exerciseName)_set\(i)"
+                    let namespacedKey = "user_\(userId).\(oldKey)"
+                    
+                    // If the old data exists, move it to the namespaced key
+                    if let value = defaults.object(forKey: oldKey) {
+                        if defaults.object(forKey: namespacedKey) == nil {
+                            defaults.set(value, forKey: namespacedKey)
+                        }
+                    }
                 }
             }
         }
 
         defaults.set(true, forKey: flagKey)
-        print("✅ User Namespace Migration Complete for \(userId)")
+        print("✅ Comprehensive Namespace Migration Complete for \(userId)")
     }
+    
 }

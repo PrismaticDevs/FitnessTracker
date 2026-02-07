@@ -134,7 +134,7 @@ struct StrengthEntryView: View {
             Section {
                 VStack {
                     WorkoutHeaderView(
-                        exercise: exercise.name,
+                        exercise: exercise,
                         setsCountInput: $setsCountInput,
                         selectedSetIndex: $selectedSetIndex,
                         adjustPerSetArrays: { n in adjustPerSetArrays(to: n) },
@@ -423,6 +423,7 @@ struct StrengthEntryView: View {
 }
 
 struct SetRow: View {
+    @ObservedObject var theme = ThemeManager.shared
     var defaults = UserDefaults.standard
     let title: String
     @Binding var text: String
@@ -435,7 +436,7 @@ struct SetRow: View {
                 .keyboardType(.numberPad)
                 .padding(8)
                 .submitLabel(.done)
-                .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
+                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
                     if let value = Int(newValue) {
                         defaults.set(value, forKey: exerciseKey)
@@ -452,7 +453,8 @@ struct SetRow: View {
 }
 
 struct WorkoutHeaderView: View {
-    let exercise: String
+    @ObservedObject var theme = ThemeManager.shared
+    let exercise: Exercise
     @Binding var setsCountInput: String
     @Binding var selectedSetIndex: Int
     var adjustPerSetArrays: (Int) -> Void
@@ -462,10 +464,15 @@ struct WorkoutHeaderView: View {
     var isFocused: FocusState<Bool?>.Binding
     var body: some View {
         HStack {
-            Text(exercise)
-                .foregroundColor(.white)
-                .padding()
-                .font(.title.bold())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(exercise.name)
+                    .foregroundColor(.white)
+                    .font(.title.bold())
+                Text("\(exercise.type?.rawValue ?? "" ) exercise")
+                    .font(.system(size: 12.0))
+                    .foregroundColor(.secondary)
+                }
+            
             Spacer()
             VStack {
                 Text("Sets").font(.subheadline)
@@ -473,7 +480,7 @@ struct WorkoutHeaderView: View {
                     .keyboardType(.numberPad)
                     .frame(width: 60)
                     .padding(6)
-                    .background(ColorPalette.accent.opacity(0.8).cornerRadius(8))
+                    .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
                     .onChange(of: setsCountInput) {
                         let n = max(1, Int(setsCountInput) ?? 1)
                         adjustPerSetArrays(n)
@@ -492,6 +499,7 @@ struct WorkoutHeaderView: View {
 }
 
 struct SetSelectorView: View {
+    @ObservedObject var theme = ThemeManager.shared
     let setsCount: Int
     @Binding var selectedSetIndex: Int
     var onSelect: () -> Void
@@ -505,7 +513,7 @@ struct SetSelectorView: View {
                     }) {
                         Text("Set \(idx + 1)")
                             .padding(8)
-                            .background(selectedSetIndex == idx ? ColorPalette.accent.opacity(0.8) : ColorPalette.primary.opacity(0.2))
+                            .background(selectedSetIndex == idx ? theme.currentTheme.accent.opacity(0.8) : .white.opacity(0.2))
                             .cornerRadius(10)
                             .foregroundColor(.white)
                             .cornerRadius(8)
@@ -575,6 +583,7 @@ struct SetDetailInputsView: View {
 }
 
 struct NoteAndDeleteView: View {
+    @ObservedObject var theme = ThemeManager.shared
     let exercise: String
     @Binding var note: String
     @Binding var showDeleteConfirmation: Bool
@@ -604,7 +613,7 @@ struct NoteAndDeleteView: View {
                     if !note.isEmpty {
                         Button(action: { note = "" }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(ColorPalette.primary)
+                                .foregroundColor(.white)
                                 .padding(8)
                                 .contentShape(Rectangle())
                         }
@@ -612,7 +621,7 @@ struct NoteAndDeleteView: View {
                         .padding(.vertical, 2)
                     }
                 }
-                .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
                 .onAppear {
                     note = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
                 }

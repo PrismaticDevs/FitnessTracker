@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct SessionsView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(AIContextManager.self) var aiManager
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss // Correctly access the dismiss environment
@@ -22,7 +23,7 @@ struct SessionsView: View {
                             }
                         }
                         .onDelete(perform: confirmDeleteSession)
-                        .listRowBackground(ColorPalette.accent)
+                        .listRowBackground(theme.currentTheme.accent)
                         .padding()
                         .navigationBarTitle("\(program.title) Sessions")
                     }
@@ -58,7 +59,7 @@ struct SessionsView: View {
                         try? context.save()
                     }) {
                         Image(systemName: program.starred ? "star.fill" : "star")
-                            .foregroundColor(ColorPalette.accent)
+                            .foregroundColor(theme.currentTheme.accent)
                     }
                 }
             }
@@ -83,9 +84,9 @@ struct SessionsView: View {
                        .font(.headline)
                        .padding()
 
-                   TextField("New Program Title", text: $newProgramTitle, prompt: Text("New Program Title").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                   TextField("New Program Title", text: $newProgramTitle, prompt: Text("New Program Title").foregroundColor(.white.opacity(0.5)))
                        .padding()
-                       .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+                       .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
 
                    Button("Rename") {
                        renameProgram()

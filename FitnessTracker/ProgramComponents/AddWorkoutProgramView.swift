@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct AddWorkoutProgramView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     @State private var programTitle: String = ""
@@ -22,13 +23,13 @@ struct AddWorkoutProgramView: View {
                     ScrollView {
                         Text("Add New Workout program")
                             .font(.title)
-                            .foregroundColor(ColorPalette.primary)
+                            .foregroundColor(.white)
                             .padding()
-                        Section(header: Text("Title").font(.headline).foregroundColor(ColorPalette.primary)) {
-                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                        Section(header: Text("Title").font(.headline).foregroundColor(.white)) {
+                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(.white.opacity(0.5)))
                                 .padding()
-                                .background(ColorPalette.accent)
-                                .foregroundColor(ColorPalette.primary)
+                                .background(theme.currentTheme.accent)
+                                .foregroundColor(.white)
                                 .cornerRadius(8)
                                 .overlay(
                                     Button(action: {
@@ -37,32 +38,32 @@ struct AddWorkoutProgramView: View {
                                         Image(systemName: "xmark.circle.fill")
                                             .opacity(programTitle.isEmpty ? 0 : 1).padding()
                                     }
-                                        .foregroundColor(ColorPalette.primary)
+                                        .foregroundColor(.white)
                                         .padding(),
                                     alignment: .trailing
                                 )
                         }
                         .padding(.horizontal)
                             ForEach(newSessions.indices, id: \.self) { index in
-                                Section(header: Text("Session").font(.headline).foregroundColor(ColorPalette.primary)) {
+                                Section(header: Text("Session").font(.headline).foregroundColor(.white)) {
                                     if newSessions.isEmpty {
                                         ContentUnavailableView(label: {
                                             Label("No sessions yet", systemImage: "list.bullet.rectangle.portrait")
-                                                .foregroundColor(ColorPalette.primary)
+                                                .foregroundColor(.white)
                                         }, description: {
                                             Text("Start adding sessions")
-                                                .foregroundColor(ColorPalette.primary)
+                                                .foregroundColor(.white)
                                         },actions: {
                                         })
                                     }
                                 HStack {
-                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(.white.opacity(0.5)))
                                         .onChange(of: newSessions[index].name) { newValue, oldValue in
                                             newSessions[index].name = newValue
                                         }
                                         .padding()
-                                        .background(ColorPalette.accent)
-                                        .foregroundColor(ColorPalette.primary)
+                                        .background(theme.currentTheme.accent)
+                                        .foregroundColor(.white)
                                         .cornerRadius(8)
                                     Button(action: {
                                         deleteSession(at: index)
@@ -73,13 +74,13 @@ struct AddWorkoutProgramView: View {
                                    }
                                 }
                                 if !newSessions[index].exercises.isEmpty {
-                                    Section(header: Text("Exercises").font(.headline).foregroundColor(ColorPalette.primary)) {
+                                    Section(header: Text("Exercises").font(.headline).foregroundColor(.white)) {
                                         ForEach(newSessions[index].exercises) { exercise in
                                             HStack {
                                                 Text(exercise.name)
                                                     .padding()
-                                                    .background(ColorPalette.accent)
-                                                    .foregroundColor(ColorPalette.primary)
+                                                    .background(theme.currentTheme.accent)
+                                                    .foregroundColor(.white)
                                                     .cornerRadius(8)
                                                 
                                                 Button(action: {
@@ -112,9 +113,9 @@ struct AddWorkoutProgramView: View {
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(ColorPalette.primary)
+                                    .foregroundColor(.white)
                                 Text("Add Session")
-                                    .foregroundColor(ColorPalette.primary)
+                                    .foregroundColor(.white)
                             }
                             .padding()
                         }
@@ -137,7 +138,8 @@ struct AddWorkoutProgramView: View {
                 }
             }
         }
-        .modifier(NavigationBarModifier())
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
     
     private var canCreateProgram: Bool {

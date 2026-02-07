@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SocialPortal: View {
+    @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
     @Binding var isPresented: Bool
     @State private var navigateToAuthView = false // State variable for navigation
@@ -33,7 +34,7 @@ struct SocialPortal: View {
                     }) {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(ColorPalette.primary)
+                            .foregroundColor(.white)
                             .padding(10)
                             .background(Color.red)
                             .clipShape(Circle())

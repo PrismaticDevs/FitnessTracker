@@ -18,6 +18,7 @@ enum AuthField {
 }
 
 struct FirebaseAuthView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
     @State private var email = ""
     @State private var password = ""
@@ -156,6 +157,7 @@ struct FirebaseAuthView: View {
 
 // MARK: - Reusable input field
 struct InputField: View {
+    @ObservedObject var theme = ThemeManager.shared
     let placeholder: String
     @Binding var text: String
     var isSecure: Bool = false
@@ -177,7 +179,7 @@ struct InputField: View {
         }
         .padding(.horizontal, 12)
         .frame(height: height)
-        .background(ColorPalette.accent.opacity(0.8))
+        .background(theme.currentTheme.accent.opacity(0.8))
         .cornerRadius(corner)
     }
 }
@@ -199,6 +201,7 @@ struct AuthButtons: View {
 }
 
 struct AuthActionButton: View {
+    @ObservedObject var theme = ThemeManager.shared
     let title: String
     let isPrimary: Bool
     var corner: CGFloat = 10
@@ -214,13 +217,13 @@ struct AuthActionButton: View {
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: corner)
-                .fill(isPrimary ? ColorPalette.accent : ColorPalette.accent2)
+                .fill(isPrimary ? theme.currentTheme.accent : theme.currentTheme.accent2)
         )
         .overlay(
             RoundedRectangle(cornerRadius: corner)
-                .stroke(isPrimary ? Color.clear : ColorPalette.accent, lineWidth: 1)
+                .stroke(isPrimary ? Color.clear : theme.currentTheme.accent, lineWidth: 1)
         )
-        .foregroundColor(isPrimary ? .accent : ColorPalette.primary)
+        .foregroundColor(isPrimary ? .accent : .white)
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
     }
 }
@@ -228,12 +231,13 @@ private let buttonHeight: CGFloat = 48
 private let buttonCorner: CGFloat = 10
 
 struct AppleSignInButton: View {
+    @ObservedObject var theme = ThemeManager.shared
     @State private var isSigningIn = false
     var body: some View {
         ZStack {
             // background behind content so it doesn't darken the images
             RoundedRectangle(cornerRadius: buttonCorner)
-                .fill(ColorPalette.accent.opacity(0.3))
+                .fill(theme.currentTheme.accent.opacity(0.3))
 
             HStack(spacing: 12) {
                 Image("apple")
@@ -243,13 +247,13 @@ struct AppleSignInButton: View {
 
                 Text("Sign in with Apple")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(ColorPalette.primary)
+                    .foregroundColor(.white)
             }
             .padding(.horizontal, 16)
         }
         .frame(height: buttonHeight)
         .frame(maxWidth: .infinity)                // makes it expand to available width
-        .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(ColorPalette.accent, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(theme.currentTheme.accent, lineWidth: 1))
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
         .cornerRadius(buttonCorner)
         .buttonStyle(PlainButtonStyle())
@@ -260,13 +264,14 @@ struct AppleSignInButton: View {
 }
 
 struct GoogleSignInButton: View {
+    @ObservedObject var theme = ThemeManager.shared
     var onError: ((String) -> Void)? = nil
     @State private var isSigningIn = false
     
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: buttonCorner)
-                .fill(ColorPalette.accent.opacity(0.3))
+                .fill(theme.currentTheme.accent.opacity(0.3))
 
             ZStack {
                 HStack(spacing: 12) {
@@ -276,7 +281,7 @@ struct GoogleSignInButton: View {
 
                     Text("Sign in with Google")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(ColorPalette.primary)
+                        .foregroundColor(.white)
                 }
                 .opacity(isSigningIn ? 0.5 : 1.0)
 
@@ -288,7 +293,7 @@ struct GoogleSignInButton: View {
         }
         .frame(height: buttonHeight)
         .frame(maxWidth: .infinity)                // same width as Apple button when placed in a VStack/HStack
-        .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(ColorPalette.accent, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(theme.currentTheme.accent, lineWidth: 1))
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
         .cornerRadius(buttonCorner)
         .buttonStyle(PlainButtonStyle())

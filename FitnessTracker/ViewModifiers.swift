@@ -1,36 +1,71 @@
-//
-//  ViewModifiers.swift
-//  FitnessTracker
-//
-//  Created by Matt on 2/28/25.
-//
-
 import SwiftUI
 
-// Color Palette
-let crimson = Color(red: 0.64, green: 0.12, blue: 0.17)
-let scarlet = Color(red: 0.86, green: 0.08, blue: 0.24)
-let blush = Color(red: 1.0, green: 0.71, blue: 0.76)
-let deepMagenta = Color(red: 0.78, green: 0.08, blue: 0.52)
-let midnightOrchid = Color(red: 0.45, green: 0.01, blue: 0.35)
-struct ColorPalette {
-    static let primary: Color = .white
-    static let secondary: Color = .gray
-    static let accent: Color = deepMagenta
-    static let accent2: Color = midnightOrchid
+// Define your available Themes
+enum AppTheme: String, CaseIterable, Identifiable {
+    case magenta = "Deep Magenta"
+    case blue = "Midnight Blue"
+    case forest = "Forest Green"
+    case crimson = "Racing Red"     // New
+    case slate = "Slate Gray"       // New
+    case coffee = "Rugged Brown"    // New
+    
+    var id: String { self.rawValue }
+    
+    var accent: Color {
+        switch self {
+        case .magenta: return Color(red: 0.78, green: 0.08, blue: 0.52)
+        case .blue:    return Color(red: 0.1, green: 0.3, blue: 0.6)
+        case .forest:  return Color(red: 0.1, green: 0.4, blue: 0.2)
+        case .crimson: return Color(red: 0.7, green: 0.0, blue: 0.0)
+        case .slate:   return Color(red: 0.2, green: 0.25, blue: 0.3)
+        case .coffee:  return Color(red: 0.35, green: 0.25, blue: 0.2)
+        }
+    }
+    
+    var accent2: Color {
+        switch self {
+        case .magenta: return Color(red: 0.45, green: 0.01, blue: 0.35)
+        case .blue:    return Color(red: 0.05, green: 0.15, blue: 0.4)
+        case .forest:  return Color(red: 0.05, green: 0.2, blue: 0.1)
+        case .crimson: return Color(red: 0.4, green: 0.0, blue: 0.0)
+        case .slate:   return Color(red: 0.1, green: 0.12, blue: 0.15)
+        case .coffee:  return Color(red: 0.2, green: 0.15, blue: 0.1)
+        }
+    }
+    
+    var gradientColors: [Color] {
+        switch self {
+        case .magenta: return [Color(red: 1.0, green: 0.71, blue: 0.76), accent]
+        case .blue:    return [Color.cyan.opacity(0.5), accent]
+        case .forest:  return [Color.green.opacity(0.4), accent]
+        case .crimson: return [Color.orange.opacity(0.4), accent]
+        case .slate:   return [Color.gray.opacity(0.5), accent]
+        case .coffee:  return [Color(red: 0.6, green: 0.5, blue: 0.4).opacity(0.5), accent]
+        }
+    }
 }
 
-// Gradient Background Modifier
+// Global Theme Manager
+class ThemeManager: ObservableObject {
+    @AppStorage("selectedTheme") var currentTheme: AppTheme = .magenta
+    
+    static let shared = ThemeManager()
+}
+
 struct GradientBackground: ViewModifier {
-    var gradient = LinearGradient(gradient: Gradient(colors: [blush, deepMagenta]), startPoint: .bottom, endPoint: .top)
+    @ObservedObject var theme = ThemeManager.shared
 
     func body(content: Content) -> some View {
         ZStack {
-            gradient
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure it fills the entire view
-                .edgesIgnoringSafeArea(.all) // Make the gradient fill the entire screen
+            LinearGradient(
+                gradient: Gradient(colors: theme.currentTheme.gradientColors),
+                startPoint: .bottom,
+                endPoint: .top
+            )
+            .ignoresSafeArea()
+            
             content
-                .foregroundColor(.white) // Set the default text color to white
+                .foregroundColor(.white)
         }
     }
 }
@@ -39,57 +74,15 @@ extension View {
     func applyGradientBackground() -> some View {
         self.modifier(GradientBackground())
     }
-    
+}
+
+extension View {
     func navigationBarTitleTextColor(_ color: Color) -> some View {
-        let uiColor = UIColor(ColorPalette.primary)
+        let uiColor = UIColor(color) // Use the color passed in, not ColorPalette
+        
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: uiColor]
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: uiColor]
+        
         return self
-    }
-}
-
-// Sets NavigationTitle to white
-struct NavigationBarModifier: ViewModifier {
-    init() {
-        let appearance = UINavigationBarAppearance()
-        let uiColor = UIColor(ColorPalette.primary)
-        appearance.configureWithTransparentBackground()
-        appearance.titleTextAttributes = [.foregroundColor: uiColor]
-        appearance.largeTitleTextAttributes = [.foregroundColor: uiColor]
-
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-    }
-
-    func body(content: Content) -> some View {
-        content
-    }
-}
-
-struct FormBackgroundClear: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        DispatchQueue.main.async {
-            if let table = view.closestSuperview(ofType: UITableView.self) {
-                table.backgroundColor = .clear
-                table.backgroundView = nil
-                table.separatorStyle = .none
-            }
-            view.superview?.backgroundColor = .clear
-            view.superview?.superview?.backgroundColor = .clear
-        }
-        return view
-    }
-    func updateUIView(_ uiView: UIView, context: Context) {}
-}
-
-extension UIView {
-    func closestSuperview<T: UIView>(ofType type: T.Type) -> T? {
-        var parent = self.superview
-        while let p = parent {
-            if let match = p as? T { return match }
-            parent = p.superview
-        }
-        return nil
     }
 }

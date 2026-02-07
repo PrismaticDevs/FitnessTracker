@@ -72,6 +72,7 @@ struct ProgramMenuView: View {
         order: .forward,
         animation: .default
         ) private var programs: [WorkoutProgram]
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
     @StateObject var auth: AuthManager
     @State private var showSocialPortal = false
@@ -84,18 +85,19 @@ struct ProgramMenuView: View {
                 Text("Select a Program")
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
-                    .foregroundColor(ColorPalette.primary)
+                    .foregroundColor(.white)
                 if let uid = auth.user?.uid {
                     ProgramListView(userId: uid)
                 } else {
                     ProgressView("Loading your programs...")
-                        .tint(ColorPalette.primary)
+                        .tint(.white)
                 }
             }
         }
         .navigationTitle("Your Programs")
-        .navigationBarTitleTextColor(ColorPalette.primary)
+        .navigationBarTitleTextColor(.white)
         .applyGradientBackground()
+        .id(theme.currentTheme.id)
         .overlay {
             if programs.isEmpty {
                 EmptyStateView()
@@ -103,6 +105,16 @@ struct ProgramMenuView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
+                Menu {
+                        Picker("Theme", selection: ThemeManager.shared.$currentTheme) {
+                            ForEach(AppTheme.allCases) { theme in
+                                Text(theme.rawValue).tag(theme)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "paintpalette")
+                            .foregroundColor(.white)
+                    }
                 NavigationLink {
                     PrebuiltProgramsView()
                 } label: {
@@ -235,6 +247,7 @@ struct ProgramListView: View {
 
 struct ProgramRowView: View {
     @Environment(\.modelContext) var context
+    @ObservedObject var theme = ThemeManager.shared
     @State var program: WorkoutProgram
     
     var body: some View {
@@ -259,7 +272,7 @@ struct ProgramRowView: View {
             .buttonStyle(PlainButtonStyle()) // Prevents the link from changing appearance
         
         }
-        .listRowBackground(ColorPalette.accent) // Apply blue background to the entire row
+        .listRowBackground(theme.currentTheme.accent) // Apply blue background to the entire row
         .padding()
     }
 }
@@ -288,6 +301,7 @@ struct EmptyStateView: View {
 }
 
 struct AddProgramButton: View {
+    @ObservedObject var theme = ThemeManager.shared
     @State private var isHovering = false
     var compact: Bool = false
 
@@ -297,11 +311,11 @@ struct AddProgramButton: View {
             if !compact {
                 Text("Add Program")
                     .font(.headline)
-                    .foregroundColor(ColorPalette.accent)
+                    .foregroundColor(theme.currentTheme.accent)
             }
         }
         .padding(compact ? 0 : 8)
-        .foregroundColor(ColorPalette.primary)
+        .foregroundColor(theme.currentTheme.accent)
         .animation(.easeInOut(duration: 0.12), value: isHovering)
         .cornerRadius(8)
         .contentShape(Rectangle()) // helps hit-testing
@@ -313,16 +327,17 @@ struct AddProgramButton: View {
 }
 
 struct SocialEntry: View {
+    @ObservedObject var theme = ThemeManager.shared
     var body: some View {
         HStack {
             Image(systemName: "bubble.left.and.bubble.right")
-                .foregroundColor(ColorPalette.accent)
+                .foregroundColor(theme.currentTheme.accent)
             Text("FiT Social")
                 .font(.headline)
-                .foregroundColor(ColorPalette.accent)
+                .foregroundColor(theme.currentTheme.accent)
         }
         .padding()
-        .foregroundColor(ColorPalette.primary)
+        .foregroundColor(.white.opacity(0.1))
         .cornerRadius(8)
     }
 }

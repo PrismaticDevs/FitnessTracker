@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct SessionDetailView: View {
+    @ObservedObject var theme = ThemeManager.shared
     var defaults = UserDefaults.standard
     var session: Session
     var workoutProgram: WorkoutProgram
@@ -26,23 +27,9 @@ struct SessionDetailView: View {
                 VStack {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
                         StrengthEntryView(
-
-                                exercise: exercise,
-                                // The child view will handle loading its own state via .onAppear
-                                deleteExercise: { name in deleteExercise(named: name) }
-                            )
-                            
-                            Text(exercise.type?.rawValue ?? "strength")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-//                        switch exercise.type {
- //                       case .strength:
- //                           StrengthEntryView(exercise: exercise, combined: defaults.integer(forKey: "combined\(exercise.name)"), left: defaults.integer(forKey: "left\(exercise.name)"), right: defaults.integer(forKey: "right\(exercise.name)"), reps: defaults.integer(forKey: "reps\(exercise.name)"), rest: defaults.integer(forKey: "rest\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
- //                       case .cardio:
- //                           CardioEntryView(exercise: exercise, distance: defaults.integer(forKey: "distance\(exercise.name)"), duration: defaults.integer(forKey: "duration\(exercise.name)"), note: defaults.string(forKey: "note\(exercise.name)") ?? "", deleteExercise: { name in deleteExercise(named: name) })
- //                       case .mobility:
- //                           MobilityEntryView()
- //                        }
+                            exercise: exercise,
+                            deleteExercise: { name in deleteExercise(named: name) }
+                        )
                     }
                 }
             }
@@ -53,7 +40,6 @@ struct SessionDetailView: View {
         .applyGradientBackground()
         .navigationTitle("\(session.name) Exercises")
         .navigationBarTitleDisplayMode(.inline)
-//        .modifier(NavigationBarModifier())
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                Button(action: {
@@ -79,9 +65,9 @@ struct SessionDetailView: View {
                     .font(.headline)
                     .padding()
 
-                TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(ColorPalette.primary.opacity(0.5)))
+                TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
                     .padding()
-                    .background(ColorPalette.accent.opacity(0.8).cornerRadius(10))
+                    .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
 
                 Button("Rename") {
                     renameSession()

@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct AddExercise: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
     @Query(sort: \Exercise.name) var exercises: [Exercise] = []
@@ -26,15 +27,15 @@ struct AddExercise: View {
                             Text(category.name)
                         }
                     }
-                    .tint(ColorPalette.primary)
-                    .listRowBackground(ColorPalette.accent)
+                    .tint(.white)
+                    .listRowBackground(theme.currentTheme.accent)
                     TextField(
                         "", // You can leave the title empty if using prompt
                         text: $name,
                         prompt: Text("Exercise Name")
-                            .foregroundColor(ColorPalette.primary.opacity(0.8))
+                            .foregroundColor(.white.opacity(0.8))
                     )
-                    .listRowBackground(ColorPalette.accent) // Applied to the TextField
+                    .listRowBackground(theme.currentTheme.accent) // Applied to the TextField
                     .overlay(
                         Button(action: {
                             name = ""
@@ -43,19 +44,19 @@ struct AddExercise: View {
                                 .opacity(name.isEmpty ? 0 : 1)
                                 .padding()
                         }
-                        .foregroundColor(ColorPalette.primary)
+                            .foregroundColor(.white)
                         .padding(),
                         alignment: .trailing
                     )
                     Text("Choose Exercise Type")
-                        .listRowBackground(ColorPalette.accent)
+                        .listRowBackground(theme.currentTheme.accent)
                     Picker("Type", selection: $type) {
                         ForEach(exerciseTypes, id: \.self) {
                             Text($0)
                         }
                     }
-                    .tint(ColorPalette.primary)
-                    .listRowBackground(ColorPalette.accent)
+                    .tint(.white)
+                    .listRowBackground(theme.currentTheme.accent)
                     Section {
                         Button {
                             
@@ -66,7 +67,7 @@ struct AddExercise: View {
                                 Image(systemName: "plus")
                             }
                         }
-                        .listRowBackground(ColorPalette.accent2)
+                        .listRowBackground(theme.currentTheme.accent)
                     }
                 }
             }

@@ -78,6 +78,7 @@ struct PrebuiltSessionDetailView: View {
 }
 
 struct PrebuiltProgramsView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.dismiss) var dismiss
     let workoutPrograms: [WorkoutProgram] = createPrebuiltWorkoutPrograms()
     @Environment(\.modelContext) var context
@@ -98,7 +99,7 @@ struct PrebuiltProgramsView: View {
                                         .foregroundColor(.white)
                                 }
                             }
-                            .listRowBackground(ColorPalette.accent)
+                            .listRowBackground(theme.currentTheme.accent)
                     }
                 }
                 .navigationTitle("Prebuilt Workout Programs")
@@ -133,7 +134,7 @@ struct CustomSectionHeader: View {
         HStack {
             Text(title)
                 .font(.headline)
-                .foregroundColor(ColorPalette.primary)
+                .foregroundColor(.white)
 
             Spacer()
 
@@ -156,7 +157,7 @@ struct ProgramHeaderView: View {
     var body: some View {
         Text(title)
             .font(.headline)
-            .foregroundColor(ColorPalette.primary)
+            .foregroundColor(.white)
             .padding()
             .background(Color.clear) // Ensure the background is clear
     }
