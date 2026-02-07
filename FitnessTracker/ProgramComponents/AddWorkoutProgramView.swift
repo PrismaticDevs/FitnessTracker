@@ -13,7 +13,7 @@ struct AddWorkoutProgramView: View {
     @StateObject private var exerciseList = ExerciseList() // Create a single instance
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.clear
                     .applyGradientBackground()
@@ -24,6 +24,28 @@ struct AddWorkoutProgramView: View {
                         Text("Add New Workout program")
                             .font(.title)
                             .foregroundColor(.white)
+                            .padding()
+                        Section {
+                            NavigationLink(destination: PrebuiltProgramsView()) {
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.yellow)
+                                    Text("Start from a Prebuilt Template")
+                                        .font(.headline)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.bold())
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.15))
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        Divider()
+                            .background(Color.white.opacity(0.3))
                             .padding()
                         Section(header: Text("Title").font(.headline).foregroundColor(.white)) {
                             TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(.white.opacity(0.5)))
