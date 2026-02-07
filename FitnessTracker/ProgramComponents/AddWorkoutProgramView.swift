@@ -10,7 +10,8 @@ struct AddWorkoutProgramView: View {
     @State private var selectedExercises: [Exercise] = []
     @State private var navigateToContentView: Bool = false
     @State private var showAlert: Bool = false
-    @StateObject private var exerciseList = ExerciseList() // Create a single instance
+    @StateObject private var exerciseList = ExerciseList()
+    @State private var showingPrebuiltSheet = false
     
     var body: some View {
         NavigationStack {
@@ -26,14 +27,14 @@ struct AddWorkoutProgramView: View {
                             .foregroundColor(.white)
                             .padding()
                         Section {
-                            NavigationLink(destination: PrebuiltProgramsView()) {
+                            Button(action: { showingPrebuiltSheet = true }) {
                                 HStack {
                                     Image(systemName: "sparkles")
                                         .foregroundColor(.yellow)
                                     Text("Start from a Prebuilt Template")
                                         .font(.headline)
                                     Spacer()
-                                    Image(systemName: "chevron.right")
+                                    Image(systemName: "chevron.down")
                                         .font(.caption.bold())
                                 }
                                 .padding()
@@ -143,6 +144,12 @@ struct AddWorkoutProgramView: View {
                         }
                        
                     }
+                }
+            }
+            .sheet(isPresented: $showingPrebuiltSheet) {
+                PrebuiltProgramsView {
+                    showingPrebuiltSheet = false
+                    dismiss()
                 }
             }
             .toolbar {

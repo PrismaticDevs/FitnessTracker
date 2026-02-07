@@ -79,51 +79,75 @@ struct PrebuiltSessionDetailView: View {
 
 struct PrebuiltProgramsView: View {
     @ObservedObject var theme = ThemeManager.shared
-    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authManager: AuthManager
     let workoutPrograms: [WorkoutProgram] = createPrebuiltWorkoutPrograms()
     @Environment(\.modelContext) var context
+    var onProgramAdded: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
+            ZStack {
                 List {
                     ForEach(workoutPrograms, id: \.id) { program in
                         HStack {
                             CustomSectionHeader(title: program.title) {
-                                addProgramToUserList(program)
+                                if let uid = authManager.user?.uid {
+                                    addPrebuiltToUser(prebuilt: program, userId: uid)
+                                }
                             }
                         }
                         .listRowBackground(Color.clear)
-                            ForEach(program.sessions, id: \.id) { session in
-                                NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
-                                    Text(session.name)
-                                        .foregroundColor(.white)
-                                }
+                        ForEach(program.sessions, id: \.id) { session in
+                            NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
+                                Text(session.name)
+                                    .foregroundColor(.white)
                             }
-                            .listRowBackground(theme.currentTheme.accent)
+                        }
+                        .listRowBackground(theme.currentTheme.accent)
                     }
                 }
-                .navigationTitle("Prebuilt Workout Programs")
-                .navigationBarTitleDisplayMode(.inline)
-                .listStyle(PlainListStyle())
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
                 .background(Color.clear)
-                .padding()
-                .applyGradientBackground()
+            }
+            .applyGradientBackground()
+            .navigationTitle("Select Template")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { onProgramAdded()}
+                }
+            }
         }
-        .navigationBarTitleTextColor(.white)
     }
     
-     func addProgramToUserList(_ program: WorkoutProgram) {
-        // Create a new instance of WorkoutProgram and add it to the user's list
-        let newProgram = WorkoutProgram(title: "\(program.title)", sessions: program.sessions)
-        context.insert(newProgram)
+    func addPrebuiltToUser(prebuilt: WorkoutProgram, userId: String) {
+        // 1. Manually deep copy the sessions and exercises
+        let clonedSessions = prebuilt.sessions.map { session in
+            let clonedExercises = session.exercises.map { Exercise(name: $0.name) }
+            return Session(name: session.name, exercises: clonedExercises)
+        }
+        
+        // 2. Create the new program with the clones
+        let newUserProgram = WorkoutProgram(
+            title: prebuilt.title,
+            sessions: clonedSessions
+        )
+        
+        // 3. Assign the ID
+        newUserProgram.userId = userId
+        
+        // 4. Insert and Save
+        context.insert(newUserProgram)
         
         do {
             try context.save()
-            dismiss()
+            print("Successfully cloned prebuilt program: \(prebuilt.title)")
+            onProgramAdded()
         } catch {
-            print("Failed to save context: \(error)")
+            print("Error saving: \(error)")
         }
     }
+    
 }
 
 struct CustomSectionHeader: View {
@@ -135,19 +159,18 @@ struct CustomSectionHeader: View {
             Text(title)
                 .font(.headline)
                 .foregroundColor(.white)
-
             Spacer()
-
-            Button(action: {
-                addAction()
-            }) {
-                Image(systemName: "plus.circle.fill")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.white)
-            }
-            .buttonStyle(PlainButtonStyle()) // Optional: to remove button styling
+            // Using Image + TapGesture is often more reliable in nested List rows
+            Image(systemName: "plus.circle.fill")
+                .resizable()
+                .frame(width: 24, height: 24)
+                .foregroundColor(.white)
+                .onTapGesture {
+                    addAction()
+                }
         }
+        .contentShape(Rectangle()) // Makes the whole header area tap-aware
+        .padding(.vertical, 8)
     }
 }
 
@@ -165,7 +188,12 @@ struct ProgramHeaderView: View {
 
 struct PrebuiltProgramsView_Previews: PreviewProvider {
     static var previews: some View {
-        PrebuiltProgramsView()
+        // 1. Pass an empty closure for the callback
+        PrebuiltProgramsView(onProgramAdded: {
+            print("Preview: Program added or cancelled")
+        })
+        // 2. Inject the AuthManager environment object
+        .environmentObject(AuthManager())
     }
 }
 

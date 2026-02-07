@@ -115,9 +115,7 @@ struct ProgramMenuView: View {
                         Image(systemName: "paintpalette")
                             .foregroundColor(.white)
                     }
-                NavigationLink {
-                    PrebuiltProgramsView()
-                } label: {
+                NavigationLink(destination: PrebuiltProgramsView(onProgramAdded: { })) {
                     HStack {
                         Text("Prebuilt Programs")
                         Image(systemName: "chevron.right")
