@@ -104,16 +104,14 @@ struct ProgramMenuView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Menu {
-                        Picker("Theme", selection: ThemeManager.shared.$currentTheme) {
-                            ForEach(AppTheme.allCases) { theme in
-                                Text(theme.rawValue).tag(theme)
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "paintpalette")
-                            .foregroundColor(.white)
+            ToolbarItem(placement: .topBarLeading) {                
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundColor(.white)
+                }
+                
+                NavigationLink(destination: AddWorkoutProgramView()) {
+                    AddProgramButton(compact: true)
                     }
                 NavigationLink(destination: PrebuiltProgramsView(onProgramAdded: { })) {
                     HStack {
@@ -132,18 +130,6 @@ struct ProgramMenuView: View {
                 }
             }
 
-            // Trailing: Logout
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showSignoutAlert = true
-                } label: {
-                    Image(systemName: "arrow.right.square")
-                        .font(.system(size: 18, weight: .semibold))
-                        .accessibilityLabel("Log out")
-                        .foregroundColor(Color.red)
-                }
-                .help("Log out of FiT")
-            }
             // Bottom bar (or move to leading if you prefer): Social entry
             ToolbarItem(placement: .bottomBar) {
                 NavigationLink(destination: SocialEntry()) {
@@ -306,6 +292,7 @@ struct AddProgramButton: View {
     var body: some View {
         HStack(spacing: compact ? 0 : 6) {
             Image(systemName: "plus.circle.fill")
+                .foregroundColor(.white)
             if !compact {
                 Text("Add Program")
                     .font(.headline)

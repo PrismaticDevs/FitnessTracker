@@ -6,15 +6,18 @@
 //
 import SwiftUI
 import FirebaseAuth
-import FirebaseCore
+import FirebaseFirestore
 
 @MainActor
 class AuthManager: ObservableObject {
     @Published var user: User? = nil
+    @Published var profile: UserProfile? = nil
     @Published var isAuthenticated: Bool = false
     @Published var authErrorMessage: String? = nil
+    @Published var isUpdating: Bool = false
     // Preview-only override for a stable user id in SwiftUI previews
     var previewUserID: String? = nil
+    private let db = Firestore.firestore()
     typealias FBAuth = FirebaseAuth.Auth
     
     private var authStateListenerHandle: AuthStateDidChangeListenerHandle?
@@ -47,7 +50,7 @@ class AuthManager: ObservableObject {
                 print("Error Domain: \(error.domain)")
                 print("Error Code: \(error.code)")
                 print("Localized Description: \(error.localizedDescription)")
-
+                
                 var message = error.localizedDescription
                 switch error.code {
                 case FirebaseAuth.AuthErrorCode.emailAlreadyInUse.rawValue:
@@ -77,7 +80,7 @@ class AuthManager: ObservableObject {
             print("User created successfully!")
         }
     }
-
+    
     
     func signIn(email: String, password: String) {
         FBAuth.auth().signIn(withEmail: email, password: password) { (result: AuthDataResult?, error: Error?) in
@@ -122,7 +125,57 @@ class AuthManager: ObservableObject {
             self.isAuthenticated = false
         }
     }
-}
+    
+    func fetchUser() async {
+        guard let uid = FBAuth.auth().currentUser?.uid else { return }
+        let docRef = Firestore.firestore().collection("users").document(uid)
+        
+        do {
+            let fetchedProfile = try await docRef.getDocument(as: UserProfile.self)
+            self.profile = fetchedProfile
+            print("Fetched user: \(fetchedProfile.display_name)")
+            print("User attrib: \(fetchedProfile.biometrics)")
+        } catch {
+            print("Error decoding user: \(error)")
+        }
+    }
+    
 
+    func updateUserProfile(name: String, age: Int, weight: Double, height: Double, gender: String) async {
+        guard let uid = user?.uid else { return }
+        
+        // We must mirror the UserProfile struct EXACTLY
+        let userData: [String: Any] = [
+            "display_name": name,
+            "last_updated": FieldValue.serverTimestamp(),
+            
+            // This creates the 'biometrics' map in Firestore
+            "biometrics": [
+                "age": age,
+                "weight": Int(weight), // Convert Double to Int to match struct
+                "gender": gender, // Must exist for non-optional struct
+                "height": Int(height),               // Must exist for non-optional struct
+                "created_at": FieldValue.serverTimestamp()
+            ],
+            
+            // This creates the 'preferences' map in Firestore
+            "preferences": [
+                "home_gym": "Default",
+                "theme": "Dark",
+                "units": "kg"
+            ]
+        ]
+        
+        do {
+            // 'merge: true' is critical so you don't overwrite other fields
+            try await db.collection("users").document(uid).setData(userData, merge: true)
+            print("✅ Firestore: Saved with correct nesting")
+            await fetchUser() // Refresh local profile
+        } catch {
+            print("❌ Firestore Error: \(error)")
+        }
+    }
+    
+}
 
 

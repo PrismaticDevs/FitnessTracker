@@ -78,10 +78,17 @@ extension View {
 
 extension View {
     func navigationBarTitleTextColor(_ color: Color) -> some View {
-        let uiColor = UIColor(color) // Use the color passed in, not ColorPalette
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground() // Keeps your gradient visible
         
-        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: uiColor]
-        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: uiColor]
+        let uiColor = UIColor(color)
+        appearance.titleTextAttributes = [.foregroundColor: uiColor]
+        appearance.largeTitleTextAttributes = [.foregroundColor: uiColor]
+        
+        // This is the crucial part for Lists:
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
         
         return self
     }
