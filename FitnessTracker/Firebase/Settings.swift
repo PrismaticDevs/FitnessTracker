@@ -72,17 +72,21 @@ struct SettingsView: View {
                 }
             }
             .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
-
-            Section {
+        }
+        .navigationTitle("Settings")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button(role: .destructive) {
                     showLogoutAlert = true
                 } label: {
-                    Label("Log Out", systemImage: "arrow.right.square")
+                    HStack {
+                        Text("Sign Out")
+                        Image(systemName: "arrow.right.square")
+                    }
+                    .foregroundColor(.red)
                 }
             }
-            .listRowBackground(theme.currentTheme.accent2)
         }
-        .navigationTitle("Settings")
         .navigationBarTitleTextColor(.white)
         .scrollContentBackground(.hidden)
         .applyGradientBackground()

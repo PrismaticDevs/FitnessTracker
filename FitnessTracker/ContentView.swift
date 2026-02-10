@@ -94,7 +94,8 @@ struct ProgramMenuView: View {
                 }
             }
         }
-        .navigationTitle("Your Programs")
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitleTextColor(.white)
         .applyGradientBackground()
         .id(theme.currentTheme.id)
@@ -104,29 +105,17 @@ struct ProgramMenuView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {                
-                NavigationLink(destination: SettingsView()) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(.white)
-                }
-                
-                NavigationLink(destination: AddWorkoutProgramView()) {
-                    AddProgramButton(compact: true)
-                    }
-                NavigationLink(destination: PrebuiltProgramsView(onProgramAdded: { })) {
-                    HStack {
-                        Text("Prebuilt Programs")
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 16))
-                            .bold()
-                    }
-                }
-            }
-            // Trailing: Add Program
+            // Add Program and Settings
             ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(destination: AddWorkoutProgramView()) {
-                    AddProgramButton(compact: true)
-                        .help("Create workout program")
+                HStack {
+                    NavigationLink(destination: AddWorkoutProgramView()) {
+                        AddProgramButton(compact: true)
+                            .help("Create workout program")
+                    }
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.white)
+                    }
                 }
             }
 
@@ -169,8 +158,6 @@ struct HeaderView: View {
                     .cornerRadius(8)
                     .padding(0)
         }
-        .padding(5)
-        .padding(.top, 10)
     }
 }
 
@@ -203,7 +190,7 @@ struct ProgramListView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .padding()
+        .padding(.horizontal)
         .alert("Delete Program",
                isPresented: $showDeleteConfirmation,
                presenting: programToDelete) { program in
