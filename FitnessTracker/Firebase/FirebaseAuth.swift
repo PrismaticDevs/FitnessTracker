@@ -175,6 +175,86 @@ class AuthManager: ObservableObject {
             print("❌ Firestore Error: \(error)")
         }
     }
+    // MARK: - Sensitive Account Actions
+
+        /// Sends a verification link to the new email.
+        /// The change won't reflect in Firebase until the user clicks that link.
+        func startEmailChange(to newEmail: String) async throws {
+            do {
+                try await user?.sendEmailVerification(beforeUpdatingEmail: newEmail)
+                print("✅ Verification email sent to \(newEmail).")
+            } catch {
+                print("❌ Email update failed: \(error.localizedDescription)")
+                throw error // Pass error to UI to trigger re-auth logic if needed
+            }
+        }
+
+        /// Directly updates the user password in Firebase Auth.
+        func updatePassword(to newPassword: String) async throws {
+            do {
+                try await user?.updatePassword(to: newPassword)
+                print("✅ Password updated successfully.")
+            } catch {
+                print("❌ Password update failed: \(error.localizedDescription)")
+                throw error
+            }
+        }
+
+        /// Links a new credential (like Google) to the existing account.
+        func linkProvider(credential: AuthCredential) async throws {
+            do {
+                let result = try await user?.link(with: credential)
+                print("✅ Successfully linked: \(result?.user.email ?? "unknown")")
+                self.user = result?.user
+            } catch {
+                print("❌ Linking failed: \(error.localizedDescription)")
+                throw error
+            }
+        }
+
+        /// Re-authenticates the user so they can perform sensitive actions.
+        /// Call this if you catch a 'requires-recent-login' error.
+        func reauthenticate(password: String) async throws {
+            guard let email = user?.email else { return }
+            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+            
+            do {
+                try await user?.reauthenticate(with: credential)
+                print("✅ Re-authentication successful.")
+            } catch {
+                print("❌ Re-authentication failed: \(error.localizedDescription)")
+                throw error
+            }
+        }
+    
+    func unlinkGoogle() async throws {
+        // 1. Access the current user via your typealias or the published 'user' property
+        guard let currentUser = self.user else { return }
+        
+        // 2. Check if 'password' is one of the providers
+        let hasPassword = currentUser.providerData.contains { $0.providerID == "password" }
+        
+        if hasPassword {
+            do {
+                // 3. Perform the unlink
+                let updatedUser = try await currentUser.unlink(fromProvider: "google.com")
+                
+                // 4. Update your local published user so the UI refreshes
+                self.user = updatedUser
+                print("✅ Google unlinked successfully.")
+            } catch {
+                print("❌ Unlink failed: \(error.localizedDescription)")
+                throw error
+            }
+        } else {
+            // Throw the safety error if no password exists
+            throw NSError(
+                domain: "Auth",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Please set a password first so you can still log in."]
+            )
+        }
+    }
     
 }
 
