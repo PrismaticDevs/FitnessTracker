@@ -24,7 +24,7 @@ struct SessionDetailView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             ScrollView {
-                VStack {
+                VStack(spacing: 16) {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
                         StrengthEntryView(
                             exercise: exercise,
@@ -34,6 +34,7 @@ struct SessionDetailView: View {
                 }
             }
         }
+        .padding(.horizontal)
         .onAppear {
             updateAIWithLiveSessionData()
         }

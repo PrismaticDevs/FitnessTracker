@@ -52,6 +52,10 @@ struct SessionsView: View {
                     }) {
                         Image(systemName: "pencil")
                     }
+                    NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                
                     Button(action: {
                         // Toggle the starred state
                         program.starred.toggle()

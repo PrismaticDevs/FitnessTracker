@@ -98,7 +98,7 @@ struct ProfileView: View {
                     } else {
                         // Shown for Google/Social users
                         HStack(spacing: 15) {
-                            Image(systemName: " person.badge.shield.checkmark.fill")
+                            Image(systemName: "person.badge.shield.checkmark.fill")
                                 .foregroundColor(.white)
                                 .frame(width: 32, height: 32)
                                 .background(Color.gray.opacity(0.4))
@@ -115,22 +115,6 @@ struct ProfileView: View {
                 }
                 .listRowBackground(theme.currentTheme.accent2.opacity(0.5))
                 
-                Section {
-                    Picker("Unit System", selection: Binding(
-                        get: { unitSystem },
-                        set: { newValue in
-                            if unitSystem != newValue {
-                                convertUnits(to: newValue)
-                                unitSystem = newValue
-                            }
-                        }
-                    )) {
-                        Text("Imperial (lbs/ft)").tag("Imperial")
-                        Text("Metric (kg/cm)").tag("Metric")
-                    }
-                }
-                .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
-
                 Section("Biometrics") {
                     profileRow(label: "Age", value: $age, placeholder: "0", suffix: "yrs", keyboard: .numberPad)
                     
@@ -193,6 +177,18 @@ struct ProfileView: View {
                         suffix: unitSystem == "Metric" ? "kg" : "lbs",
                         keyboard: .numberPad
                     )
+                    Picker("Unit System", selection: Binding(
+                        get: { unitSystem },
+                        set: { newValue in
+                            if unitSystem != newValue {
+                                convertUnits(to: newValue)
+                                unitSystem = newValue
+                            }
+                        }
+                    )) {
+                        Text("Imperial (lbs/ft)").tag("Imperial")
+                        Text("Metric (kg/cm)").tag("Metric")
+                    }
                 }
                 .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
                 .onTapGesture {
@@ -259,6 +255,12 @@ struct ProfileView: View {
         @State private var newEmail = ""
         @State private var errorMsg = ""
         @State private var emailSent = false // Track if we sent the link
+        
+        private var isValidEmail: Bool {
+            let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+            let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+            return emailPredicate.evaluate(with: newEmail)
+        }
 
         var body: some View {
             NavigationStack {
@@ -297,6 +299,8 @@ struct ProfileView: View {
                             Button("Send Link") {
                                 updateFlow()
                             }
+                            .disabled(!isValidEmail)
+                            .opacity(isValidEmail ? 1.0 : 0.5)
                         } else {
                             Button("Done") { dismiss() }
                         }
