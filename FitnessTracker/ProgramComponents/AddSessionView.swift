@@ -30,7 +30,7 @@ struct AddSessionView: View {
             
             VStack(spacing: 16) {
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 12) {
                         Text("Add Session to")
                             .font(.headline).bold()
                             .foregroundColor(.white)
@@ -97,11 +97,24 @@ struct AddSessionView: View {
             isFocused = nil
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save Session") {
-                    saveSessionToProgram()
+
+            ToolbarItem(placement: .bottomBar) {
+                HStack {
+                    Button(action: {
+                        saveSessionToProgram()
+                    }) {
+                        Label {
+                            Text("Save Session")
+                                .fontWeight(.bold)
+                        } icon: {
+                            Image(systemName: "checkmark.circle.fill")
+                        }
+                    }
+                    .tint(theme.currentTheme.accent)
+                    .disabled(sessionName.isEmpty || selectedExercises.isEmpty)
+                    .foregroundColor((sessionName.isEmpty || selectedExercises.isEmpty ? .secondary : theme.currentTheme.accent))
                 }
-                .disabled(sessionName.isEmpty || selectedExercises.isEmpty)
+                .frame(width: UIScreen.main.bounds.width - 60)
             }
         }
     }

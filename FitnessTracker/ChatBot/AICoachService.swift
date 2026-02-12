@@ -42,11 +42,14 @@ final class KeyboardObserver: ObservableObject {
 class AIContextManager {
     // This is what the AI will read before answering
     var currentContext: String = "User is browsing the main menu."
+    var userPreferences: String = ""
 
     // Call this whenever you navigate to a new screen
-    func updateContext(screen: String, details: String) {
+    func updateContext(screen: String, details: String, preferences: String) {
         self.currentContext = "Location: \(screen). Context: \(details)"
-        print("DEBUG: AI Context is now: \(currentContext)")
+        if !preferences.isEmpty {
+            self.userPreferences = preferences
+        }
     }
 }
 

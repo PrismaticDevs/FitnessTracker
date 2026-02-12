@@ -26,6 +26,8 @@ struct UserProfile: Codable {
         var home_gym: String
         var theme: String
         var units: String
+        var hasSettingsUpdate: Bool?
+        var hasSocialUpdate: Bool?
     }
 }
 

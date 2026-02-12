@@ -256,6 +256,27 @@ class AuthManager: ObservableObject {
         }
     }
     
+    func clearNotification(for type: NotificationType) async {
+        guard let uid = user?.uid else { return }
+        
+        // Mapping the enum to the Firestore field string
+        let field = "preferences.\(type.rawValue)"
+        
+        do {
+            try await db.collection("users").document(uid).updateData([
+                field: false
+            ])
+            await fetchUser() // Sync local profile
+        } catch {
+            print("❌ Firestore Error clearing \(type): \(error)")
+        }
+    }
+
+    enum NotificationType: String {
+        case settings = "hasSettingsUpdate"
+        case social = "hasSocialUpdate"
+    }
+    
 }
 
 

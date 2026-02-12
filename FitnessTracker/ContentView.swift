@@ -17,12 +17,14 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             NavigationStack {
-                ProgramMenuView(auth: authManager)
+                ProgramMenuView()
             }
             FloatingChatView(workoutContext: globalWorkoutContext)
-                .padding(20)
+                .padding(.trailing, 20)
+                .padding(.bottom, 100)
         }
         .environment(aiManager)
+        .environmentObject(authManager)
         // Migration starts here
         .task(id: authManager.user?.uid) {
             if let uid = authManager.user?.uid {
@@ -72,11 +74,12 @@ struct ProgramMenuView: View {
         order: .forward,
         animation: .default
         ) private var programs: [WorkoutProgram]
+    @EnvironmentObject var auth: AuthManager
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
-    @StateObject var auth: AuthManager
     @State private var showSocialPortal = false
     @State private var showSignoutAlert = false
+    @State private var navigateToSettings = false
     
     var body: some View {
         ZStack {
@@ -97,6 +100,7 @@ struct ProgramMenuView: View {
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitleTextColor(.white)
+        .toolbar(.hidden, for: .navigationBar)
         .applyGradientBackground()
         .id(theme.currentTheme.id)
         .overlay {
@@ -105,25 +109,28 @@ struct ProgramMenuView: View {
             }
         }
         .toolbar {
-            // Add Program and Settings
-            ToolbarItem(placement: .topBarTrailing) {
+            // Bottom bar (or move to leading if you prefer): Social entry
+            ToolbarItem(placement: .bottomBar) {
                 HStack {
+                    Spacer()
                     NavigationLink(destination: AddWorkoutProgramView()) {
                         AddProgramButton(compact: true)
                             .help("Create workout program")
                     }
+                    Spacer()
+                    NavigationLink(destination: SocialEntry()) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)
+                    }
+                    Spacer()
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gearshape.fill")
-                            .foregroundColor(.white)
+                            .notificationBadge(show: auth.profile?.preferences.hasSettingsUpdate ?? false)
                     }
+                    Spacer()
                 }
-            }
-
-            // Bottom bar (or move to leading if you prefer): Social entry
-            ToolbarItem(placement: .bottomBar) {
-                NavigationLink(destination: SocialEntry()) {
-                    SocialEntry()
-                }
+                .frame(width: UIScreen.main.bounds.width - 60)
+                .tint(theme.currentTheme.accent)
             }
         }
         .alert(isPresented: $showSignoutAlert) {
@@ -279,7 +286,6 @@ struct AddProgramButton: View {
     var body: some View {
         HStack(spacing: compact ? 0 : 6) {
             Image(systemName: "plus.circle.fill")
-                .foregroundColor(.white)
             if !compact {
                 Text("Add Program")
                     .font(.headline)
@@ -295,22 +301,6 @@ struct AddProgramButton: View {
         .onHover { hovering in
             isHovering = hovering
         }
-    }
-}
-
-struct SocialEntry: View {
-    @ObservedObject var theme = ThemeManager.shared
-    var body: some View {
-        HStack {
-            Image(systemName: "bubble.left.and.bubble.right")
-                .foregroundColor(theme.currentTheme.accent)
-            Text("FiT Social")
-                .font(.headline)
-                .foregroundColor(theme.currentTheme.accent)
-        }
-        .padding()
-        .foregroundColor(.white.opacity(0.1))
-        .cornerRadius(8)
     }
 }
 

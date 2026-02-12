@@ -15,6 +15,7 @@ struct SessionDetailView: View {
     var workoutProgram: WorkoutProgram
     @Environment(\.modelContext) var context
     @Environment(AIContextManager.self) var aiManager
+    @EnvironmentObject var auth: AuthManager
     @State private var showingAddExerciseView = false
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
@@ -24,7 +25,7 @@ struct SessionDetailView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
                         StrengthEntryView(
                             exercise: exercise,
@@ -42,22 +43,35 @@ struct SessionDetailView: View {
         .navigationTitle("\(session.name) Exercises")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-               Button(action: {
-                   newSessionName = session.name // Set the current session name as the default
-                   showingRenameSheet = true // Show the alert to rename
-               }) {
-                   Image(systemName: "pencil")
-               }
-           }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                ExerciseToolbar(
-                    exerciseName: $selectedExerciseName,
-                    exercisesSelected: session.exercises.map { $0.name },
-                    onExerciseSelected: { exerciseName in
-                        addExercise(named: exerciseName)
+            ToolbarItem(placement: .bottomBar) {
+                HStack {
+                    Spacer()
+                    // Global Save All Button
+                    Button(action: {
+                        uploadWholeSessionToCloud()
+                    }) {
+                        Image(systemName: "icloud.and.arrow.up")
                     }
-                )
+                    .accessibilityLabel("Save All")
+                    Spacer()
+                    Button(action: {
+                        newSessionName = session.name
+                        showingRenameSheet = true
+                    }) {
+                        Image(systemName: "pencil")
+                    }
+                    Spacer()
+                    ExerciseToolbar(
+                        exerciseName: $selectedExerciseName,
+                        exercisesSelected: session.exercises.map { $0.name },
+                        onExerciseSelected: { exerciseName in
+                            addExercise(named: exerciseName)
+                        }
+                    )
+                    Spacer()
+                }
+                .frame(width: UIScreen.main.bounds.width - 60)
+                .tint(theme.currentTheme.accent)
             }
         }
         .sheet(isPresented: $showingRenameSheet) {
@@ -82,28 +96,31 @@ struct SessionDetailView: View {
     }
     
     private func updateAIWithLiveSessionData() {
-            // 1. Collect exercise names
-            let exercises = session.exercises.map { $0.name }.joined(separator: ", ")
-            
-            // 2. Build a summary of user-inputted values from UserDefaults
-            // Example: Pulling weight/reps for each exercise in this session
-            var liveStats = ""
-            for exercise in session.exercises {
-                let weight = UserDefaults.standard.double(forKey: "\(exercise.name)_weight")
-                let reps = UserDefaults.standard.integer(forKey: "\(exercise.name)_reps")
-                if weight > 0 {
-                    liveStats += "\(exercise.name): \(weight)kg x \(reps) reps. "
-                }
-            }
-            
-            let details = """
-            User is performing session '\(session.name)'. 
-            Exercises: \(exercises). 
-            Current Live Progress: \(liveStats.isEmpty ? "No sets recorded yet." : liveStats)
-            """
-            
-            aiManager.updateContext(screen: "Active Workout", details: details)
-        }
+        let details = generateSessionContext()
+        
+        aiManager.updateContext(
+            screen: "Active Session \(session.name)",
+            details: "User is vieting their full workout session list",
+            preferences: details
+        )
+    }
+    
+    private func uploadWholeSessionToCloud() {
+        guard let userId = auth.user?.uid else { return }
+        
+        // We use the SyncManager to handle the heavy lifting
+        // This ensures consistency across the app
+        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
+        
+        // Optional: Trigger Haptic feedback or a toast notification
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+
+    // Add this computed property to SessionDetailView to match StrengthEntryView logic
+    private var keyScope: DefaultsKeyScope {
+        DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid)
+    }
     
     private func addExercise(named exerciseName: String) {
         let newExercise = Exercise(name: exerciseName)
@@ -123,31 +140,21 @@ struct SessionDetailView: View {
     }
     
     private func deleteExercise(named exerciseName: String) {
-        // Find the index of the exercise to delete
         if let index = session.exercises.firstIndex(where: { $0.name == exerciseName }) {
-            // Remove the exercise from the session's exercises array
             session.exercises.remove(at: index)
             
-            // Remove associated data from UserDefaults
-            defaults.removeObject(forKey: "combined\(exerciseName)")
-            defaults.removeObject(forKey: "left\(exerciseName)")
-            defaults.removeObject(forKey: "right\(exerciseName)")
-            defaults.removeObject(forKey: "sets\(exerciseName)")
-            defaults.removeObject(forKey: "reps\(exerciseName)")
-            defaults.removeObject(forKey: "rest\(exerciseName)")
-            defaults.removeObject(forKey: "note\(exerciseName)")
-            
-            // Update the workout program to reflect the changes
-                  if let programIndex = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
-                      workoutProgram.sessions[programIndex] = session
-                  }
-                  
-                  // Save the context to persist changes
-                  do {
-                      try context.save()
-                  } catch {
-                      print("Failed to save context after deleting exercise: \(error)")
-                  }
+            // Cleanup per-set keys (assuming a max of 20 sets for safety)
+            for i in 0..<20 {
+                let baseKeys = ["weight", "left", "right", "reps", "rest", "iso"]
+                for base in baseKeys {
+                    defaults.removeObject(forKey: keyScope.scoped("\(base)\(exerciseName)_set\(i)"))
+                }
+            }
+            defaults.removeObject(forKey: keyScope.scoped("sets\(exerciseName)"))
+            defaults.removeObject(forKey: keyScope.scoped("note\(exerciseName)"))
+
+            // Save SwiftData context
+            try? context.save()
         }
     }
     
@@ -192,6 +199,51 @@ struct SessionDetailView: View {
         }
         return contextString
     }
+    
+    private func finishWorkoutSession() {
+        guard let userId = FBAuth.auth().currentUser?.uid else { return }
+        let sessionDate = Date()
+        
+        // 1. Map every exercise in this session to a StrengthEntry
+        let strengthEntries: [StrengthEntry] = session.exercises.compactMap { exercise in
+            let setCount = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
+            guard setCount > 0 else { return nil } // Skip exercises with no sets
+            
+            var setRecords: [SetRecord] = []
+            
+            // Loop through the sets defined in UserDefaults
+            for i in 0..<setCount {
+                let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
+                let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(i)"))
+                let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(i)"))
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
+                let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)"))
+                
+                // Only add the set if there's actual work recorded
+                if reps > 0 {
+                    setRecords.append(SetRecord(id: UUID(), combined: combined, left: left, right: right, reps: reps, rest: rest))
+                }
+            }
+            
+            guard !setRecords.isEmpty else { return nil }
+            
+            let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)"))
+            return StrengthEntry(exercise: exercise.name, date: sessionDate, sets: setRecords, note: note)
+        }
+        
+        // 2. Wrap everything into ONE WorkoutHistory object
+        if !strengthEntries.isEmpty {
+            let history = WorkoutHistory(
+                userId: userId,
+                date: sessionDate,
+                exercise: session.name, // The "Master Name" is the Session Name (e.g., "Push Day")
+                entries: strengthEntries
+            )
+            
+            context.insert(history)
+        }
+    }
+    
 }
 
 

@@ -13,6 +13,7 @@ struct ExerciseToolbar: View {
     var exercisesSelected: [String]
     var onExerciseSelected: (String) -> Void
     @State private var exerciseList = ExerciseList()
+    @ObservedObject var theme = ThemeManager.shared
 
     var body: some View {
         Menu {
@@ -32,7 +33,7 @@ struct ExerciseToolbar: View {
             }
         } label: {
             Label("Add Exercise", systemImage: "plus.circle.fill")
-                .foregroundColor(.white)
+                .foregroundColor(theme.currentTheme.accent)
         }
     }
 }

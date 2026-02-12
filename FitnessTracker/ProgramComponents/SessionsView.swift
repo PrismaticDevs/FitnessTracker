@@ -6,12 +6,14 @@ struct SessionsView: View {
     @Environment(AIContextManager.self) var aiManager
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss // Correctly access the dismiss environment
+    @EnvironmentObject var auth: AuthManager
     @Query(sort: \WorkoutProgram.title) var programs: [WorkoutProgram] = []
     @State var program: WorkoutProgram
     @State private var showDeleteAlert: Bool = false
     @State private var sessionToDeleteIndex: Int? = nil
     @State private var showRenameSheet: Bool = false
     @State private var newProgramTitle: String = ""
+    private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
 
     var body: some View {
             ZStack {
@@ -24,47 +26,59 @@ struct SessionsView: View {
                         }
                         .onDelete(perform: confirmDeleteSession)
                         .listRowBackground(theme.currentTheme.accent)
-                        .padding()
-                        .navigationBarTitle("\(program.title) Sessions")
                     }
                     .listStyle(PlainListStyle())
                     .background(Color.clear)
                     .padding()
                     .font(.system(size: 24))
                 }
-                .onAppear {
-                    // Update the context the moment this view slides into place
-                    aiManager.updateContext(
-                        screen: "Session View",
-                        details: "User is viewing the workout program: \(program.title)"
-                    )
+                    .onAppear {
+                        if let userId = auth.user?.uid {
+                            // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
+                            SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+                        }
+                        
+                        aiManager.updateContext(
+                            screen: "Sessions List",
+                            details: "User is viewing the sessions for program: \(program.title)",
+                            preferences: generateProgramOverview()
+                        )
                 }
                 .navigationBarTitleTextColor(.white)
                 .navigationBarTitleDisplayMode(.inline)
             }
             .applyGradientBackground()
+            .navigationBarTitle("\(program.title) Sessions")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        // Show the rename sheet
-                        newProgramTitle = program.title // Set the current title as the default
-                        showRenameSheet = true
-                    }) {
-                        Image(systemName: "pencil")
+                ToolbarItem(placement: .bottomBar) {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            // Show the rename sheet
+                            newProgramTitle = program.title // Set the current title as the default
+                            showRenameSheet = true
+                        }) {
+                            Image(systemName: "pencil")
+                        }
+                        Spacer()
+                        NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
+                            Image(systemName: "plus.circle.fill")
+                        }
+                        Spacer()
+                        Button(action: {
+                            // Toggle the starred state
+                            program.starred.toggle()
+                            // Save the context if needed
+                            try? context.save()
+                        }) {
+                            Image(systemName: program.starred ? "star.fill" : "star")
+                                .foregroundColor(theme.currentTheme.accent)
+                        }
+                        Spacer()
                     }
-                    NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                
-                    Button(action: {
-                        // Toggle the starred state
-                        program.starred.toggle()
-                        // Save the context if needed
-                        try? context.save()
-                    }) {
-                        Image(systemName: program.starred ? "star.fill" : "star")
-                            .foregroundColor(theme.currentTheme.accent)
-                    }
+                        .frame(width: UIScreen.main.bounds.width - 60)
+                        .tint(theme.currentTheme.accent)
                 }
             }
             .alert(isPresented: $showDeleteAlert) {
@@ -102,6 +116,19 @@ struct SessionsView: View {
                .applyGradientBackground()
            }
         }
+    
+    private func generateProgramOverview() -> String {
+        var summary = "Program: \(program.title)\n"
+        summary += "Total Sessions: \(program.sessions.count)\n"
+        
+        for session in program.sessions {
+            let exerciseNames = session.exercises.map { $0.name }.joined(separator: ", ")
+            summary += "- \(session.name): [\(exerciseNames)]\n"
+        }
+        
+        return summary
+    }
+    
     private func renameProgram() {
         // Update the program title
         program.title = newProgramTitle

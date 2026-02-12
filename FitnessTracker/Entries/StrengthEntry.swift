@@ -11,6 +11,7 @@ import FirebaseFirestore
 struct StrengthEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
+    @Environment(AIContextManager.self) private var aiManager
     @EnvironmentObject var auth: AuthManager
     @StateObject private var sync = SyncManager.shared
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
@@ -96,24 +97,44 @@ struct StrengthEntryView: View {
     }
 
     private func uploadExercisePreferencesToCloud() {
-        guard !isRunningInPreview else { return }
-        guard let userId = auth.user?.uid else {
-            print("No authenticated user; skipping cloud preferences upload")
-            return
-        }
-        let payload = exercisePreferencesPayload(userId: userId)
+        guard let userId = auth.user?.uid else { return }
         let db = Firestore.firestore()
-        db.collection("users")
-            .document(userId)
-            .collection("settings")
-            .document("preferences_exercises")
-            .setData([exercise.name: payload], merge: true) { error in
-                if let error = error {
-                    print("Error uploading exercise preferences: \(error.localizedDescription)")
-                } else {
-                    print("Exercise preferences uploaded")
-                }
-            }
+        
+        // 1. Gather the data into our Codable struct
+        let n = max(1, int(from: setsCountInput))
+        var setPrefs: [SetPreference] = []
+        
+        for idx in 0..<n {
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
+            setPrefs.append(SetPreference(
+                index: idx,
+                iso: isIso,
+                reps: defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)")),
+                rest: defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)")),
+                weightCombined: isIso ? nil : defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)")),
+                weightLeft: isIso ? defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)")) : nil,
+                weightRight: isIso ? defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)")) : nil
+            ))
+        }
+        
+        let preference = ExercisePreference(
+            exerciseName: exercise.name,
+            setsCount: n,
+            note: note,
+            sets: setPrefs,
+            updatedAt: Date() // Captures current upload time
+        )
+        
+        // 2. Upload to a dedicated document per exercise
+        do {
+            try db.collection("users")
+                .document(userId)
+                .collection("exercise_preferences")
+                .document(exercise.name)
+                .setData(from: preference)
+        } catch {
+            print("Error encoding preferences: \(error)")
+        }
     }
     
     private func uploadAllExercisesPreferencesToCloud() {
@@ -255,18 +276,6 @@ struct StrengthEntryView: View {
                 .padding(.top, 8)
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: {
-                    uploadAllExercisesPreferencesToCloud()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                        Text("Save All")
-                    }
-                }
-            }
-        }
         .onAppear {
             if let userId = auth.user?.uid {
                 sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
@@ -275,6 +284,25 @@ struct StrengthEntryView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataSynced"))) { _ in
             // This forces the view to reload its local @State arrays from the now-updated UserDefaults
             autofillValues()
+        }
+        .onAppear {
+            if let userId = auth.user?.uid {
+                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+            }
+            // Set initial context
+            aiManager.updateContext(
+                screen: "Strength Entry",
+                details: "User is logging \(exercise.name)",
+                preferences: generateAIContext()
+            )
+        }
+        .onChange(of: selectedSetIndex) {
+            // Update context whenever they switch sets so the AI knows which set is being viewed
+            aiManager.updateContext(
+                screen: "Strength Entry",
+                details: "User viewing set \(selectedSetIndex + 1)",
+                preferences: generateAIContext()
+            )
         }
     }
     
@@ -420,6 +448,37 @@ struct StrengthEntryView: View {
             restInputs[selectedSetIndex] = "\(lastNonZero(for: "rest\(exercise.name)", upTo: selectedSetIndex))"
         }
     }
+    
+    // Add this inside StrengthEntryView
+    private func generateAIContext() -> String {
+        let n = max(1, int(from: setsCountInput))
+        var contextString = "Current exercise: \(exercise.name). Planned sets: \(n).\n"
+        
+        for idx in 0..<n {
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
+            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)"))
+            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)"))
+            
+            contextString += "Set \(idx + 1): \(reps) reps, \(rest)s rest. "
+            
+            if isIso {
+                let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)"))
+                let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)"))
+                contextString += "Weights: Left \(left), Right \(right).\n"
+            } else {
+                let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)"))
+                contextString += "Combined Weight: \(combined).\n"
+            }
+        }
+        
+        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise.name)")) ?? ""
+        if !noteValue.isEmpty {
+            contextString += "User Note: \(noteValue)"
+        }
+        
+        return contextString
+    }
+    
 }
 
 struct SetRow: View {

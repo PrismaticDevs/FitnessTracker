@@ -105,6 +105,9 @@ struct SettingsView: View {
             Task {
                 await auth.fetchUser()
             }
+            Task {
+                await auth.clearNotification(for: .settings)
+            }
         }
     }
 }
