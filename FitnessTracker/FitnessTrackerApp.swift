@@ -28,6 +28,8 @@ struct FitnessTrackerApp: App {
         }
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
+        UIToolbar.appearance().setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
+        UIToolbar.appearance().setShadowImage(UIImage(), forToolbarPosition: .any)
     }
 
     var body: some Scene {

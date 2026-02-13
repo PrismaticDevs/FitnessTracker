@@ -16,6 +16,8 @@ struct StrengthEntryView: View {
     @StateObject private var sync = SyncManager.shared
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
+    @Binding var isCompleted: Bool
+    
     @State var id: UUID = UUID()
     @State var exercise: Exercise
     @State var combined: Int = 0
@@ -63,12 +65,12 @@ struct StrengthEntryView: View {
         var setsArray: [[String: Any]] = []
 
         for idx in 0..<n {
-            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(idx)"))
-            let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise)_set\(idx)"))
-            let left = defaults.integer(forKey: keyScope.scoped("left\(exercise)_set\(idx)"))
-            let right = defaults.integer(forKey: keyScope.scoped("right\(exercise)_set\(idx)"))
-            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise)_set\(idx)"))
-            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise)_set\(idx)"))
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
+            let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)"))
+            let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)"))
+            let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)"))
+            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)"))
+            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)"))
 
             var setDict: [String: Any] = [
                 "index": idx,
@@ -151,44 +153,53 @@ struct StrengthEntryView: View {
     }
     var body: some View {
 
-        VStack {
+        VStack(spacing: 16) {
             Section {
                 VStack {
                     WorkoutHeaderView(
                         exercise: exercise,
+                        isCompleted: $isCompleted,
                         setsCountInput: $setsCountInput,
                         selectedSetIndex: $selectedSetIndex,
                         adjustPerSetArrays: { n in adjustPerSetArrays(to: n) },
                         keyScope: keyScope,
                         isFocused: $isFocused
                     )
-                    SetSelectorView(setsCount: max(1, int(from: setsCountInput)), selectedSetIndex: $selectedSetIndex) {
-                        autofillValues()
+                    Group {
+                        SetSelectorView(setsCount: max(1, int(from: setsCountInput)), selectedSetIndex: $selectedSetIndex) {
+                            autofillValues()
+                        }
+                        SetDetailInputsView(
+                            exercise: exercise.name,
+                            selectedSetIndex: $selectedSetIndex,
+                            iso: $iso,
+                            leftInputs: $leftInputs,
+                            rightInputs: $rightInputs,
+                            combinedInputs: $combinedInputs,
+                            repsInputs: $repsInputs,
+                            restInputs: $restInputs,
+                            keyScope: keyScope,
+                            isFocused: $isFocused
+                        )
+                        NoteAndDeleteView(
+                            exercise: exercise.name,
+                            note: $note,
+                            showDeleteConfirmation: $showDeleteConfirmation,
+                            keyScope: keyScope,
+                            isFocused: $isFocused,
+                            deleteExercise: deleteExercise
+                        )
                     }
-                    SetDetailInputsView(
-                        exercise: exercise.name,
-                        selectedSetIndex: $selectedSetIndex,
-                        iso: $iso,
-                        leftInputs: $leftInputs,
-                        rightInputs: $rightInputs,
-                        combinedInputs: $combinedInputs,
-                        repsInputs: $repsInputs,
-                        restInputs: $restInputs,
-                        keyScope: keyScope,
-                        isFocused: $isFocused
-                    )
+                    .opacity((isCompleted ? 0.5 : 1.0))
+                    .disabled(isCompleted)
                 }
-                
-                Section {
-                    NoteAndDeleteView(
-                        exercise: exercise.name,
-                        note: $note,
-                        showDeleteConfirmation: $showDeleteConfirmation,
-                        keyScope: keyScope,
-                        isFocused: $isFocused,
-                        deleteExercise: deleteExercise
-                    )
-                }
+                .padding()
+                .background(Color.white.opacity(0.05))
+                .cornerRadius(20)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(isCompleted ? Color.green.opacity(0.5) : Color.clear, lineWidth: 1)
+                )
             }
             .listRowInsets(EdgeInsets())
             HStack {
@@ -514,6 +525,7 @@ struct SetRow: View {
 struct WorkoutHeaderView: View {
     @ObservedObject var theme = ThemeManager.shared
     let exercise: Exercise
+    @Binding var isCompleted: Bool // New Binding passed from StrengthEntryView
     @Binding var setsCountInput: String
     @Binding var selectedSetIndex: Int
     var adjustPerSetArrays: (Int) -> Void
@@ -521,39 +533,81 @@ struct WorkoutHeaderView: View {
     @EnvironmentObject var auth: AuthManager
     var defaults = UserDefaults.standard
     var isFocused: FocusState<Bool?>.Binding
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name)
-                    .foregroundColor(.white)
-                    .font(.title.bold())
-                Text("\(exercise.type?.rawValue ?? "" ) exercise")
-                    .font(.system(size: 12.0))
-                    .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                // Left Side: Exercise Info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(exercise.name)
+                        .foregroundColor(.white)
+                        .font(.title2.bold()) // Slightly smaller than .title for better fit
+                    Text("\(exercise.type?.rawValue ?? "Strength") exercise")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
+                
+                Spacer()
+                
+                // Right Side: Completion Toggle
+                Button(action: {
+                    withAnimation(.spring()) {
+                        isCompleted.toggle()
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Text("Exercise Complete")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                    }
+                    .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                    .cornerRadius(10)
+                }
+            }
             
-            Spacer()
-            VStack {
-                Text("Sets").font(.subheadline)
+            Divider().background(Color.white.opacity(0.2))
+            
+            // Bottom Row: Sets Input
+            HStack {
+                Text("Total Sets")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
                 TextField("Sets", text: $setsCountInput)
                     .keyboardType(.numberPad)
-                    .frame(width: 60)
-                    .padding(6)
-                    .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
-                    .onChange(of: setsCountInput) {
-                        let n = max(1, Int(setsCountInput) ?? 1)
-                        adjustPerSetArrays(n)
-                        defaults.set(n, forKey: keyScope.scoped("sets\(exercise)"))
-                        if selectedSetIndex >= n { selectedSetIndex = n - 1 }
-                    }
+                    .multilineTextAlignment(.center)
+                    .frame(width: 50, height: 35)
+                    .background(theme.currentTheme.accent.opacity(0.3))
+                    .cornerRadius(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(theme.currentTheme.accent, lineWidth: 1))
                     .focused(isFocused, equals: true)
+                    .onChange(of: setsCountInput) { oldValue, newValue in
+                        let n = Int(newValue) ?? 1
+                        
+                        // 1. Persist the set count to UserDefaults immediately
+                        defaults.set(n, forKey: keyScope.scoped("setsCount\(exercise.name)"))
+                        
+                        // 2. Adjust the arrays in the parent view
+                        adjustPerSetArrays(n)
+                    }
                     .onAppear {
-                        let n = max(1, defaults.integer(forKey: keyScope.scoped("sets\(exercise)")))
-                        setsCountInput = "\(n == 0 ? 1 : n)"
-                        adjustPerSetArrays(Int(setsCountInput) ?? 1)
+                        // 3. Ensure the text field loads the saved value when it appears
+                        let savedSets = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
+                        if savedSets > 0 {
+                            setsCountInput = "\(savedSets)"
+                        }
                     }
             }
         }
+        .padding(.vertical, 10)
     }
 }
 
@@ -725,7 +779,7 @@ final class MockAuthManager: AuthManager {
 #Preview {
     let mockAuthManager = MockAuthManager()
     let previewExercise = Exercise(name: "Preview Exercise")
-    StrengthEntryView(exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
+    StrengthEntryView(isCompleted: .constant(false),exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
         .environmentObject(mockAuthManager)
         .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
 }

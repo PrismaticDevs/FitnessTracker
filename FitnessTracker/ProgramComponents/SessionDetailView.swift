@@ -20,14 +20,23 @@ struct SessionDetailView: View {
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
+    
+    @State private var completedExerciseIds: Set<UUID> = []
 
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             ScrollView {
-                VStack {
+                VStack(spacing: 20) {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
                         StrengthEntryView(
+                            isCompleted: Binding(
+                                get: { completedExerciseIds.contains(exercise.id) },
+                                set: { isDone in
+                                    if isDone { completedExerciseIds.insert(exercise.id)}
+                                    else { completedExerciseIds.remove(exercise.id)}
+                                }
+                            ),
                             exercise: exercise,
                             deleteExercise: { name in deleteExercise(named: name) }
                         )
@@ -48,10 +57,15 @@ struct SessionDetailView: View {
                     Spacer()
                     // Global Save All Button
                     Button(action: {
+                        finishWorkoutSession()
                         uploadWholeSessionToCloud()
                     }) {
                         Image(systemName: "icloud.and.arrow.up")
+                            .foregroundColor(.white)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(theme.currentTheme.accent)
+                    .disabled(completedExerciseIds.isEmpty)
                     .accessibilityLabel("Save All")
                     Spacer()
                     Button(action: {
@@ -59,6 +73,7 @@ struct SessionDetailView: View {
                         showingRenameSheet = true
                     }) {
                         Image(systemName: "pencil")
+                            .foregroundColor(.white)
                     }
                     Spacer()
                     ExerciseToolbar(
