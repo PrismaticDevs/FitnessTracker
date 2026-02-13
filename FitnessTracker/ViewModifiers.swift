@@ -1,5 +1,36 @@
 import SwiftUI
 
+struct AppBranding: ViewModifier {
+    @ObservedObject var theme = ThemeManager.shared
+
+    func body(content: Content) -> some View {
+        content
+            // 1. The Background
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: theme.currentTheme.gradientColors),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .ignoresSafeArea()
+            )
+            // 2. The Navigation & Toolbar Styling
+            .navigationBarTitleTextColor(.white)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbarBackground(.hidden, for: .bottomBar)
+            // 3. Ensuring all buttons in this view inherit the theme
+            .tint(theme.currentTheme.accent)
+            .foregroundColor(.white)
+    }
+}
+
+extension View {
+    /// Applies the global fitness tracker theme, toolbar transparency, and accent colors.
+    func applyAppBranding() -> some View {
+        self.modifier(AppBranding())
+    }
+}
+
 // Define your available Themes
 enum AppTheme: String, CaseIterable, Identifiable {
     case magenta = "Deep Magenta"
