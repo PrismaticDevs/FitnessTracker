@@ -20,17 +20,30 @@ struct SessionsView: View {
                 VStack {
                     List {
                         ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
-                            NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
-                                Text(session.name)
+                            // Custom Row Styling to match ProgramRowView
+                            HStack {
+                                NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
+                                    Text(session.name)
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .tint(.white)
                             }
+                            .listRowBackground(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.1)) // Subtle glass effect
+                                        .padding(.vertical, 4)
+                                )
+                            .listRowSeparator(.hidden) // Removes the thin lines between rows
+                            .padding()
                         }
                         .onDelete(perform: confirmDeleteSession)
-                        .listRowBackground(theme.currentTheme.accent)
                     }
                     .listStyle(PlainListStyle())
-                    .background(Color.clear)
-                    .padding()
-                    .font(.system(size: 24))
+                    .scrollContentBackground(.hidden) // Crucial: hides the default grey List background
+                    .padding(.top, 10)
+                    .padding(.horizontal, 12)
                 }
                     .onAppear {
                         if let userId = auth.user?.uid {
@@ -44,10 +57,9 @@ struct SessionsView: View {
                             preferences: generateProgramOverview()
                         )
                 }
-
                 customFloatingBar
             }
-            .applyGradientBackground()
+            .applyAppBranding()
             .navigationBarTitle("\(program.title) Sessions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .bottomBar)

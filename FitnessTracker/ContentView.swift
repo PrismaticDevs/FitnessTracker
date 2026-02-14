@@ -21,7 +21,7 @@ struct ContentView: View {
                 ProgramMenuView()
                     .applyAppBranding()
             }
-            .tint(theme.currentTheme.accent)
+            .id(theme.currentTheme.id)
             FloatingChatView(workoutContext: globalWorkoutContext)
                 .padding(.trailing, 20)
                 .padding(.bottom, 100)
@@ -169,6 +169,7 @@ struct HeaderView: View {
 }
 
 struct ProgramListView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Query private var programs: [WorkoutProgram]
     @Environment(\.modelContext) private var context
     @State private var showDeleteConfirmation = false
@@ -194,10 +195,12 @@ struct ProgramListView: View {
                             Label("Delete", systemImage: "trash")
                         }
                     }
+                    .listRowSeparator(.hidden)
             }
         }
+        .listStyle(PlainListStyle())
         .scrollContentBackground(.hidden)
-        .padding(.horizontal)
+        .padding(.horizontal, 12)
         .alert("Delete Program",
                isPresented: $showDeleteConfirmation,
                presenting: programToDelete) { program in
@@ -250,7 +253,11 @@ struct ProgramRowView: View {
             .buttonStyle(PlainButtonStyle()) // Prevents the link from changing appearance
         
         }
-        .listRowBackground(theme.currentTheme.accent) // Apply blue background to the entire row
+        .listRowBackground(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.1)) // Subtle glass effect
+                    .padding(.vertical, 4)
+            )
         .padding()
     }
 }

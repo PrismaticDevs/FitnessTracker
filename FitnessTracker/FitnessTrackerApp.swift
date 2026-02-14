@@ -16,6 +16,7 @@ import GoogleSignIn
 struct FitnessTrackerApp: App {
     @StateObject private var authManager = AuthManager()
     init() {
+        //Firebase and Firestore
         FirebaseApp.configure()
         // 1. Explicitly Enable Offline Persistence
         let settings = FirestoreSettings()
@@ -28,8 +29,7 @@ struct FitnessTrackerApp: App {
         }
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
-        UIToolbar.appearance().setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
-        UIToolbar.appearance().setShadowImage(UIImage(), forToolbarPosition: .any)
+
     }
 
     var body: some Scene {

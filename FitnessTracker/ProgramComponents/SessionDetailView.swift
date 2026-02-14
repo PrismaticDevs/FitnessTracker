@@ -52,7 +52,8 @@ struct SessionDetailView: View {
                 customFloatingBar
             }
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 12)
+//        .tint(theme.currentTheme.accent)
         .onAppear {
             updateAIWithLiveSessionData()
         }
@@ -78,8 +79,7 @@ struct SessionDetailView: View {
                 .padding()
             }
             .padding()
-            .applyGradientBackground()
-            .tint(theme.currentTheme.accent)
+//            .applyGradientBackground()
         }
     }
     

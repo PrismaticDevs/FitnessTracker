@@ -1,15 +1,16 @@
 import SwiftUI
 
 struct AppBranding: ViewModifier {
-    @AppStorage("selectedTheme") var currentTheme: AppTheme = .magenta
+    @ObservedObject var theme = ThemeManager.shared
     
     func body(content: Content) -> some View {
         content
             .applyGradientBackground()
-            .tint(currentTheme.accent)
+            .tint(theme.currentTheme.accent)
             .onAppear {
-                currentTheme.applyGlobalTint()
+                theme.currentTheme.applyGlobalTint()
             }
+            .navigationBarTitleTextColor(.white)
     }
 }
 
@@ -23,12 +24,19 @@ extension View {
 extension AppTheme {
     func applyGlobalTint() {
         let uiColor = UIColor(self.accent)
-        // Force the navigation bar buttons
+        
+        // This is the only UIKit part we still need for "Back" text color
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        
+        // Forces the Back Button and other Bar Buttons to your accent
         UINavigationBar.appearance().tintColor = uiColor
-        // Force the back button chevron specifically
-        UIBarButtonItem.appearance().tintColor = uiColor
-        // Force the titles if needed
-        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: uiColor]
+        
+        // Optional: If you want the "Back" text to be white but the chevron to be Accent:
+        // appearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 }
 
