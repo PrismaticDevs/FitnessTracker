@@ -44,48 +44,22 @@ struct SessionDetailView: View {
                     }
                     Color.clear.frame(height: 120)
                 }
-                .padding(.top, 110)
+//                .padding(.top, 110)
                 .padding(.horizontal)
             }
-            VStack(spacing: 0) {
-                        HStack {
-                            // Back Button (Handled by modifier, or place manually here)
-                            Spacer()
-                            
-                            Text(session.name)
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            Spacer()
-                            
-                            // Invisible spacer to keep title centered if back button is on the left
-                            Color.clear.frame(width: 80, height: 1)
-                        }
-                        .padding(.top, 65)
-                        .padding(.bottom, 10)
-                        .background(
-                            // Optional: Add a slight blur or gradient to make the header
-                            // readable when text scrolls behind it
-                            Rectangle()
-                                .fill(Color.black.opacity(0.1))
-                                .blur(radius: 10)
-                                .ignoresSafeArea()
-                        )
-                    }
             VStack {
                 Spacer()
                 customFloatingBar
             }
         }
-        .edgesIgnoringSafeArea(.top)
         .padding(.horizontal)
         .onAppear {
             updateAIWithLiveSessionData()
         }
         .applyAppBranding()
-        .brandedBackButton(theme: theme.currentTheme, dismiss: dismiss)
         .navigationTitle("\(session.name) Exercises")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbarBackground(.hidden, for: .bottomBar)
         .sheet(isPresented: $showingRenameSheet) {
             VStack {
@@ -105,6 +79,7 @@ struct SessionDetailView: View {
             }
             .padding()
             .applyGradientBackground()
+            .tint(theme.currentTheme.accent)
         }
     }
     
@@ -325,3 +300,4 @@ struct SessionDetailView: View {
     // Pass the mock session to the preview
     SessionDetailView(session: session, workoutProgram: workoutProgram)
 }
+
