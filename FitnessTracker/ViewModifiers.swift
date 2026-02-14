@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct AppBranding: ViewModifier {
     @AppStorage("selectedTheme") var currentTheme: AppTheme = .magenta
@@ -22,13 +25,50 @@ extension View {
 
 extension AppTheme {
     func applyGlobalTint() {
+        #if canImport(UIKit)
         let uiColor = UIColor(self.accent)
-        // Force the navigation bar buttons
+
+        // Keep default tint for regular nav bar items (icons/controls)
         UINavigationBar.appearance().tintColor = uiColor
-        // Force the back button chevron specifically
         UIBarButtonItem.appearance().tintColor = uiColor
-        // Force the titles if needed
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: uiColor]
+
+        // --- Back button styling: white chevron on an accent-colored capsule ---
+        // 1) White chevron (use alwaysOriginal so it doesn't inherit tintColor)
+        if let whiteChevron = UIImage(systemName: "chevron.left")?.withTintColor(.white, renderingMode: .alwaysOriginal) {
+            UINavigationBar.appearance().backIndicatorImage = whiteChevron
+            UINavigationBar.appearance().backIndicatorTransitionMaskImage = whiteChevron
+        }
+
+        // 2) Capsule background for the back button (resizable so it scales with title)
+        let capsule = UIImage.rounded(cornerRadius: 14, color: uiColor, size: CGSize(width: 44, height: 28))
+        let resizableCapsule = capsule.resizableImage(
+            withCapInsets: UIEdgeInsets(top: 0, left: 14, bottom: 0, right: 14),
+            resizingMode: .stretch
+        )
+        // Apply only to the back button (keeps other bar buttons unaffected)
+        UIBarButtonItem.appearance().setBackButtonBackgroundImage(resizableCapsule, for: .normal, barMetrics: .default)
+        UIBarButtonItem.appearance().setBackButtonBackgroundImage(resizableCapsule, for: .highlighted, barMetrics: .default)
+
+        // 3) Ensure the back button title + chevron are white while other button titles remain accent
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.titleTextAttributes = [.foregroundColor: uiColor]
+        appearance.largeTitleTextAttributes = [.foregroundColor: uiColor]
+        appearance.setBackIndicatorImage(UIImage(systemName: "chevron.left")?.withTintColor(.white, renderingMode: .alwaysOriginal),
+                                         transitionMaskImage: UIImage(systemName: "chevron.left")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+        appearance.backButtonAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.buttonAppearance.normal.titleTextAttributes = [.foregroundColor: uiColor]
+
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+
+        // Slightly nudge the back-title so it sits nicely inside the capsule
+        UIBarButtonItem.appearance().setBackButtonTitlePositionAdjustment(UIOffset(horizontal: -6, vertical: 0), for: .default)
+        #else
+        // No-op on non-UIKit platforms
+        #endif
     }
 }
 
@@ -110,6 +150,7 @@ extension View {
 
 extension View {
     func navigationBarTitleTextColor(_ color: Color) -> some View {
+        #if canImport(UIKit)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground() // Keeps your gradient visible
         
@@ -123,6 +164,9 @@ extension View {
         UINavigationBar.appearance().compactAppearance = appearance
         
         return self
+        #else
+        return self
+        #endif
     }
 }
 
@@ -131,7 +175,9 @@ extension View {
         self
             .navigationBarBackButtonHidden(true)
             // 1. Hide the system bar background entirely
+            #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
+            #endif
             .edgesIgnoringSafeArea(.top)
             // 2. Overlay our own button at the top
             .overlay(alignment: .topLeading) {
@@ -152,3 +198,17 @@ extension View {
             }
     }
 }
+
+#if canImport(UIKit)
+private extension UIImage {
+    static func rounded(cornerRadius: CGFloat, color: UIColor, size: CGSize = CGSize(width: 44, height: 28)) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            let rect = CGRect(origin: .zero, size: size)
+            let path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius)
+            color.setFill()
+            path.fill()
+        }.withRenderingMode(.alwaysOriginal)
+    }
+}
+#endif
