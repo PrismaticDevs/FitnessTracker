@@ -23,7 +23,7 @@ struct AddSessionView: View {
     @FocusState private var isFocused: Bool?
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Color.clear
                 .applyGradientBackground()
                 .edgesIgnoringSafeArea(.all)
@@ -92,32 +92,54 @@ struct AddSessionView: View {
                     .padding(.horizontal)
                 }
             }
+            customFloatingBar
         }
         .onTapGesture {
             isFocused = nil
         }
-        .toolbar {
-
-            ToolbarItem(placement: .bottomBar) {
-                HStack {
-                    Button(action: {
-                        saveSessionToProgram()
-                    }) {
-                        Label {
-                            Text("Save Session")
-                                .fontWeight(.bold)
-                        } icon: {
-                            Image(systemName: "checkmark.circle.fill")
-                        }
-                    }
-                    .tint(theme.currentTheme.accent)
-                    .disabled(sessionName.isEmpty || selectedExercises.isEmpty)
-                    .foregroundColor((sessionName.isEmpty || selectedExercises.isEmpty ? .secondary : theme.currentTheme.accent))
-                }
-                .frame(width: UIScreen.main.bounds.width - 60)
-            }
-        }
     }
+    
+    private var customFloatingBar: some View {
+            HStack {
+                Spacer()
+                // Cancel Button
+                Button(action: { dismiss() }) {
+                    HStack {
+                        Image(systemName: "xmark.circle")
+                        Text("Cancel")
+                    }
+                    .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                // Divider
+                Rectangle()
+                    .fill(Color.white.opacity(0.3))
+                    .frame(width: 1, height: 30)
+                
+                Spacer()
+                
+                // Save Button
+                Button(action: { saveSessionToProgram() }) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Save Session")
+                    }
+                    .bold()
+                    .foregroundColor(.white)
+                }
+                .disabled(sessionName.isEmpty)
+                .opacity(sessionName.isEmpty ? 0.5 : 1.0)
+                
+                Spacer()
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 60)
+            .background(theme.currentTheme.accent)
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+            .padding(.bottom, 20)
+        }
     
     private func saveSessionToProgram() {
         // 2. Create the session and attach it to the existing program

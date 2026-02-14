@@ -264,7 +264,7 @@ struct StrengthEntryView: View {
 //                        )
         }
         .background(.clear)
-        .padding(.horizontal)
+        .padding(.horizontal, 5)
         .cornerRadius(15)
         .onTapGesture {
             isFocused = nil

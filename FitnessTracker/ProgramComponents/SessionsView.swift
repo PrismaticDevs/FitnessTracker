@@ -16,7 +16,7 @@ struct SessionsView: View {
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
 
     var body: some View {
-            ZStack {
+        ZStack(alignment: .bottom) {
                 VStack {
                     List {
                         ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
@@ -44,43 +44,13 @@ struct SessionsView: View {
                             preferences: generateProgramOverview()
                         )
                 }
-                .navigationBarTitleTextColor(.white)
-                .navigationBarTitleDisplayMode(.inline)
+
+                customFloatingBar
             }
             .applyGradientBackground()
             .navigationBarTitle("\(program.title) Sessions")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .bottomBar) {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            // Show the rename sheet
-                            newProgramTitle = program.title // Set the current title as the default
-                            showRenameSheet = true
-                        }) {
-                            Image(systemName: "pencil")
-                        }
-                        Spacer()
-                        NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
-                            Image(systemName: "plus.circle.fill")
-                        }
-                        Spacer()
-                        Button(action: {
-                            // Toggle the starred state
-                            program.starred.toggle()
-                            // Save the context if needed
-                            try? context.save()
-                        }) {
-                            Image(systemName: program.starred ? "star.fill" : "star")
-                                .foregroundColor(theme.currentTheme.accent)
-                        }
-                        Spacer()
-                    }
-                        .frame(width: UIScreen.main.bounds.width - 60)
-                        .tint(theme.currentTheme.accent)
-                }
-            }
+            .toolbarBackground(.hidden, for: .bottomBar)
             .alert(isPresented: $showDeleteAlert) {
                 Alert(
                     title: Text("Delete Session"),
@@ -115,6 +85,41 @@ struct SessionsView: View {
                .padding()
                .applyGradientBackground()
            }
+        }
+    
+    private var customFloatingBar: some View {
+            HStack {
+                Spacer()
+                // Rename Button
+                Button(action: {
+                    newProgramTitle = program.title
+                    showRenameSheet = true
+                }) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                // Add Session
+                NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                }
+                Spacer()
+                // Star/Favorite
+                Button(action: {
+                    program.starred.toggle()
+                    try? context.save()
+                }) {
+                    Image(systemName: program.starred ? "star.fill" : "star")
+                        .foregroundColor(program.starred ? .yellow : .white)
+                }
+                Spacer()
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+            .background(theme.currentTheme.accent) // Themed bar color
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
         }
     
     private func generateProgramOverview() -> String {

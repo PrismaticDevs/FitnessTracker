@@ -1,26 +1,15 @@
 import SwiftUI
 
 struct AppBranding: ViewModifier {
-    @ObservedObject var theme = ThemeManager.shared
-
+    @AppStorage("selectedTheme") var currentTheme: AppTheme = .magenta
+    
     func body(content: Content) -> some View {
         content
-            // 1. The Background
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: theme.currentTheme.gradientColors),
-                    startPoint: .bottom,
-                    endPoint: .top
-                )
-                .ignoresSafeArea()
-            )
-            // 2. The Navigation & Toolbar Styling
-            .navigationBarTitleTextColor(.white)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .bottomBar)
-            // 3. Ensuring all buttons in this view inherit the theme
-            .tint(theme.currentTheme.accent)
-            .foregroundColor(.white)
+            .applyGradientBackground()
+            .tint(currentTheme.accent)
+            .onAppear {
+                currentTheme.applyGlobalTint()
+            }
     }
 }
 
@@ -28,6 +17,18 @@ extension View {
     /// Applies the global fitness tracker theme, toolbar transparency, and accent colors.
     func applyAppBranding() -> some View {
         self.modifier(AppBranding())
+    }
+}
+
+extension AppTheme {
+    func applyGlobalTint() {
+        let uiColor = UIColor(self.accent)
+        // Force the navigation bar buttons
+        UINavigationBar.appearance().tintColor = uiColor
+        // Force the back button chevron specifically
+        UIBarButtonItem.appearance().tintColor = uiColor
+        // Force the titles if needed
+        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: uiColor]
     }
 }
 
@@ -122,5 +123,32 @@ extension View {
         UINavigationBar.appearance().compactAppearance = appearance
         
         return self
+    }
+}
+
+extension View {
+    func brandedBackButton(theme: AppTheme, dismiss: DismissAction) -> some View {
+        self
+            .navigationBarBackButtonHidden(true)
+            // 1. Hide the system bar background entirely
+            .toolbar(.hidden, for: .navigationBar)
+            .edgesIgnoringSafeArea(.top)
+            // 2. Overlay our own button at the top
+            .overlay(alignment: .topLeading) {
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 26, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 14)
+                    .background(theme.accent)
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
+                }
+                .padding(.leading, 16)
+                .padding(.top, 10) // Adjust based on the iPhone notch/island
+            }
     }
 }

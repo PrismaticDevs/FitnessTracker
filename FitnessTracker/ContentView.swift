@@ -11,6 +11,7 @@ import SwiftData
 struct ContentView: View {
     @State private var aiManager = AIContextManager()
     @Environment(\.modelContext) var context
+    @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var authManager: AuthManager
     @State private var globalWorkoutContext: String = "User is browsing the main menu"
     
@@ -18,7 +19,9 @@ struct ContentView: View {
         ZStack(alignment: .bottomTrailing) {
             NavigationStack {
                 ProgramMenuView()
+                    .applyAppBranding()
             }
+            .tint(theme.currentTheme.accent)
             FloatingChatView(workoutContext: globalWorkoutContext)
                 .padding(.trailing, 20)
                 .padding(.bottom, 100)
@@ -82,7 +85,7 @@ struct ProgramMenuView: View {
     @State private var navigateToSettings = false
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             VStack {
                 HeaderView()
                 Text("Select a Program")
@@ -95,44 +98,18 @@ struct ProgramMenuView: View {
                     ProgressView("Loading your programs...")
                         .tint(.white)
                 }
+                customBottomBar
             }
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarTitleTextColor(.white)
-        .toolbar(.hidden, for: .navigationBar)
-        .applyGradientBackground()
         .id(theme.currentTheme.id)
         .overlay {
             if programs.isEmpty {
                 EmptyStateView()
             }
         }
-        .toolbar {
-            // Bottom bar (or move to leading if you prefer): Social entry
-            ToolbarItem(placement: .bottomBar) {
-                HStack {
-                    Spacer()
-                    NavigationLink(destination: AddWorkoutProgramView()) {
-                        AddProgramButton(compact: true)
-                            .help("Create workout program")
-                    }
-                    Spacer()
-                    NavigationLink(destination: SocialEntry()) {
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)
-                    }
-                    Spacer()
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape.fill")
-                            .notificationBadge(show: auth.profile?.preferences.hasSettingsUpdate ?? false)
-                    }
-                    Spacer()
-                }
-                .frame(width: UIScreen.main.bounds.width - 60)
-                .tint(theme.currentTheme.accent)
-            }
-        }
+        .toolbarBackground(.hidden, for: .bottomBar)
         .alert(isPresented: $showSignoutAlert) {
             Alert(
                 title: Text("Log Out Confirmation"),
@@ -143,11 +120,34 @@ struct ProgramMenuView: View {
                 secondaryButton: .cancel()
             )
         }
-        #if canImport(UIKit)
-        .toolbarColorScheme(.dark, for: .navigationBar)      // or .light depending on your background
-        .toolbarBackground(.visible, for: .navigationBar)
-        #endif
     }
+    
+    private var customBottomBar: some View {
+            HStack {
+                Spacer()
+                NavigationLink(destination: AddWorkoutProgramView()) {
+                    AddProgramButton(compact: true)
+                        .foregroundColor(.white) // Ensure the "+" is white on the accent
+                }
+                Spacer()
+                NavigationLink(destination: SocialEntry()) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .foregroundColor(.white)
+                        .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)
+                }
+                Spacer()
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundColor(.white)
+                        .notificationBadge(show: auth.profile?.preferences.hasSettingsUpdate ?? false)
+                }
+                Spacer()
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+            .background(theme.currentTheme.accent)
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+        }
 }
 
 struct HeaderView: View {
@@ -286,10 +286,10 @@ struct AddProgramButton: View {
     var body: some View {
         HStack(spacing: compact ? 0 : 6) {
             Image(systemName: "plus.circle.fill")
+                .foregroundColor(Color.white)
             if !compact {
                 Text("Add Program")
                     .font(.headline)
-                    .foregroundColor(theme.currentTheme.accent)
             }
         }
         .padding(compact ? 0 : 8)

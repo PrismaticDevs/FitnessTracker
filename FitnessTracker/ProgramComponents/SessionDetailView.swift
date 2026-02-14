@@ -16,6 +16,7 @@ struct SessionDetailView: View {
     @Environment(\.modelContext) var context
     @Environment(AIContextManager.self) var aiManager
     @EnvironmentObject var auth: AuthManager
+    @Environment(\.dismiss) var dismiss
     @State private var showingAddExerciseView = false
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
@@ -25,7 +26,7 @@ struct SessionDetailView: View {
 
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack(alignment: .top) {
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
@@ -41,54 +42,51 @@ struct SessionDetailView: View {
                             deleteExercise: { name in deleteExercise(named: name) }
                         )
                     }
+                    Color.clear.frame(height: 120)
                 }
+                .padding(.top, 110)
+                .padding(.horizontal)
+            }
+            VStack(spacing: 0) {
+                        HStack {
+                            // Back Button (Handled by modifier, or place manually here)
+                            Spacer()
+                            
+                            Text(session.name)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            Spacer()
+                            
+                            // Invisible spacer to keep title centered if back button is on the left
+                            Color.clear.frame(width: 80, height: 1)
+                        }
+                        .padding(.top, 65)
+                        .padding(.bottom, 10)
+                        .background(
+                            // Optional: Add a slight blur or gradient to make the header
+                            // readable when text scrolls behind it
+                            Rectangle()
+                                .fill(Color.black.opacity(0.1))
+                                .blur(radius: 10)
+                                .ignoresSafeArea()
+                        )
+                    }
+            VStack {
+                Spacer()
+                customFloatingBar
             }
         }
+        .edgesIgnoringSafeArea(.top)
         .padding(.horizontal)
         .onAppear {
             updateAIWithLiveSessionData()
         }
-        .applyGradientBackground()
+        .applyAppBranding()
+        .brandedBackButton(theme: theme.currentTheme, dismiss: dismiss)
         .navigationTitle("\(session.name) Exercises")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .bottomBar) {
-                HStack {
-                    Spacer()
-                    // Global Save All Button
-                    Button(action: {
-                        finishWorkoutSession()
-                        uploadWholeSessionToCloud()
-                    }) {
-                        Image(systemName: "icloud.and.arrow.up")
-                            .foregroundColor(.white)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(theme.currentTheme.accent)
-                    .disabled(completedExerciseIds.isEmpty)
-                    .accessibilityLabel("Save All")
-                    Spacer()
-                    Button(action: {
-                        newSessionName = session.name
-                        showingRenameSheet = true
-                    }) {
-                        Image(systemName: "pencil")
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                    ExerciseToolbar(
-                        exerciseName: $selectedExerciseName,
-                        exercisesSelected: session.exercises.map { $0.name },
-                        onExerciseSelected: { exerciseName in
-                            addExercise(named: exerciseName)
-                        }
-                    )
-                    Spacer()
-                }
-                .frame(width: UIScreen.main.bounds.width - 60)
-                .tint(theme.currentTheme.accent)
-            }
-        }
+        .toolbarBackground(.hidden, for: .bottomBar)
         .sheet(isPresented: $showingRenameSheet) {
             VStack {
                 Text("Rename Session")
@@ -109,6 +107,54 @@ struct SessionDetailView: View {
             .applyGradientBackground()
         }
     }
+    
+    private var customFloatingBar: some View {
+            HStack {
+                Spacer()
+                
+                // Save/Finish Workout Button
+                Button(action: {
+                    finishWorkoutSession()
+                    uploadWholeSessionToCloud()
+                    dismiss() // Optional: take user back after finishing
+                }) {
+                    Image(systemName: "icloud.and.arrow.up")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.4) : .white)
+                }
+                .disabled(completedExerciseIds.isEmpty)
+                
+                Spacer()
+                
+                // Rename Session Button
+                Button(action: {
+                    newSessionName = session.name
+                    showingRenameSheet = true
+                }) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                // Your existing Exercise Menu/Toolbar
+                ExerciseToolbar(
+                    exerciseName: $selectedExerciseName,
+                    exercisesSelected: session.exercises.map { $0.name },
+                    onExerciseSelected: { exerciseName in
+                        addExercise(named: exerciseName)
+                    }
+                )
+                .foregroundColor(.white)
+                
+                Spacer()
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+            .background(theme.currentTheme.accent)
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
+        }
     
     private func updateAIWithLiveSessionData() {
         let details = generateSessionContext()
