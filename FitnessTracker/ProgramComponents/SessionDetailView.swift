@@ -44,7 +44,7 @@ struct SessionDetailView: View {
                     }
                     Color.clear.frame(height: 120)
                 }
-//                .padding(.top, 110)
+                .padding(.top, 160)
                 .padding(.horizontal)
             }
             VStack {
@@ -58,10 +58,6 @@ struct SessionDetailView: View {
             updateAIWithLiveSessionData()
         }
         .applyAppBranding()
-        .navigationTitle("\(session.name) Exercises")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .bottomBar)
         .sheet(isPresented: $showingRenameSheet) {
             VStack {
                 Text("Rename Session")
@@ -81,6 +77,7 @@ struct SessionDetailView: View {
             .padding()
 //            .applyGradientBackground()
         }
+        .brandedBackButton(title: "\(session.name) Exercises", theme: theme.currentTheme, dismiss: dismiss)
     }
     
     private var customFloatingBar: some View {
