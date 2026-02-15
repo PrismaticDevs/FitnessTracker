@@ -135,28 +135,32 @@ extension View {
 }
 
 extension View {
-    func brandedBackButton(theme: AppTheme, dismiss: DismissAction) -> some View {
+    func brandedBackButton(title: String, theme: AppTheme, dismiss: DismissAction) -> some View {
         self
             .navigationBarBackButtonHidden(true)
-            // 1. Hide the system bar background entirely
-            .toolbar(.hidden, for: .navigationBar)
             .edgesIgnoringSafeArea(.top)
-            // 2. Overlay our own button at the top
             .overlay(alignment: .topLeading) {
-                Button(action: { dismiss() }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 26, weight: .bold))
+                HStack {
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 26, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 14)
+                        .background(theme.accent)
+                        .clipShape(Capsule())
+                        .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
                     }
-                    .foregroundColor(.white)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 14)
-                    .background(theme.accent)
-                    .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
+                    .padding(.leading, 16)
+                    .padding(.top, 10) // Adjust based on the iPhone notch/island
+                    Spacer()
+                    Text(title)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
                 }
-                .padding(.leading, 16)
-                .padding(.top, 10) // Adjust based on the iPhone notch/island
             }
     }
 }

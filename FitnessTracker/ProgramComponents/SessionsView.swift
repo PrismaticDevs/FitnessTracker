@@ -42,7 +42,7 @@ struct SessionsView: View {
                     }
                     .listStyle(PlainListStyle())
                     .scrollContentBackground(.hidden) // Crucial: hides the default grey List background
-                    .padding(.top, 10)
+                    .padding(.top, 180)
                     .padding(.horizontal, 12)
                 }
                     .onAppear {
@@ -60,7 +60,6 @@ struct SessionsView: View {
                 customFloatingBar
             }
             .applyAppBranding()
-            .navigationBarTitle("\(program.title) Sessions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .bottomBar)
             .alert(isPresented: $showDeleteAlert) {
@@ -97,6 +96,7 @@ struct SessionsView: View {
                .padding()
                .applyGradientBackground()
            }
+            .brandedBackButton(title: "\(program.title) Sessions",theme: theme.currentTheme, dismiss: dismiss)
         }
     
     private var customFloatingBar: some View {
