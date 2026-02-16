@@ -125,15 +125,15 @@ struct ProgramMenuView: View {
     private var customBottomBar: some View {
             HStack {
                 Spacer()
-                NavigationLink(destination: AddWorkoutProgramView()) {
-                    AddProgramButton(compact: true)
-                        .foregroundColor(.white) // Ensure the "+" is white on the accent
-                }
-                Spacer()
                 NavigationLink(destination: SocialEntry()) {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
                         .foregroundColor(.white)
                         .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)
+                }
+                Spacer()
+                NavigationLink(destination: AddWorkoutProgramView()) {
+                    AddProgramButton(compact: true)
+                        .foregroundColor(.white) // Ensure the "+" is white on the accent
                 }
                 Spacer()
                 NavigationLink(destination: SettingsView()) {

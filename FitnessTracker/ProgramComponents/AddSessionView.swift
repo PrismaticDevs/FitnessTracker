@@ -31,9 +31,6 @@ struct AddSessionView: View {
             VStack(spacing: 16) {
                 ScrollView {
                     VStack(spacing: 12) {
-                        Text("Add Session to")
-                            .font(.headline).bold()
-                            .foregroundColor(.white)
                         Text("\(program.title)")
                             .font(.title).bold()
                             .foregroundColor(.white)
@@ -92,8 +89,10 @@ struct AddSessionView: View {
                     .padding(.horizontal)
                 }
             }
+            .padding(.top, 125)
             customFloatingBar
         }
+        .brandedBackButton(title: "Add Session to", theme: theme.currentTheme, dismiss: dismiss)
         .onTapGesture {
             isFocused = nil
         }

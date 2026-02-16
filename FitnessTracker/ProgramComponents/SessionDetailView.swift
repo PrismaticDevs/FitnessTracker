@@ -27,33 +27,32 @@ struct SessionDetailView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
-                        StrengthEntryView(
-                            isCompleted: Binding(
-                                get: { completedExerciseIds.contains(exercise.id) },
-                                set: { isDone in
-                                    if isDone { completedExerciseIds.insert(exercise.id)}
-                                    else { completedExerciseIds.remove(exercise.id)}
-                                }
-                            ),
-                            exercise: exercise,
-                            deleteExercise: { name in deleteExercise(named: name) }
-                        )
+            Color.clear.edgesIgnoringSafeArea(.all)
+                VStack(spacing: 0) {
+                    Color.clear
+                        .frame(height: 120)
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
+                                StrengthEntryView(
+                                    isCompleted: Binding(
+                                        get: { completedExerciseIds.contains(exercise.id) },
+                                        set: { isDone in
+                                            if isDone { completedExerciseIds.insert(exercise.id)}
+                                            else { completedExerciseIds.remove(exercise.id)}
+                                        }
+                                    ),
+                                    exercise: exercise,
+                                    deleteExercise: { name in deleteExercise(named: name) }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
                     }
-                    Color.clear.frame(height: 120)
+                    .clipped()
+                    customFloatingBar
                 }
-                .padding(.top, 160)
-                .padding(.horizontal)
-            }
-            VStack {
-                Spacer()
-                customFloatingBar
-            }
-        }
         .padding(.horizontal, 12)
-//        .tint(theme.currentTheme.accent)
         .onAppear {
             updateAIWithLiveSessionData()
         }
@@ -63,11 +62,11 @@ struct SessionDetailView: View {
                 Text("Rename Session")
                     .font(.headline)
                     .padding()
-
+                
                 TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
                     .padding()
                     .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-
+                
                 Button("Rename") {
                     renameSession()
                     showingRenameSheet = false // Dismiss the sheet
@@ -75,7 +74,7 @@ struct SessionDetailView: View {
                 .padding()
             }
             .padding()
-//            .applyGradientBackground()
+        }
         }
         .brandedBackButton(title: "\(session.name) Exercises", theme: theme.currentTheme, dismiss: dismiss)
     }
