@@ -12,15 +12,20 @@ struct AddWorkoutProgramView: View {
     @State private var showAlert: Bool = false
     @StateObject private var exerciseList = ExerciseList()
     @State private var showingPrebuiltSheet = false
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 Color.clear
                     .applyGradientBackground()
                     .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        isFocused = false
+                    }
                 
                 VStack(spacing: 16) {
+                    customHeader
                     ScrollView {
                         Text("Add New Workout program")
                             .font(.title)
@@ -50,6 +55,7 @@ struct AddWorkoutProgramView: View {
                             .padding()
                         Section(header: Text("Title").font(.headline).foregroundColor(.white)) {
                             TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(.white.opacity(0.5)))
+                                .focused($isFocused)
                                 .padding()
                                 .background(theme.currentTheme.accent)
                                 .foregroundColor(.white)
@@ -81,6 +87,7 @@ struct AddWorkoutProgramView: View {
                                     }
                                 HStack {
                                     TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(.white.opacity(0.5)))
+                                        .focused($isFocused)
                                         .onChange(of: newSessions[index].name) { newValue, oldValue in
                                             newSessions[index].name = newValue
                                         }
@@ -144,6 +151,10 @@ struct AddWorkoutProgramView: View {
                         }
                        
                     }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        isFocused = false
+                    }
                 }
             }
             .sheet(isPresented: $showingPrebuiltSheet) {
@@ -152,23 +163,31 @@ struct AddWorkoutProgramView: View {
                     dismiss()
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        print(programTitle)
-                        saveWorkoutProgram()
-                    }) {
-                        HStack{
-                            Text("Create Program")
-                            Image(systemName: "plus.circle.fill")
-                        }
-                    }
-                    .disabled(!canCreateProgram) // Disable button if conditions are not met
-                }
-            }
         }
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .brandedBackButton(title: "",theme: theme.currentTheme, dismiss: dismiss)
+    }
+    
+    private var customHeader: some View {
+        HStack {
+            Spacer()
+            Button(action: saveWorkoutProgram) {
+                HStack {
+                    Text("Ceate")
+                    Image(systemName: "plus.circle.fill")
+                }
+                .font(.subheadline.bold())
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(canCreateProgram ? theme.currentTheme.accent : Color.gray.opacity(0.3))
+                .foregroundColor(canCreateProgram ? .white : .white.opacity(0.5))
+                .cornerRadius(20)
+            }
+            .disabled(!canCreateProgram)
+        }
+        .padding(.horizontal)
+        .padding(.top, 60)
+        .padding(.bottom, 10)
     }
     
     private var canCreateProgram: Bool {

@@ -43,7 +43,7 @@ struct ExerciseToolbar: View {
                 }
             }
         } label: {
-            Label("", systemImage: "plus.circle.fill")
+            Label("Add Exercise", systemImage: "plus.circle.fill")
                 .foregroundColor(.white)
         }
     }
