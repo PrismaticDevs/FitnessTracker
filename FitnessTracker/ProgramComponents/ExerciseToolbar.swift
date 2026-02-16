@@ -14,25 +14,36 @@ struct ExerciseToolbar: View {
     var onExerciseSelected: (String) -> Void
     @State private var exerciseList = ExerciseList()
     @ObservedObject var theme = ThemeManager.shared
+    @EnvironmentObject var auth: AuthManager
 
     var body: some View {
         Menu {
-            ForEach(exerciseList.categories) { category in
-                Menu {
-                    ForEach(category.exercises, id: \.id) { exercise in
-                        Button {
-                            exerciseName = exercise.name
-                            onExerciseSelected(exercise.name)
-                        } label: {
-                            Label(exercise.name, systemImage: "plus.circle.fill")
-                        }
+            Section {
+                NavigationLink(destination: AddExercise(userId: auth.user?.uid ?? "")) {
+                    HStack {
+                        Image(systemName: "pencil")
+                        Text("Edit Exercises")
                     }
-                } label: {
-                    Text(category.name) // Use the category name for the menu label
+                }
+            }
+            Section {
+                ForEach(exerciseList.categories) { category in
+                    Menu {
+                        ForEach(category.exercises, id: \.id) { exercise in
+                            Button {
+                                exerciseName = exercise.name
+                                onExerciseSelected(exercise.name)
+                            } label: {
+                                Label(exercise.name, systemImage: "plus.circle.fill")
+                            }
+                        }
+                    } label: {
+                        Text(category.name) // Use the category name for the menu label
+                    }
                 }
             }
         } label: {
-            Label("Add Exercise", systemImage: "plus.circle.fill")
+            Label("", systemImage: "plus.circle.fill")
                 .foregroundColor(.white)
         }
     }
