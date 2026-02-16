@@ -126,6 +126,7 @@ struct AddWorkoutProgramView: View {
                                 }
                                 // ExerciseToolbar for selecting exercises
                                 ExerciseToolbar(
+                                    title: "Add Exercise",
                                     exerciseName: .constant(""),
                                     exercisesSelected: newSessions[index].exercises.map { $0.name }, // Pass selected exercises
                                     onExerciseSelected: { exerciseName in

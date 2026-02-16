@@ -12,9 +12,20 @@ struct ExerciseToolbar: View {
     @Binding var exerciseName: String
     var exercisesSelected: [String]
     var onExerciseSelected: (String) -> Void
+    let title: String
     @State private var exerciseList = ExerciseList()
     @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
+    
+    init(title: String,
+             exerciseName: Binding<String>,
+             exercisesSelected: [String],
+             onExerciseSelected: @escaping (String) -> Void) {
+            self.title = title
+            self._exerciseName = exerciseName
+            self.exercisesSelected = exercisesSelected
+            self.onExerciseSelected = onExerciseSelected
+        }
 
     var body: some View {
         Menu {
@@ -43,7 +54,7 @@ struct ExerciseToolbar: View {
                 }
             }
         } label: {
-            Label("Add Exercise", systemImage: "plus.circle.fill")
+            Label(title, systemImage: "plus.circle.fill")
                 .foregroundColor(.white)
         }
     }
@@ -51,6 +62,7 @@ struct ExerciseToolbar: View {
 
 #Preview {
     ExerciseToolbar(
+        title: "Add Exercise",
         exerciseName: .constant(""), // Example binding
         exercisesSelected: ["Push Up", "Squat"], // Example selected exercises
         onExerciseSelected: { selectedExercise in

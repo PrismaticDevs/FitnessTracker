@@ -10,46 +10,43 @@ import SwiftUI
 struct SocialPortal: View {
     @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
-    @Binding var isPresented: Bool
+    @Environment(\.dismiss) var dismiss
     @State private var navigateToAuthView = false // State variable for navigation
     @State private var returnToRoot = false
 
     var body: some View {
-        // Use NavigationStack for main content
-        NavigationStack {
-            ZStack {
-                // Your main content can go here
-            }
-            .applyGradientBackground()
-            .navigationTitle("FiT Social")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        #if canImport(UIKit)
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        #endif
-                        auth.signOut()
-                        isPresented = false
-                        returnToRoot = true // Trigger return to ContentView
-                    }) {
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(Color.red)
-                            .clipShape(Circle())
-                            .accessibilityLabel("Log out")
-                    }
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                HStack {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                        .foregroundColor(theme.currentTheme.accent2)
+                    Text("FiT Social")
+                        .font(.headline)
+                        .foregroundColor(theme.currentTheme.accent2)
                 }
+                .padding()
+                .foregroundColor(.white.opacity(0.1))
+                .cornerRadius(8)
             }
-            .navigationBarTitleTextColor(.white)
-            .fullScreenCover(isPresented: $returnToRoot) {
-                ContentView().environmentObject(auth)
-            }
+            .padding(.top, 130)
+            customFloatingBar
         }
+        .applyAppBranding()
+        .brandedBackButton(title: "", theme: theme.currentTheme, dismiss: dismiss)
     }
+    
+    private var customFloatingBar: some View {
+            HStack {
+                Text("Hi")
+                Image(systemName: "hand.wave")
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+            .background(theme.currentTheme.accent) // Themed bar color
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+        }
 }
 
 #Preview {
-    SocialPortal(isPresented: .constant(true))
+    SocialPortal()
 }

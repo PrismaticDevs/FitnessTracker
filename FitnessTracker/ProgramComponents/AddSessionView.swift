@@ -77,6 +77,7 @@ struct AddSessionView: View {
                             
                             // Reuse your toolbar to add to the local list
                             ExerciseToolbar(
+                                title: "Add Exercise",
                                 exerciseName: .constant(""),
                                 exercisesSelected: selectedExercises.map { $0.name },
                                 onExerciseSelected: { name in

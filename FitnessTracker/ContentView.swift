@@ -125,7 +125,7 @@ struct ProgramMenuView: View {
     private var customBottomBar: some View {
             HStack {
                 Spacer()
-                NavigationLink(destination: SocialEntry()) {
+                NavigationLink(destination: SocialPortal()) {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
                         .foregroundColor(.white)
                         .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)

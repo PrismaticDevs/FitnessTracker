@@ -111,6 +111,7 @@ struct SessionDetailView: View {
                 
                 // Your existing Exercise Menu/Toolbar
                 ExerciseToolbar(
+                    title: "",
                     exerciseName: $selectedExerciseName,
                     exercisesSelected: session.exercises.map { $0.name },
                     onExerciseSelected: { exerciseName in
