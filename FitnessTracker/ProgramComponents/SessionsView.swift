@@ -22,7 +22,7 @@ struct SessionsView: View {
                         ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
                             // Custom Row Styling to match ProgramRowView
                             HStack {
-                                NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program)) {
+                                NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program, exercises: session.exercises)) {
                                     Text(session.name)
                                         .font(.system(size: 20, weight: .semibold))
                                         .foregroundColor(.white)
@@ -182,3 +182,4 @@ struct SessionsView: View {
     let program = WorkoutProgram(title: "Test", sessions: [Session(name: "Test", exercises: [Exercise(name: "Test")])])
     SessionsView(program: program)
 }
+

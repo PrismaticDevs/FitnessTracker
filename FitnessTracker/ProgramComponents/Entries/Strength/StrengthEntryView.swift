@@ -528,281 +528,6 @@ struct StrengthEntryView: View {
     
 }
 
-struct SetRow: View {
-    @ObservedObject var theme = ThemeManager.shared
-    var defaults = UserDefaults.standard
-    let title: String
-    @Binding var text: String
-    let exerciseKey: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.subheadline).padding(-4)
-            TextField(title, text: $text)
-                .keyboardType(.numberPad)
-                .padding(8)
-                .submitLabel(.done)
-                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
-                .onChange(of: text) { oldValue, newValue in
-                    if let value = Int(newValue) {
-                        defaults.set(value, forKey: exerciseKey)
-                    } else {
-                        defaults.set(0, forKey: exerciseKey)
-                    }
-                }
-                .onAppear {
-                    text = "\(defaults.integer(forKey: exerciseKey))"
-                }
-                .frame(minWidth: 80)
-        }
-    }
-}
-
-struct WorkoutHeaderView: View {
-    @ObservedObject var theme = ThemeManager.shared
-    let exercise: Exercise
-    @Binding var isCompleted: Bool // New Binding passed from StrengthEntryView
-    @Binding var setsCountInput: String
-    @Binding var selectedSetIndex: Int
-    var adjustPerSetArrays: (Int) -> Void
-    var keyScope: DefaultsKeyScope
-    @EnvironmentObject var auth: AuthManager
-    var defaults = UserDefaults.standard
-    var isFocused: FocusState<Bool?>.Binding
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                // Left Side: Exercise Info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(exercise.name)
-                        .foregroundColor(.white)
-                        .font(.title2.bold()) // Slightly smaller than .title for better fit
-                    Text("\(exercise.type?.rawValue ?? "Strength") exercise")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Right Side: Completion Toggle
-                Button(action: {
-                    withAnimation(.spring()) {
-                        isCompleted.toggle()
-                    }
-                }) {
-                    HStack(spacing: 8) {
-                        Text("Exercise Complete")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                            .font(.title2)
-                    }
-                    .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
-                    .cornerRadius(10)
-                }
-            }
-            
-            Divider().background(Color.white.opacity(0.2))
-            
-            // Bottom Row: Sets Input
-            HStack {
-                Text("Total Sets")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                TextField("Sets", text: $setsCountInput)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 50, height: 35)
-                    .background(theme.currentTheme.accent.opacity(0.3))
-                    .cornerRadius(8)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(theme.currentTheme.accent, lineWidth: 1))
-                    .focused(isFocused, equals: true)
-                    .onChange(of: setsCountInput) { oldValue, newValue in
-                        let n = Int(newValue) ?? 1
-                        
-                        // 1. Persist the set count to UserDefaults immediately
-                        defaults.set(n, forKey: keyScope.scoped("setsCount\(exercise.name)"))
-                        
-                        // 2. Adjust the arrays in the parent view
-                        adjustPerSetArrays(n)
-                    }
-                    .onAppear {
-                        // 3. Ensure the text field loads the saved value when it appears
-                        let savedSets = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
-                        if savedSets > 0 {
-                            setsCountInput = "\(savedSets)"
-                        }
-                    }
-            }
-        }
-        .padding(.vertical, 10)
-    }
-}
-
-struct SetSelectorView: View {
-    @ObservedObject var theme = ThemeManager.shared
-    let setsCount: Int
-    @Binding var selectedSetIndex: Int
-    var onSelect: () -> Void
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(0..<setsCount, id: \.self) { idx in
-                    Button(action: {
-                        selectedSetIndex = idx
-                        onSelect()
-                    }) {
-                        Text("Set \(idx + 1)")
-                            .padding(8)
-                            .background(selectedSetIndex == idx ? theme.currentTheme.accent.opacity(0.8) : .white.opacity(0.2))
-                            .cornerRadius(10)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-            }.padding(.vertical, 6)
-        }
-    }
-}
-
-struct SetDetailInputsView: View {
-    let exercise: String
-    @Binding var selectedSetIndex: Int
-    @Binding var iso: Bool
-    @Binding var leftInputs: [String]
-    @Binding var rightInputs: [String]
-    @Binding var combinedInputs: [String]
-    @Binding var repsInputs: [String]
-    @Binding var restInputs: [String]
-    var keyScope: DefaultsKeyScope
-    var defaults = UserDefaults.standard
-    var isFocused: FocusState<Bool?>.Binding
-    var body: some View {
-        VStack {
-            HStack {
-                VStack(spacing: 10) {
-                    if defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)")) {
-                        HStack {
-                            SetRow(title: "Left Weight",
-                                   text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: keyScope.scoped("left\(exercise)_set\(selectedSetIndex)"))
-                            .focused(isFocused, equals: true)
-                            SetRow(title: "Right Weight",
-                                   text: Binding(get: { rightInputs[selectedSetIndex] }, set: { rightInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: keyScope.scoped("right\(exercise)_set\(selectedSetIndex)"))
-                            .focused(isFocused, equals: true)
-                        }
-                    } else {
-                        SetRow(title: "Combined Weight",
-                               text: Binding(get: { combinedInputs[selectedSetIndex] }, set: { combinedInputs[selectedSetIndex] = $0 }),
-                               exerciseKey: keyScope.scoped("weight\(exercise)_set\(selectedSetIndex)"))
-                        .focused(isFocused, equals: true)
-                    }
-                }
-                Button {
-                    iso.toggle()
-                    defaults.set(iso, forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
-                } label: {
-                    Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
-                }
-            }
-            HStack {
-                SetRow(title: "Reps",
-                       text: Binding(get: { repsInputs[selectedSetIndex] }, set: { repsInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: keyScope.scoped("reps\(exercise)_set\(selectedSetIndex)"))
-                .focused(isFocused, equals: true)
-                SetRow(title: "Rest",
-                       text: Binding(get: { restInputs[selectedSetIndex] }, set: { restInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: keyScope.scoped("rest\(exercise)_set\(selectedSetIndex)"))
-                .focused(isFocused, equals: true)
-            }
-        }
-        .onAppear {
-            iso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
-        }
-    }
-}
-
-struct NoteAndDeleteView: View {
-    @ObservedObject var theme = ThemeManager.shared
-    let exercise: String
-    @Binding var note: String
-    @Binding var showDeleteConfirmation: Bool
-    var keyScope: DefaultsKeyScope
-    var isFocused: FocusState<Bool?>.Binding
-    var deleteExercise: (String) -> Void
-    var defaults = UserDefaults.standard
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Note").font(.subheadline).padding(-4)
-                HStack(alignment: .center, spacing: 8) {
-                    ZStack(alignment: .topLeading) {
-                        if note.isEmpty {
-                            Text("Note")
-                                .foregroundColor(.white.opacity(0.5))
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 16)
-                        }
-                        TextEditor(text: $note)
-                            .focused(isFocused, equals: true)
-                            .scrollContentBackground(.hidden)
-                            .padding(.horizontal, 6)
-                            .padding(.top, 6)
-                            .frame(minHeight: 36, maxHeight: 96)
-                    }
-                    if !note.isEmpty {
-                        Button(action: { note = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .contentShape(Rectangle())
-                        }
-                        .padding(.trailing, 6)
-                        .padding(.vertical, 2)
-                    }
-                }
-                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                .onAppear {
-                    note = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
-                }
-                .onChange(of: note) {
-                    defaults.set(note, forKey: keyScope.scoped("note\(exercise)"))
-                }
-            }
-            Button(action: {
-                isFocused.wrappedValue = nil
-                showDeleteConfirmation = true
-            }) {
-                Image(systemName: "trash")
-                    .foregroundColor(.red)
-            }
-            .accessibilityLabel("Delete exercise")
-            .confirmationDialog("Delete Exercise",
-                                isPresented: $showDeleteConfirmation,
-                                titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
-                    print("🚨 Delete confirmed for exercise: \(exercise)")
-                    deleteExercise(exercise)
-                }
-                Button("Cancel", role: .cancel) {
-                    print("🚫 Delete cancelled for exercise: \(exercise)")
-                }
-            } message: {
-                Text("Are you sure you want to remove \(exercise) from this session?")
-            }
-        }
-    }
-}
-
 final class MockAuthManager: AuthManager {
     override init() {
         super.init()
@@ -812,10 +537,26 @@ final class MockAuthManager: AuthManager {
 
 // MARK: - Preview
 
-//#Preview {
-//    let mockAuthManager = MockAuthManager()
-//    let previewExercise = Exercise(name: "Preview Exercise")
-//    StrengthEntryView(isCompleted: .constant(false),exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
-//        .environmentObject(mockAuthManager)
-//        .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
-//}
+#Preview {
+    let mockAuthManager = AuthManager() // Use your actual or mock manager
+    let previewExercise = Exercise(name: "Preview Exercise")
+    
+    // Create the view
+    StrengthEntryView(
+        isCompleted: .constant(false),
+        exercise: previewExercise,
+        combined: 0,
+        left: 0,
+        right: 0,
+        reps: 0,
+        rest: 0,
+        note: "",
+        // FIX: Wrap previewExercise in brackets to make it an array [Exercise]
+        allExercises: [previewExercise],
+        deleteExercise: { _ in }
+    )
+    .environmentObject(mockAuthManager)
+    // Adding the AI Manager since your view uses @Environment(AIContextManager.self)
+    .environment(AIContextManager())
+    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
+}

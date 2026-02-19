@@ -297,6 +297,6 @@ struct SessionDetailView: View {
     let workoutProgram = WorkoutProgram(title: "Test Program", sessions: [session])
     
     // Pass the mock session to the preview
-    SessionDetailView(session: session, workoutProgram: workoutProgram)
+    SessionDetailView(session: session, workoutProgram: workoutProgram, exercises: exercises)
 }
 
