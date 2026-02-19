@@ -29,11 +29,14 @@ struct SettingsView: View {
                                 .foregroundColor(Color.white.opacity(0.6))
                         }
                         Spacer()
-                        Button("View") {
-                            showProfile = true
+                        NavigationLink(destination: ProfileView()) {
+                            HStack {
+                                Text("View")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                            }
                         }
-                        .buttonStyle(.bordered)
-                        .tint(theme.currentTheme.accent)
+                        .fixedSize()
                     }
                     .padding(.vertical, 8)
                 }

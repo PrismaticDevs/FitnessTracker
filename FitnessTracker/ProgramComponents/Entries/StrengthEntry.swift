@@ -50,6 +50,8 @@ struct StrengthEntryView: View {
     @State private var showDeleteConfirmation = false
     @State var emptyEntry: Bool = true
     
+    @State var allExercises: [Exercise]
+    
     @FocusState private var isFocused: Bool?
     
     var deleteExercise: (String) -> Void
@@ -315,6 +317,40 @@ struct StrengthEntryView: View {
                 preferences: generateAIContext()
             )
         }
+    }
+    
+    private func generateFullSessionAIContext(allExercisesInSession: [Exercise]) -> String {
+        var fullContext = "--- FULL CURRENT SESSION ---\n"
+        
+        for ex in allExercisesInSession {
+            let isCurrent = ex.id == exercise.id ? "[CURRENTLY VIEWING] " : ""
+            let sets = defaults.integer(forKey: keyScope.scoped("setsCount\(ex.name)"))
+            let isDone = defaults.bool(forKey: keyScope.scoped("isCompleted\(ex.name)")) // If you persist completion
+            
+            fullContext += "\(isCurrent)Exercise: \(ex.name) | Sets: \(sets) | Status: \(isDone ? "Done" : "In Progress")\n"
+            
+            // Brief detail for each set of EVERY exercise in the session
+            for idx in 0..<max(1, sets) {
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(ex.name)_set\(idx)"))
+                let weight = defaults.integer(forKey: keyScope.scoped("weight\(ex.name)_set\(idx)"))
+                if reps > 0 || weight > 0 {
+                    fullContext += "  - Set \(idx + 1): \(weight)lbs x \(reps) reps\n"
+                }
+            }
+            fullContext += "\n"
+        }
+        
+        return fullContext
+    }
+    
+    private func updateAi() {
+        let sessionSummary = generateFullSessionAIContext(allExercisesInSession:  allExercises  )
+        
+        aiManager.updateContext(
+            screen: "Strength Entry",
+            details: "User is currently looiking at \(exercise.name)",
+            preferences: sessionSummary
+        )
     }
     
     private func scopedKey(_ base: String) -> String {
@@ -776,10 +812,10 @@ final class MockAuthManager: AuthManager {
 
 // MARK: - Preview
 
-#Preview {
-    let mockAuthManager = MockAuthManager()
-    let previewExercise = Exercise(name: "Preview Exercise")
-    StrengthEntryView(isCompleted: .constant(false),exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
-        .environmentObject(mockAuthManager)
-        .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
-}
+//#Preview {
+//    let mockAuthManager = MockAuthManager()
+//    let previewExercise = Exercise(name: "Preview Exercise")
+//    StrengthEntryView(isCompleted: .constant(false),exercise: previewExercise, combined: 0, left: 0, right: 0, reps: 0, rest: 0, note: "", deleteExercise: {_ in })
+//        .environmentObject(mockAuthManager)
+//        .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
+//}

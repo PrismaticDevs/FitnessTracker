@@ -23,6 +23,7 @@ struct SessionDetailView: View {
     @State private var newSessionName: String = ""
     
     @State private var completedExerciseIds: Set<UUID> = []
+    @State var exercises: [Exercise]
 
 
     var body: some View {
@@ -43,7 +44,8 @@ struct SessionDetailView: View {
                                         }
                                     ),
                                     exercise: exercise,
-                                    deleteExercise: { name in deleteExercise(named: name) }
+                                    allExercises: session.exercises,
+                                    deleteExercise: { name in deleteExercise(named: name) },
                                 )
                             }
                         }
