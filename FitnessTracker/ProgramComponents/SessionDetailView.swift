@@ -21,6 +21,7 @@ struct SessionDetailView: View {
     @State private var selectedExerciseName: String = ""
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
+    @State private var dragOffset: CGFloat = 0
     
     @State private var completedExerciseIds: Set<UUID> = []
     @State var exercises: [Exercise]
@@ -50,33 +51,63 @@ struct SessionDetailView: View {
                             }
                         }
                         .padding(.horizontal)
+                        Color.clear.frame(height: 1)
                     }
                     .clipped()
                     customFloatingBar
                 }
-        .padding(.horizontal, 12)
-        .onAppear {
-            updateAIWithLiveSessionData()
-        }
-        .applyAppBranding()
-        .sheet(isPresented: $showingRenameSheet) {
-            VStack {
-                Text("Rename Session")
-                    .font(.headline)
-                    .padding()
-                
-                TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
-                    .padding()
-                    .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                
-                Button("Rename") {
-                    renameSession()
-                    showingRenameSheet = false // Dismiss the sheet
+                .offset(x: dragOffset)
+                .animation(.interactiveSpring(), value: dragOffset)
+                .padding(.horizontal, 12)
+                .onAppear {
+                    updateAIWithLiveSessionData()
                 }
-                .padding()
-            }
-            .padding()
-        }
+                .applyAppBranding()
+                .sheet(isPresented: $showingRenameSheet) {
+                    VStack {
+                        Text("Rename Session")
+                            .font(.headline)
+                            .padding()
+                        
+                        TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
+                            .padding()
+                            .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                        
+                        Button("Rename") {
+                            renameSession()
+                            showingRenameSheet = false // Dismiss the sheet
+                        }
+                        .padding()
+                    }
+                    .padding()
+                }
+            
+            // Leading-edge swipe back hit area to avoid ScrollView conflicts
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
         }
         .brandedBackButton(title: "\(session.name) Exercises", theme: theme.currentTheme, dismiss: dismiss)
     }

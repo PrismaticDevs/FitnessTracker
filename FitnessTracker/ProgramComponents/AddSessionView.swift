@@ -19,6 +19,7 @@ struct AddSessionView: View {
     // We only need local state for the session we are currently building
     @State private var sessionName: String = ""
     @State private var selectedExercises: [Exercise] = []
+    @State private var dragOffset: CGFloat = 0
     
     @FocusState private var isFocused: Bool?
     
@@ -90,8 +91,35 @@ struct AddSessionView: View {
                     .padding(.horizontal)
                 }
             }
+            .offset(x: dragOffset)
+            .animation(.interactiveSpring(), value: dragOffset)
             .padding(.top, 125)
             customFloatingBar
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
         }
         .brandedBackButton(title: "Add Session to", theme: theme.currentTheme, dismiss: dismiss)
         .onTapGesture {

@@ -13,6 +13,7 @@ struct SessionsView: View {
     @State private var sessionToDeleteIndex: Int? = nil
     @State private var showRenameSheet: Bool = false
     @State private var newProgramTitle: String = ""
+    @State private var dragOffset: CGFloat = 0
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
 
     var body: some View {
@@ -45,19 +46,46 @@ struct SessionsView: View {
                     .padding(.top, 180)
                     .padding(.horizontal, 12)
                 }
-                    .onAppear {
-                        if let userId = auth.user?.uid {
-                            // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
-                            SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
-                        }
-                        
-                        aiManager.updateContext(
-                            screen: "Sessions List",
-                            details: "User is viewing the sessions for program: \(program.title)",
-                            preferences: generateProgramOverview()
-                        )
+                .offset(x: dragOffset)
+                .animation(.interactiveSpring(), value: dragOffset)
+                .onAppear {
+                    if let userId = auth.user?.uid {
+                        // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
+                        SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+                    }
+                    
+                    aiManager.updateContext(
+                        screen: "Sessions List",
+                        details: "User is viewing the sessions for program: \(program.title)",
+                        preferences: generateProgramOverview()
+                    )
                 }
                 customFloatingBar
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
             }
             .applyAppBranding()
             .navigationBarTitleDisplayMode(.inline)
