@@ -100,6 +100,7 @@ struct AddExercise: View {
                         prompt: Text("Exercise Name")
                             .foregroundColor(.white.opacity(0.8))
                     )
+                    .focused($isFocused, equals: true)
                     .listRowBackground(theme.currentTheme.accent) // Applied to the TextField
                     .overlay(
                         Button(action: {
@@ -166,6 +167,9 @@ struct AddExercise: View {
                                 }
                         )
                 }
+        }
+        .onTapGesture {
+            isFocused = nil
         }
         .applyGradientBackground()
         .brandedBackButton(title: "Add Exercise", theme: theme.currentTheme, dismiss: dismiss)

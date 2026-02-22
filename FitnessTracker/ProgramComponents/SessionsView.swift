@@ -106,24 +106,52 @@ struct SessionsView: View {
                 )
             }
             .sheet(isPresented: $showRenameSheet) {
-               VStack {
-                   Text("Rename Program")
-                       .font(.headline)
-                       .padding()
+                VStack(spacing: 20) {
+                    Text("Rename Program")
+                        .font(.title3.bold()) // Slightly more prominent
+                        .padding(.top)
 
-                   TextField("New Program Title", text: $newProgramTitle, prompt: Text("New Program Title").foregroundColor(.white.opacity(0.5)))
-                       .padding()
-                       .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                    TextField("New Program Title", text: $newProgramTitle, axis: .vertical)
+                        .lineLimit(1...5)
+                        .padding()
+                        .background(theme.currentTheme.accent.opacity(0.8))
+                        .cornerRadius(12)
+                        .foregroundColor(.white)
+                        .tint(.white)
 
-                   Button("Rename") {
-                       renameProgram()
-                       showRenameSheet = false // Dismiss the sheet
-                   }
-                   .padding()
-               }
-               .padding()
-               .applyGradientBackground()
-           }
+                    HStack(spacing: 15) {
+                        // Cancel Button: Secondary style
+                        Button(role: .cancel) {
+                            showRenameSheet = false
+                        } label: {
+                            Text("Cancel")
+                                .frame(maxWidth: .infinity) // Makes both buttons equal width
+                                .padding(.vertical, 12)
+                                .background(Color(.systemGray5))
+                                .foregroundColor(.primary)
+                                .cornerRadius(12)
+                        }
+
+                        // Rename Button: Primary style (Clickable/Action oriented)
+                        Button {
+                            renameProgram()
+                            showRenameSheet = false
+                        } label: {
+                            Text("Rename")
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(theme.currentTheme.accent)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                        }
+                        .shadow(color: theme.currentTheme.accent.opacity(0.3), radius: 5, y: 3)
+                    }
+                }
+                .padding(25)
+                .presentationDetents([.height(500)]) // Keeps the sheet compact
+                .presentationDragIndicator(.visible)
+            }
             .brandedBackButton(title: "\(program.title) Sessions",theme: theme.currentTheme, dismiss: dismiss)
         }
     
