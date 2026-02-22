@@ -23,6 +23,7 @@ struct AddExercise: View {
     @State private var exerciseCategory: ExerciseCategory?
     @State private var searchText: String = ""
     @State private var showCreateConfirmation = false
+    @State private var dragOffset: CGFloat = 0
     @FocusState private var isFocused: Bool?
     
     let userId: String
@@ -134,9 +135,37 @@ struct AddExercise: View {
                     }
                 }
             }
+            .offset(x: dragOffset)
+            .animation(.interactiveSpring(), value: dragOffset)
             .padding(.top, 130)
             .background(Color.clear)
             .scrollContentBackground(.hidden)
+            
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
         }
         .applyGradientBackground()
         .brandedBackButton(title: "Add Exercise", theme: theme.currentTheme, dismiss: dismiss)
