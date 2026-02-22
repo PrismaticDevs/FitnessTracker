@@ -23,6 +23,7 @@ struct ProfileView: View {
     @State private var inches: String = ""
     @State private var gender: String = ""
     @State private var unitSystem: String = "Imperial"
+    @State private var dragOffset: CGFloat = 0
     
     // Account
     @State private var showEmailChange = false
@@ -31,223 +32,260 @@ struct ProfileView: View {
     var body: some View {
         ZStack {
             VStack {
-            List {
-                Section("Personal Information") {
-                    profileRow(label: "Name", value: $name, placeholder: "Enter Name", suffix: "")
-                    profileRow(label: "Gender", value: $gender, placeholder: "e.g. Male, Female, Other", suffix: "")
-                }
-                .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
-                
-                Section {
-                    // --- Change Email Button ---
-                    Button(action: { showEmailChange = true }) {
-                        HStack(spacing: 15) {
-                            Image(systemName: "envelope.fill")
-                                .foregroundColor(.white)
-                                .frame(width: 32, height: 32)
-                                .background(theme.currentTheme.accent.opacity(0.6))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Email Address")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                Text(auth.user?.email ?? "Not Set")
-                                    .font(.body)
-                                    .foregroundColor(.white)
+                VStack {
+                    List {
+                        Section {
+                            HStack {
+                                Button {
+                                    if isEditing {
+                                        saveChanges()
+                                    } else {
+                                        // Populate text fields with current profile data before entering edit mode
+                                        if let profile = auth.profile {
+                                            name = profile.display_name
+                                            age = profile.biometrics.age != nil ? "\(profile.biometrics.age!)" : ""
+                                            weight = profile.biometrics.weight != nil ? "\(profile.biometrics.weight!)" : ""
+                                            gender = profile.biometrics.gender ?? ""
+                                            
+                                            let h = Double(profile.biometrics.height ?? 0)
+                                            loadHeightIntoFields(totalHeight: h)
+                                        }
+                                        isEditing = true
+                                    }
+                                } label: {
+                                    Label(isEditing ? "Save" : "Edit", systemImage: isEditing ? "checkmark.circle.fill" : "pencil.circle.fill")
+                                }
+                                if isEditing {
+                                    Spacer()
+                                    Button {
+                                        isEditing = false
+                                    } label: {
+                                        Label("Cancel", systemImage: "xmark.circle")
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                            }
+                        }
+                        .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
+                        Section("Personal Information") {
+                            profileRow(label: "Name", value: $name, placeholder: "Enter Name", suffix: "")
+                            profileRow(label: "Gender", value: $gender, placeholder: "e.g. Male, Female, Other", suffix: "")
+                        }
+                        .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
+                        
+                        Section {
+                            // --- Change Email Button ---
+                            Button(action: { showEmailChange = true }) {
+                                HStack(spacing: 15) {
+                                    Image(systemName: "envelope.fill")
+                                        .foregroundColor(.white)
+                                        .frame(width: 32, height: 32)
+                                        .background(theme.currentTheme.accent.opacity(0.6))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Email Address")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Text(auth.user?.email ?? "Not Set")
+                                            .font(.body)
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white.opacity(0.3))
+                                }
+                                .padding(.vertical, 4)
                             }
                             
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.3))
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    
-                    // --- Change Password Button (Conditional) ---
-                    // Only show if the user actually has a password provider (not just Google)
-                    if let providerData = auth.user?.providerData,
-                       providerData.contains(where: { $0.providerID == "password" }) {
-                        
-                        Button(action: { showPasswordChange = true }) {
-                            HStack(spacing: 15) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.white)
-                                    .frame(width: 32, height: 32)
-                                    .background(Color.blue.opacity(0.6))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            // --- Change Password Button (Conditional) ---
+                            // Only show if the user actually has a password provider (not just Google)
+                            if let providerData = auth.user?.providerData,
+                               providerData.contains(where: { $0.providerID == "password" }) {
                                 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Password")
+                                Button(action: { showPasswordChange = true }) {
+                                    HStack(spacing: 15) {
+                                        Image(systemName: "lock.fill")
+                                            .foregroundColor(.white)
+                                            .frame(width: 32, height: 32)
+                                            .background(Color.blue.opacity(0.6))
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Password")
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                            Text("••••••••••••")
+                                                .font(.body)
+                                                .foregroundColor(.white)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.3))
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            } else {
+                                // Shown for Google/Social users
+                                HStack(spacing: 15) {
+                                    Image(systemName: "person.badge.shield.checkmark.fill")
+                                        .foregroundColor(.white)
+                                        .frame(width: 32, height: 32)
+                                        .background(Color.gray.opacity(0.4))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    
+                                    Text("Managed via Google")
                                         .font(.subheadline)
                                         .foregroundColor(.gray)
-                                    Text("••••••••••••")
-                                        .font(.body)
-                                        .foregroundColor(.white)
                                 }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.3))
+                                .padding(.vertical, 4)
                             }
-                            .padding(.vertical, 4)
+                        } header: {
+                            Text("Login & Security").foregroundColor(.gray)
                         }
-                    } else {
-                        // Shown for Google/Social users
-                        HStack(spacing: 15) {
-                            Image(systemName: "person.badge.shield.checkmark.fill")
-                                .foregroundColor(.white)
-                                .frame(width: 32, height: 32)
-                                .background(Color.gray.opacity(0.4))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                            
-                            Text("Managed via Google")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.vertical, 4)
-                    }
-                } header: {
-                    Text("Login & Security").foregroundColor(.gray)
-                }
-                .listRowBackground(theme.currentTheme.accent2.opacity(0.5))
-                
-                Section("Biometrics") {
-                    profileRow(label: "Age", value: $age, placeholder: "0", suffix: "yrs", keyboard: .numberPad)
-                    
-                    HStack {
-                        Text("Height")
-                            .foregroundColor(.gray)
-                            .frame(width: 100, alignment: .leading)
+                        .listRowBackground(theme.currentTheme.accent2.opacity(0.5))
                         
-                        if isEditing {
-                            if unitSystem == "Imperial" {
-                                HStack(spacing: 8) {
-                                    HStack(spacing: 2) {
-                                        TextField("5", text: $feet)
-                                            .keyboardType(.numberPad)
-                                            .multilineTextAlignment(.trailing)
-                                        Text("ft").font(.caption).foregroundColor(.gray)
-                                    }
-                                    .frame(width: 60)
-                                    .padding(6)
-                                    .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
-                                    
-                                    HStack(spacing: 2) {
-                                        TextField("11", text: $inches)
-                                            .keyboardType(.numberPad)
-                                            .multilineTextAlignment(.trailing)
-                                        Text("in").font(.caption).foregroundColor(.gray)
-                                    }
-                                    .frame(width: 60)
-                                    .padding(6)
-                                    .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
-                                }
-                            } else {
-                                HStack(spacing: 4) {
-                                    TextField("170", text: $height)
-                                        .keyboardType(.numberPad)
-                                        .multilineTextAlignment(.trailing)
-                                    Text("cm").foregroundColor(.white.opacity(0.5))
-                                }
-                                .frame(maxWidth: 120)
-                                .padding(6)
-                                .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
-                            }
-                        } else {
-                            // View Mode: Display based on current local state
-                            if unitSystem == "Imperial" {
-                                Text("\(feet) ft \(inches) in")
-                                    .foregroundColor(.white)
-                            } else {
-                                Text("\(height) cm")
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        Spacer()
-                    }
-                    
-                    profileRow(
-                        label: "Weight",
-                        value: $weight,
-                        placeholder: "0",
-                        suffix: unitSystem == "Metric" ? "kg" : "lbs",
-                        keyboard: .numberPad
-                    )
-                    Picker("Unit System", selection: Binding(
-                        get: { unitSystem },
-                        set: { newValue in
-                            if unitSystem != newValue {
-                                convertUnits(to: newValue)
-                                unitSystem = newValue
-                            }
-                        }
-                    )) {
-                        Text("Imperial (lbs/ft)").tag("Imperial")
-                        Text("Metric (kg/cm)").tag("Metric")
-                    }
-                }
-                .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
-                .onTapGesture {
-                    // This allows the user to dismiss the keyboard by tapping the row
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-                
-            }
-            .sheet(isPresented: $showEmailChange) {
-                UpdateEmailView()
-                    .environmentObject(auth) // Pass the auth manager to the sheet
-            }
-            .sheet(isPresented: $showPasswordChange) {
-                UpdatePasswordView() // We'll define this below
-                    .environmentObject(auth)
-            }
-            .scrollContentBackground(.hidden)
-            .applyGradientBackground()
-            .tint(theme.currentTheme.accent)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationTitle("Profile")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") { dismiss() }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(isEditing ? "Save" : "Edit") {
-                        if isEditing {
-                            saveChanges()
-                        } else {
-                            // Populate text fields with current profile data before entering edit mode
-                            if let profile = auth.profile {
-                                name = profile.display_name
-                                age = profile.biometrics.age != nil ? "\(profile.biometrics.age!)" : ""
-                                weight = profile.biometrics.weight != nil ? "\(profile.biometrics.weight!)" : ""
-                                gender = profile.biometrics.gender ?? ""
+                        Section("Biometrics") {
+                            profileRow(label: "Age", value: $age, placeholder: "0", suffix: "yrs", keyboard: .numberPad)
+                            
+                            HStack {
+                                Text("Height")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 100, alignment: .leading)
                                 
-                                let h = Double(profile.biometrics.height ?? 0)
-                                loadHeightIntoFields(totalHeight: h)
+                                if isEditing {
+                                    if unitSystem == "Imperial" {
+                                        HStack(spacing: 8) {
+                                            HStack(spacing: 2) {
+                                                TextField("5", text: $feet)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                Text("ft").font(.caption).foregroundColor(.gray)
+                                            }
+                                            .frame(width: 60)
+                                            .padding(6)
+                                            .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                            
+                                            HStack(spacing: 2) {
+                                                TextField("11", text: $inches)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                Text("in").font(.caption).foregroundColor(.gray)
+                                            }
+                                            .frame(width: 60)
+                                            .padding(6)
+                                            .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                        }
+                                    } else {
+                                        HStack(spacing: 4) {
+                                            TextField("170", text: $height)
+                                                .keyboardType(.numberPad)
+                                                .multilineTextAlignment(.trailing)
+                                            Text("cm").foregroundColor(.white.opacity(0.5))
+                                        }
+                                        .frame(maxWidth: 120)
+                                        .padding(6)
+                                        .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                    }
+                                } else {
+                                    // View Mode: Display based on current local state
+                                    if unitSystem == "Imperial" {
+                                        Text("\(feet) ft \(inches) in")
+                                            .foregroundColor(.white)
+                                    } else {
+                                        Text("\(height) cm")
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                Spacer()
                             }
-                            isEditing = true
+                            
+                            profileRow(
+                                label: "Weight",
+                                value: $weight,
+                                placeholder: "0",
+                                suffix: unitSystem == "Metric" ? "kg" : "lbs",
+                                keyboard: .numberPad
+                            )
+                            Picker("Unit System", selection: Binding(
+                                get: { unitSystem },
+                                set: { newValue in
+                                    if unitSystem != newValue {
+                                        convertUnits(to: newValue)
+                                        unitSystem = newValue
+                                    }
+                                }
+                            )) {
+                                Text("Imperial (lbs/ft)").tag("Imperial")
+                                Text("Metric (kg/cm)").tag("Metric")
+                            }
                         }
+                        .listRowBackground(theme.currentTheme.accent2.opacity(0.8))
+                        .onTapGesture {
+                            // This allows the user to dismiss the keyboard by tapping the row
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                        
+                    }
+                    .sheet(isPresented: $showEmailChange) {
+                        UpdateEmailView()
+                            .environmentObject(auth) // Pass the auth manager to the sheet
+                    }
+                    .sheet(isPresented: $showPasswordChange) {
+                        UpdatePasswordView() // We'll define this below
+                            .environmentObject(auth)
+                    }
+                    .scrollContentBackground(.hidden)
+                    .tint(theme.currentTheme.accent)
+                    .onAppear {
+                        let profileHeight = Double(auth.profile?.biometrics.height ?? 0)
+                        name = auth.profile?.display_name ?? ""
+                        age = "\(auth.profile?.biometrics.age ?? 0)"
+                        weight = "\(auth.profile?.biometrics.weight ?? 0)"
+                        gender = auth.profile?.biometrics.gender ?? ""
+                        
+                        // This fills the feet/inches/height strings correctly
+                        loadHeightIntoFields(totalHeight: profileHeight)
                     }
                 }
+                .padding(.top, 120)
             }
-            .onAppear {
-                let profileHeight = Double(auth.profile?.biometrics.height ?? 0)
-                name = auth.profile?.display_name ?? ""
-                age = "\(auth.profile?.biometrics.age ?? 0)"
-                weight = "\(auth.profile?.biometrics.weight ?? 0)"
-                gender = auth.profile?.biometrics.gender ?? ""
-                
-                // This fills the feet/inches/height strings correctly
-                loadHeightIntoFields(totalHeight: profileHeight)
-            }
+            .offset(x: dragOffset)
+            .animation(.interactiveSpring(), value: dragOffset)
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
         }
-        }
+        .applyAppBranding()
+        .brandedBackButton(title: "Profile", theme: theme.currentTheme, dismiss: dismiss)
     }
     // A helper function to toggle between Text and TextField
     @ViewBuilder

@@ -130,18 +130,6 @@ struct SessionDetailView: View {
                 
                 Spacer()
                 
-                // Rename Session Button
-                Button(action: {
-                    newSessionName = session.name
-                    showingRenameSheet = true
-                }) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-                
                 // Your existing Exercise Menu/Toolbar
                 ExerciseToolbar(
                     title: "",
@@ -152,6 +140,18 @@ struct SessionDetailView: View {
                     }
                 )
                 .foregroundColor(.white)
+                
+                Spacer()
+                
+                // Rename Session Button
+                Button(action: {
+                    newSessionName = session.name
+                    showingRenameSheet = true
+                }) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                }
                 
                 Spacer()
             }

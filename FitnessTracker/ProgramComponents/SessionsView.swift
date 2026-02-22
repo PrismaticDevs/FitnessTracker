@@ -143,7 +143,6 @@ struct SessionsView: View {
                 NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
                     Image(systemName: "plus.circle.fill")
                         .foregroundColor(.white)
-                        .font(.title2)
                 }
                 Spacer()
                 // Star/Favorite

@@ -7,6 +7,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
+import LocalAuthentication
 
 @MainActor
 class AuthManager: ObservableObject {
@@ -15,6 +16,7 @@ class AuthManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var authErrorMessage: String? = nil
     @Published var isUpdating: Bool = false
+    @Published var isBiometricallyUnlocked = false
     // Preview-only override for a stable user id in SwiftUI previews
     var previewUserID: String? = nil
     private let db = Firestore.firestore()
@@ -175,6 +177,23 @@ class AuthManager: ObservableObject {
             print("❌ Firestore Error: \(error)")
         }
     }
+    
+    func requestBiometricUnlock() {
+            let context = LAContext()
+            var error: NSError?
+
+            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock your Fitness Tracker") { success, _ in
+                    DispatchQueue.main.async {
+                        self.isBiometricallyUnlocked = success
+                    }
+                }
+            } else {
+                // No biometrics available (no passcode set), auto-unlock or handle error
+                self.isBiometricallyUnlocked = true
+            }
+        }
+    
     // MARK: - Sensitive Account Actions
 
         /// Sends a verification link to the new email.

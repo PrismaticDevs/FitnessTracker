@@ -1,3 +1,12 @@
+//
+//  UpdatePasswordView.swift
+//  FitnessTracker
+//
+//  Created by Matt on 2/21/26.
+//
+import SwiftUI
+import FirebaseAuth
+
 struct UpdatePasswordView: View {
         @EnvironmentObject var auth: AuthManager
         @Environment(\.dismiss) var dismiss

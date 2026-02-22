@@ -9,7 +9,17 @@ import FirebaseFirestore
 import SwiftUI
 import SwiftData
 
+enum SyncStatus: String, Codable {
+    case synced        // Local and Cloud are identical
+    case localNewer    // User worked out, but hasn't uploaded yet
+    case cloudNewer    // User worked out on another device; local is old
+    case notInCloud    // This workout history exists only on this phone
+    case conflict      // Both have changed since last sync; requires merge logic
+}
+
+@MainActor
 class SyncManager: ObservableObject {
+    @Published var currentStatus: SyncStatus = .synced
     private let db = Firestore.firestore()
     private let defaults = UserDefaults.standard
     static let shared = SyncManager()
@@ -228,5 +238,56 @@ class SyncManager: ObservableObject {
             )
         }
     }
+    
+    func checkSyncStatus(for userId: String, localHistory: WorkoutHistory) async -> SyncStatus {
+        // 1. Fetch the corresponding document from Firestore
+        let remoteDoc = try? await db.collection("users").document(userId)
+            .collection("history").document(localHistory.id.uuidString).getDocument()
+        
+        guard let remoteData = remoteDoc?.data() else { return .notInCloud }
+        
+        let remoteTimestamp = remoteData["lastUpdated"] as? Date ?? .distantPast
+        let remoteEntryCount = remoteData["entryCount"] as? Int ?? 0
+        
+        // 2. Compare with Local SwiftData
+        if localHistory.lastUpdated > remoteTimestamp {
+            return .localNewer // Prompt to Push
+        } else if localHistory.lastUpdated < remoteTimestamp {
+            return .cloudNewer // Prompt to Pull
+        } else {
+            return .synced
+        }
+    }
+    
+    func compareLocalToCloud(localHistory: WorkoutHistory) async {
+            guard let userId = localHistory.userId.isEmpty ? nil : localHistory.userId else { return }
+
+            let docRef = db.collection("users").document(userId)
+                          .collection("history").document(localHistory.id.uuidString)
+
+            do {
+                let snapshot = try await docRef.getDocument()
+                
+                if !snapshot.exists {
+                    DispatchQueue.main.async { self.currentStatus = .notInCloud }
+                    return
+                }
+
+                let remoteData = snapshot.data()
+                let remoteTimestamp = (remoteData?["lastUpdated"] as? Timestamp)?.dateValue() ?? .distantPast
+
+                DispatchQueue.main.async {
+                    if localHistory.lastUpdated > remoteTimestamp {
+                        self.currentStatus = .localNewer
+                    } else if localHistory.lastUpdated < remoteTimestamp {
+                        self.currentStatus = .cloudNewer
+                    } else {
+                        self.currentStatus = .synced
+                    }
+                }
+            } catch {
+                print("Sync check failed: \(error)")
+            }
+        }
     
 }

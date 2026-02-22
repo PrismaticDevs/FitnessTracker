@@ -139,13 +139,15 @@ final class WorkoutHistory: UserOwned {
     var date: Date
     var exercise: String
     var entries: [StrengthEntry]
+    var lastUpdated: Date
 
-    init(id: UUID = UUID(), userId: String = "", date: Date = Date(), exercise: String = "", entries: [StrengthEntry] = []) {
+    init(id: UUID = UUID(), userId: String = "", date: Date = Date(), exercise: String = "", entries: [StrengthEntry] = [], lastUpdated: Date = Date()) {
         self.id = id
         self.userId = userId
         self.date = date
         self.exercise = exercise
         self.entries = entries
+        self.lastUpdated = lastUpdated
     }
 }
 

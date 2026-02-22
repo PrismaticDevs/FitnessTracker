@@ -14,7 +14,7 @@ import GoogleSignIn
 
 @main
 struct FitnessTrackerApp: App {
-    @StateObject private var authManager = AuthManager()
+    @StateObject private var auth = AuthManager()
     init() {
         //Firebase and Firestore
         FirebaseApp.configure()
@@ -35,13 +35,24 @@ struct FitnessTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authManager.user != nil {
-                    ContentView()
-                } else {
+                if auth.user == nil {
                     FirebaseAuthView()
+                } else if !auth.isBiometricallyUnlocked {
+                    VStack(spacing: 20) {
+                        Image(systemName: "loack.fill")
+                            .font(.system(size: 50))
+                        Text("Login Required")
+                        Button("Use FaceID") {
+                            auth.requestBiometricUnlock()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .onAppear { auth.requestBiometricUnlock() }
+                } else {
+                    ContentView()
                 }
             }
-            .environmentObject(authManager)
+            .environmentObject(auth)
             .onOpenURL { url in
                 GIDSignIn.sharedInstance.handle(url)
             }
