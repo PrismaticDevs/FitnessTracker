@@ -41,8 +41,6 @@ struct StrengthEntryView: View {
     @State var itemToDelete: StrengthEntry?
     @State var showConfirmationDialogue = false
     @State var showHistory: Bool = false
-    @State private var showSavedCheckmark = false
-    @State private var showAllSavedCheckmark = false
     @State private var showEmptyEntryAlert = false
     @State private var combinedInput: String = ""
     @State private var leftInput: String = ""
@@ -141,18 +139,6 @@ struct StrengthEntryView: View {
         }
     }
     
-    private func uploadAllExercisesPreferencesToCloud() {
-        guard let userId = auth.user?.uid else { return }
-        
-        // Use the SyncManager instead of rewriting Firestore code here
-        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
-        
-        // UI feedback logic remains in the view
-        withAnimation(.spring()) { showAllSavedCheckmark = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation { showAllSavedCheckmark = false }
-        }
-    }
     var body: some View {
 
         VStack(spacing: 16) {
@@ -213,22 +199,6 @@ struct StrengthEntryView: View {
                     Image(systemName: showHistory ? "eye.slash" : "eye")
                 }
                 Spacer()
-                Button {
-                    saveToHistory()
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                }
-                .alert(isPresented: $emptyEntry) {
-                    Alert(title: Text("Error"), message: Text("No valid entry to save. All weight fields are empty."), dismissButton: .default(Text("OK")))
-                }
-                if showSavedCheckmark {
-                    Text("Saved")
-                        .foregroundColor(.green)
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.green)
-                        .transition(.scale)
-                }
-                Spacer()
             }
             
             if !showHistory {
@@ -270,24 +240,6 @@ struct StrengthEntryView: View {
         .cornerRadius(15)
         .onTapGesture {
             isFocused = nil
-        }
-        .overlay(alignment: .top) {
-            if showAllSavedCheckmark {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Saved All")
-                        .foregroundColor(.green)
-                        .font(.headline)
-                }
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.black.opacity(0.3))
-                )
-                .transition(.scale.combined(with: .opacity))
-                .padding(.top, 8)
-            }
         }
         .onAppear {
             if let userId = auth.user?.uid {
@@ -421,51 +373,6 @@ struct StrengthEntryView: View {
                 reps:     val(repsInputs, i),
                 rest:     val(restInputs, i)
             )
-        }
-    }
-    
-    private func saveToHistory() {
-        print("saving")
-        print(combinedInputs)
-        guard !(combinedInputs == [""] && leftInputs == [""] && rightInputs == [""] && repsInputs == [""] && restInputs == [""]) else {
-                    emptyEntry = true
-                    return
-                }
-                emptyEntry = false
-        let setRecs = makeSetRecords()
-        
-        // require at least one non-zero weight across combined or left/right
-        let anyWeight = setRecs.contains { $0.combined != 0 || $0.left != 0 || $0.right != 0 }
-        guard anyWeight else {
-            showEmptyEntryAlert = true
-            return
-        }
-        
-        // Build a StrengthEntry (match your StrengthEntry @Model initializer)
-        let workoutEntry = StrengthEntry(
-            exercise: exercise.name,
-            date: date,
-            sets: setRecs,
-            note: note,
-        )
-        
-        // Wrap in WorkoutHistory
-        let history = WorkoutHistory(
-            id: UUID(),
-            date: date,
-            exercise: exercise.name,
-            entries: [workoutEntry]
-        )
-        
-        context.insert(history)
-        print(history.entries.count)
-        do {
-            try context.save()
-            uploadExercisePreferencesToCloud()
-            showSavedCheckmark = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSavedCheckmark = false }
-        } catch {
-            print("Save error:", error)
         }
     }
     

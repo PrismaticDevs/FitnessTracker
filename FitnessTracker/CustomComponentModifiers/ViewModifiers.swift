@@ -139,28 +139,44 @@ extension View {
         self
             .navigationBarBackButtonHidden(true)
             .edgesIgnoringSafeArea(.top)
-            .overlay(alignment: .topLeading) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 26, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 14)
-                        .background(theme.accent)
-                        .clipShape(Capsule())
-                        .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
-                    }
-                    .padding(.leading, 16)
-                    .padding(.top, 10) // Adjust based on the iPhone notch/island
-                    Spacer()
+            .overlay(alignment: .top) {
+                HStack(alignment: .center, spacing: 12) {
+                    // 1. The Actual Back Button
+                    backButton(theme: theme, dismiss: dismiss)
+                    
+                    // 2. Centered & Wrapping Title
                     Text(title)
                         .font(.headline)
                         .foregroundColor(.white)
-                    Spacer()
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2) // Allows wrapping to 2 lines if needed
+                        .minimumScaleFactor(0.8) // Shrinks slightly before wrapping
+                        .frame(maxWidth: .infinity) // Occupies all available center space
+                    
+                    // 3. The "Ghost" Spacer
+                    // We mirror the button's layout exactly so the title remains perfectly centered
+                    backButton(theme: theme, dismiss: dismiss)
+                        .opacity(0)
+                        .disabled(true)
+                        .accessibilityHidden(true)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
             }
+    }
+
+    // Helper to keep the button code DRY and ensure identical sizing
+    @ViewBuilder
+    private func backButton(theme: AppTheme, dismiss: DismissAction) -> some View {
+        Button(action: { dismiss() }) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .background(theme.accent)
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
+        }
     }
 }

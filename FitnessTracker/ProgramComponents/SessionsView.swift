@@ -43,7 +43,7 @@ struct SessionsView: View {
                     }
                     .listStyle(PlainListStyle())
                     .scrollContentBackground(.hidden) // Crucial: hides the default grey List background
-                    .padding(.top, 180)
+                    .padding(.top, 130)
                     .padding(.horizontal, 12)
                 }
                 .offset(x: dragOffset)

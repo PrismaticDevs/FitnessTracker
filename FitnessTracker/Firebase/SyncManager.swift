@@ -186,6 +186,22 @@ class SyncManager: ObservableObject {
         }
     }
     
+    /// Overload to handle active 'Session' objects by converting them on the fly
+    func uploadWholeSession(from session: Session, userId: String) async throws {
+        // 1. Create a temporary WorkoutHistory object from the session data
+        // You'll need to map your session.exercises to [StrengthEntry] here
+        let history = WorkoutHistory(
+            id: UUID(), // Or session.id if you want them linked
+            userId: userId,
+            date: Date(),
+            exercise: session.name,
+            entries: [] // Add mapping logic for your session's current data
+        )
+        
+        // 2. Pass it to the history upload helper
+        self.uploadSessionHistory(userId: userId, history: history)
+    }
+    
     func uploadSessionHistory(userId: String, history: WorkoutHistory) {
         let historyRef = db.collection("Users").document(userId)
                            .collection("history").document(history.id.uuidString)

@@ -23,6 +23,13 @@ struct SessionDetailView: View {
     @State private var newSessionName: String = ""
     @State private var dragOffset: CGFloat = 0
     
+    // Save and Upload
+    @State private var network = NetworkMonitor()
+    @State private var hasSavedLocally = false
+    @State private var isUploading = false
+    @State private var isOnline = true
+    @State private var showSyncError = false
+    
     @State private var completedExerciseIds: Set<UUID> = []
     @State var exercises: [Exercise]
 
@@ -113,20 +120,27 @@ struct SessionDetailView: View {
     }
     
     private var customFloatingBar: some View {
-            HStack {
-                Spacer()
-                
-                // Save/Finish Workout Button
-                Button(action: {
-                    finishWorkoutSession()
-                    uploadWholeSessionToCloud()
-                    dismiss() // Optional: take user back after finishing
-                }) {
-                    Image(systemName: "icloud.and.arrow.up")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.4) : .white)
+        HStack {
+            Spacer()
+            
+            // Save/Finish Workout Button
+            Button(action: {
+                if !hasSavedLocally {
+                    handleLocalSave()
+                } else {
+                    handleCloudUpload()
                 }
-                .disabled(completedExerciseIds.isEmpty)
+            }) {
+                VStack(spacing: 2) {
+                    Image(systemName: isUploading ? "arrow.clockwise" : hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down")
+                        .font(.system(size: 20, weight: .bold))
+                        .rotationEffect(.degrees(isUploading ? 360 : 0))
+                        .animation(isUploading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isUploading)
+                }
+                .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.3) : .white)
+            }
+            .disabled(completedExerciseIds.isEmpty || (hasSavedLocally && isOnline))
+            .opacity((hasSavedLocally && !network.isConnected) ? 0.5 : 1.0)
                 
                 Spacer()
                 
@@ -159,7 +173,75 @@ struct SessionDetailView: View {
             .background(theme.currentTheme.accent)
             .cornerRadius(30)
             .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
+            .alert("Upload Failed", isPresented: $showSyncError) {
+                        Button("Retry") { startCloudUpload() }
+                        Button("Cancel", role: .cancel) { }
+                    } message: {
+                        Text("We couldn't reach the server. Please check your connection and try again.")
+                    }
         }
+    
+    private func startCloudUpload() {
+        guard network.isConnected else {
+            showSyncError = true
+            return
+        }
+        guard let userId = auth.user?.uid else {
+            showSyncError = true
+            return
+        }
+        
+        isUploading = true
+        
+        Task {
+            do {
+                // Pass the session/history object here
+                try await SyncManager.shared.uploadWholeSession(from: session, userId: userId)
+                
+                await MainActor.run {
+                    isUploading = false
+                    // Haptic feedback for successful cloud sync
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    isUploading = false
+                    showSyncError = true
+                }
+            }
+        }
+    }
+    
+    private func handleLocalSave() {
+        // 1. Run your existing SwiftData logic
+        finishWorkoutSession()
+        
+        // 2. Trigger haptic feedback for success
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+        withAnimation {
+            hasSavedLocally = true
+        }
+    }
+
+    private func handleCloudUpload() {
+        guard isOnline else { return }
+        
+        isUploading = true
+        
+        // Use the function you already have
+        uploadWholeSessionToCloud()
+        
+        // Simulate a slight delay for the spinner, then finish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            isUploading = false
+            // Option A: Just stay here and show a checkmark
+            // Option B: Dismiss the view
+            dismiss()
+        }
+    }
     
     private func updateAIWithLiveSessionData() {
         let details = generateSessionContext()
