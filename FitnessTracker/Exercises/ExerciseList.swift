@@ -8,11 +8,20 @@ class ExerciseSeeder {
         let descriptor = FetchDescriptor<ExerciseCategory>()
         let existingCount = (try? context.fetchCount(descriptor)) ?? 0
         
+        // Only seed if the database is empty
         guard existingCount == 0 else { return }
         
+        // Pull the hardcoded list
         let seedData = ExerciseList().categories
         
         for category in seedData {
+            category.userId = "system" // Force the tag
+            
+            // Tag children as well to ensure total consistency
+            for exercise in category.exercises {
+                exercise.userId = "system"
+            }
+            
             context.insert(category)
         }
         

@@ -39,7 +39,7 @@ struct FitnessTrackerApp: App {
                     FirebaseAuthView()
                 } else if !auth.isBiometricallyUnlocked {
                     VStack(spacing: 20) {
-                        Image(systemName: "loack.fill")
+                        Image(systemName: "lock.fill")
                             .font(.system(size: 50))
                         Text("Login Required")
                         Button("Use FaceID") {

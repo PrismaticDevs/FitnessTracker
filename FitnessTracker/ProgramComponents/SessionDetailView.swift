@@ -61,11 +61,70 @@ struct SessionDetailView: View {
                         Color.clear.frame(height: 1)
                     }
                     .clipped()
-                    customFloatingBar
+                    FloatingActionBar {
+                        Spacer()
+                        
+                            // Rename Session Button
+                            Button(action: {
+                                newSessionName = session.name
+                                showingRenameSheet = true
+                            }) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Spacer()
+                            
+                            // Your existing Exercise Menu/Toolbar
+                            ExerciseToolbar(
+                                title: "",
+                                exerciseName: $selectedExerciseName,
+                                exercisesSelected: session.exercises.map { $0.name },
+                                onExerciseSelected: { exerciseName in
+                                    addExercise(named: exerciseName)
+                                }
+                            )
+                            .foregroundColor(.white)
+                            
+                            Spacer()
+                        
+                            // Save/Finish Workout Button
+                            Button(action: {
+                                if !hasSavedLocally {
+                                    handleLocalSave()
+                                } else {
+                                    handleCloudUpload()
+                                }
+                            }) {
+                                VStack(spacing: 2) {
+                                    Image(systemName: isUploading ? "arrow.clockwise" : hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .rotationEffect(.degrees(isUploading ? 360 : 0))
+                                        .animation(isUploading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isUploading)
+                                }
+                                .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.3) : .white)
+                            }
+                            .disabled(completedExerciseIds.isEmpty || (hasSavedLocally && isOnline))
+                            .opacity((hasSavedLocally && !network.isConnected) ? 0.5 : 1.0)
+                            
+                            Spacer()
+                        }
+                        .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+                        .background(theme.currentTheme.accent)
+                        .cornerRadius(30)
+                        .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
+                        .alert("Upload Failed", isPresented: $showSyncError) {
+                                    Button("Retry") { startCloudUpload() }
+                                    Button("Cancel", role: .cancel) { }
+                                } message: {
+                                    Text("We couldn't reach the server. Please check your connection and try again.")
+                                }
                 }
                 .offset(x: dragOffset)
                 .animation(.interactiveSpring(), value: dragOffset)
                 .padding(.horizontal, 12)
+                .padding(.top, 12)
                 .onAppear {
                     updateAIWithLiveSessionData()
                 }
@@ -118,68 +177,6 @@ struct SessionDetailView: View {
         }
         .brandedBackButton(title: "\(session.name) Exercises", theme: theme.currentTheme, dismiss: dismiss)
     }
-    
-    private var customFloatingBar: some View {
-        HStack {
-            Spacer()
-            
-            // Save/Finish Workout Button
-            Button(action: {
-                if !hasSavedLocally {
-                    handleLocalSave()
-                } else {
-                    handleCloudUpload()
-                }
-            }) {
-                VStack(spacing: 2) {
-                    Image(systemName: isUploading ? "arrow.clockwise" : hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down")
-                        .font(.system(size: 20, weight: .bold))
-                        .rotationEffect(.degrees(isUploading ? 360 : 0))
-                        .animation(isUploading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isUploading)
-                }
-                .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.3) : .white)
-            }
-            .disabled(completedExerciseIds.isEmpty || (hasSavedLocally && isOnline))
-            .opacity((hasSavedLocally && !network.isConnected) ? 0.5 : 1.0)
-                
-                Spacer()
-                
-                // Your existing Exercise Menu/Toolbar
-                ExerciseToolbar(
-                    title: "",
-                    exerciseName: $selectedExerciseName,
-                    exercisesSelected: session.exercises.map { $0.name },
-                    onExerciseSelected: { exerciseName in
-                        addExercise(named: exerciseName)
-                    }
-                )
-                .foregroundColor(.white)
-                
-                Spacer()
-                
-                // Rename Session Button
-                Button(action: {
-                    newSessionName = session.name
-                    showingRenameSheet = true
-                }) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-            }
-            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
-            .background(theme.currentTheme.accent)
-            .cornerRadius(30)
-            .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
-            .alert("Upload Failed", isPresented: $showSyncError) {
-                        Button("Retry") { startCloudUpload() }
-                        Button("Cancel", role: .cancel) { }
-                    } message: {
-                        Text("We couldn't reach the server. Please check your connection and try again.")
-                    }
-        }
     
     private func startCloudUpload() {
         guard network.isConnected else {

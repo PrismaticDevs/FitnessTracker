@@ -18,49 +18,79 @@ struct SessionsView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-                VStack {
-                    List {
-                        ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
-                            // Custom Row Styling to match ProgramRowView
-                            HStack {
-                                NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program, exercises: session.exercises)) {
-                                    Text(session.name)
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .tint(.white)
+            VStack {
+                List {
+                    ForEach(program.sessions.sorted(by: { $0.name < $1.name })) { session in
+                        // Custom Row Styling to match ProgramRowView
+                        HStack {
+                            NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program, exercises: session.exercises)) {
+                                Text(session.name)
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(.white)
                             }
-                            .listRowBackground(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.1)) // Subtle glass effect
-                                        .padding(.vertical, 4)
-                                )
-                            .listRowSeparator(.hidden) // Removes the thin lines between rows
-                            .padding()
+                            .buttonStyle(PlainButtonStyle())
+                            .tint(.white)
                         }
-                        .onDelete(perform: confirmDeleteSession)
+                        .listRowBackground(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white.opacity(0.1)) // Subtle glass effect
+                                    .padding(.vertical, 4)
+                            )
+                        .listRowSeparator(.hidden) // Removes the thin lines between rows
+                        .padding()
                     }
-                    .listStyle(PlainListStyle())
-                    .scrollContentBackground(.hidden) // Crucial: hides the default grey List background
-                    .padding(.top, 130)
-                    .padding(.horizontal, 12)
+                    .onDelete(perform: confirmDeleteSession)
                 }
-                .offset(x: dragOffset)
-                .animation(.interactiveSpring(), value: dragOffset)
-                .onAppear {
-                    if let userId = auth.user?.uid {
-                        // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
-                        SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
-                    }
-                    
-                    aiManager.updateContext(
-                        screen: "Sessions List",
-                        details: "User is viewing the sessions for program: \(program.title)",
-                        preferences: generateProgramOverview()
-                    )
+                .listStyle(PlainListStyle())
+                .scrollContentBackground(.hidden) // Crucial: hides the default grey List background
+                .padding(.top, 130)
+                .padding(.horizontal, 12)
+            }
+            .offset(x: dragOffset)
+            .animation(.interactiveSpring(), value: dragOffset)
+            .onAppear {
+                if let userId = auth.user?.uid {
+                    // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
+                    SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
                 }
-                customFloatingBar
+                
+                aiManager.updateContext(
+                    screen: "Sessions List",
+                    details: "User is viewing the sessions for program: \(program.title)",
+                    preferences: generateProgramOverview()
+                )
+            }
+            FloatingActionBar {
+                Spacer()
+                // Rename Button
+                Button(action: {
+                    newProgramTitle = program.title
+                    showRenameSheet = true
+                }) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                // Add Session
+                NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                // Star/Favorite
+                Button(action: {
+                    program.starred.toggle()
+                    try? context.save()
+                }) {
+                    Image(systemName: program.starred ? "star.fill" : "star")
+                        .foregroundColor(program.starred ? .yellow : .white)
+                }
+                Spacer()
+            }
+            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+            .background(theme.currentTheme.accent) // Themed bar color
+            .cornerRadius(30)
+            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .leading) {
@@ -153,40 +183,6 @@ struct SessionsView: View {
                 .presentationDragIndicator(.visible)
             }
             .brandedBackButton(title: "\(program.title) Sessions",theme: theme.currentTheme, dismiss: dismiss)
-        }
-    
-    private var customFloatingBar: some View {
-            HStack {
-                Spacer()
-                // Rename Button
-                Button(action: {
-                    newProgramTitle = program.title
-                    showRenameSheet = true
-                }) {
-                    Image(systemName: "pencil")
-                        .foregroundColor(.white)
-                }
-                Spacer()
-                // Add Session
-                NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.white)
-                }
-                Spacer()
-                // Star/Favorite
-                Button(action: {
-                    program.starred.toggle()
-                    try? context.save()
-                }) {
-                    Image(systemName: program.starred ? "star.fill" : "star")
-                        .foregroundColor(program.starred ? .yellow : .white)
-                }
-                Spacer()
-            }
-            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
-            .background(theme.currentTheme.accent) // Themed bar color
-            .cornerRadius(30)
-            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
         }
     
     private func generateProgramOverview() -> String {
