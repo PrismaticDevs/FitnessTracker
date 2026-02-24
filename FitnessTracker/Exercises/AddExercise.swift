@@ -9,23 +9,19 @@ import SwiftData
 import FirebaseAuth
 
 struct AddExercise: View {
-    //Shared Environment
     @EnvironmentObject var auth: AuthManager
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
-    // Search state
+    
     @State private var searchText: String = ""
     @State private var selectedType: ExerciseType = .strength
-    // Categories
+    
     @Query var categories: [ExerciseCategory] = []
     @State private var newCategoryName: String = ""
-    @State private var selectedCategoryID: PersistentIdentifier?
-    @State private var selectedCategory: ExerciseCategory?
+    @State private var selectedCategoryID: PersistentIdentifier? // Use this as the single source of truth
     @State private var expandedCategories: Set<PersistentIdentifier> = []
-    //Exercise Deletion
     @State private var exerciseToDelete: Exercise?
-    // Focus and swipe
     @State private var dragOffset: CGFloat = 0
     @FocusState private var isFocused: Bool?
     
@@ -39,17 +35,11 @@ struct AddExercise: View {
         }
         _categories = Query(filter: predicate, sort: \.name)
         
-        // --- CORRECTED STYLING ---
+        // Custom Segmented Control Appearance
         let appearance = UISegmentedControl.appearance()
-        
-        // Text color for segments
         appearance.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
         appearance.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.7)], for: .normal)
-        
-        // Background color of the selected "sliding" segment
-        appearance.selectedSegmentTintColor = UIColor(theme.currentTheme.accent2)
-        
-        // Background color of the whole picker track (using withAlphaComponent)
+        appearance.selectedSegmentTintColor = UIColor(ThemeManager.shared.currentTheme.accent2)
         appearance.backgroundColor = UIColor.white.withAlphaComponent(0.1)
     }
 
@@ -67,41 +57,24 @@ struct AddExercise: View {
         }
     }
 
-    // MARK: View body
     var body: some View {
         ZStack {
             Form {
-                // 1. Management (New Category) moved to the top
+                // 1. Management: Create Category
                 managementSection
                 
-                // 2. Creation (Exercise Details)
+                // 2. Creation: Add Exercise to existing/new category
                 creationSection
                 
-                // 3. Library (Browsing)
+                // 3. Library: Browse all
                 librarySection
             }
             .offset(x: dragOffset)
-            .animation(.interactiveSpring(), value: dragOffset)
             .padding(.top, 130)
             .scrollContentBackground(.hidden)
             
-            // Side-drag dismiss area
-            GeometryReader { geo in
-                Color.clear
-                    .frame(width: 24)
-                    .contentShape(Rectangle())
-                    .highPriorityGesture(
-                        DragGesture().onChanged { val in
-                            if val.startLocation.x < 24 && val.translation.width > 0 {
-                                dragOffset = val.translation.width
-                            }
-                        }
-                        .onEnded { val in
-                            if dragOffset > 80 { dismiss() }
-                            else { withAnimation { dragOffset = 0 } }
-                        }
-                    )
-            }
+            // Drag to dismiss logic stays the same...
+            leadingDragOverlay
         }
         .onAppear {
             if categories.isEmpty { ExerciseSeeder.seed(context: context) }
@@ -116,53 +89,72 @@ struct AddExercise: View {
     }
 }
 
-// MARK: - Sub-Views for Form Sections
+// MARK: - Sub-Views
 extension AddExercise {
     
+    private var managementSection: some View {
+        Section(header: Text("Quick Actions").foregroundColor(.white.opacity(0.6))) {
+            HStack {
+                TextField("", text: $newCategoryName, prompt: Text("New Category (e.g. Kettlebells)").foregroundColor(.white.opacity(0.6)))
+                    .focused($isFocused, equals: true)
+                
+                Button(action: createNewCategory) {
+                    Label("Add", systemImage: "plus.folder.fill")
+                        .fontWeight(.bold)
+                        .foregroundColor(newCategoryName.isEmpty ? .gray : .yellow)
+                }
+                .disabled(newCategoryName.isEmpty)
+            }
+        }
+        .listRowBackground(theme.currentTheme.accent.opacity(0.8))
+    }
+
     private var creationSection: some View {
-        Section(header: Text("Exercise Details").foregroundColor(.white.opacity(0.6))) {
-            // 1. Always visible Category Picker
-            Picker("Category", selection: $selectedCategoryID) {
-                Text("Select a Category").tag(nil as PersistentIdentifier?)
+        Section(header: Text("Add New Exercise").foregroundColor(.white.opacity(0.6))) {
+            // Category Picker linked to ID
+            Picker("Target Category", selection: $selectedCategoryID) {
+                Text("Select Category").tag(nil as PersistentIdentifier?)
                 ForEach(categories) { cat in
-                    Text(cat.name)
-                        .tag(cat.id as PersistentIdentifier?)
+                    Text(cat.name).tag(cat.id as PersistentIdentifier?)
                 }
             }
-            .pickerStyle(.menu) // Force it to be a menu
-            .tint(.yellow)      // Make it pop
-            .buttonStyle(.borderless) // Prevents the Form from hijacking the tap
-            
-            // 2. Search / Name Input
-            TextField("", text: $searchText, prompt: Text("Search or New Exercise Name...").foregroundColor(.white.opacity(0.7)))
+            .pickerStyle(.menu)
+            .tint(.yellow)
+
+            TextField("", text: $searchText, prompt: Text("Exercise Name (e.g. Bench Press)").foregroundColor(.white.opacity(0.7)))
                 .focused($isFocused, equals: true)
 
-            // 3. Type Picker (Only shows if we are actually creating something new)
             if !searchText.isEmpty && !exactMatchFound {
-                Picker("Type", selection: $selectedType) {
-                    ForEach(exerciseTypes, id: \.self) { type in
-                        Text(type.rawValue.capitalized).tag(type)
+                VStack(spacing: 12) {
+                    Picker("Type", selection: $selectedType) {
+                        ForEach(exerciseTypes, id: \.self) { type in
+                            Text(type.rawValue.capitalized).tag(type)
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding(.vertical, 5)
-                
-                Button(action: createNewExercise) {
-                    HStack {
-                        Image(systemName: "sparkles").foregroundColor(.yellow)
-                        Text("Create '\(searchText)'").foregroundColor(.white).fontWeight(.semibold)
-                        Spacer()
-                        Image(systemName: "plus.circle.fill").foregroundColor(.yellow)
+                    .pickerStyle(.segmented)
+                    
+                    Button(action: createNewExercise) {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text("Create '\(searchText)'")
+                            Spacer()
+                            Image(systemName: "plus.circle.fill")
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(selectedCategoryID == nil ? Color.gray.opacity(0.3) : Color.yellow.opacity(0.8))
+                        .cornerRadius(10)
                     }
+                    .disabled(selectedCategoryID == nil || searchText.isEmpty)
                 }
-                .disabled(selectedCategory == nil)
+                .padding(.vertical, 8)
             }
         }
         .listRowBackground(theme.currentTheme.accent)
     }
 
     private var librarySection: some View {
-        Section(header: Text("Browse Exercises by Category")) {
+        Section(header: Text("Exercise Library").foregroundColor(.white.opacity(0.6))) {
             ForEach(filteredResults) { category in
                 DisclosureGroup(
                     isExpanded: Binding(
@@ -180,61 +172,81 @@ extension AddExercise {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(exercise.name).foregroundColor(.white)
-                                    Text((exercise.type?.rawValue.capitalized) ?? "Unknown").font(.caption2).foregroundColor(.white.opacity(0.5))
+                                    Text(exercise.type?.rawValue.capitalized ?? "Strength").font(.caption2).foregroundColor(.white.opacity(0.5))
                                 }
                                 Spacer()
                                 Button { exerciseToDelete = exercise } label: {
-                                    Image(systemName: "minus.circle").foregroundColor(.red)
+                                    Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
                                 }
                             }
                             .padding(.vertical, 4)
                         }
                     },
                     label: {
-                        HStack {
-                            Text(category.name)
-                        }
-                        .contentShape(Rectangle())
+                        Text(category.name).fontWeight(.medium).foregroundColor(.white)
                     }
                 )
-                .listRowBackground(theme.currentTheme.accent.opacity(0.5))
             }
         }
+        .listRowBackground(theme.currentTheme.accent.opacity(0.4))
     }
-
-    private var managementSection: some View {
-        Section(header: Text("Create New Category").foregroundColor(.white.opacity(0.6))) {
-            HStack {
-                TextField("", text: $newCategoryName, prompt: Text("e.g. Kettlebells, Yoga...").foregroundColor(.white.opacity(0.6)))
-                    .focused($isFocused, equals: true)
-                
-                Button(action: createNewCategory) {
-                    Image(systemName: "plus.square.fill")
-                        .foregroundColor(newCategoryName.isEmpty ? .gray : .white)
-                        .font(.title3)
-                }
-                .disabled(newCategoryName.isEmpty)
-            }
+    
+    // Abstracted dismissal gesture
+    private var leadingDragOverlay: some View {
+        GeometryReader { geo in
+            Color.clear
+                .frame(width: 24)
+                .contentShape(Rectangle())
+                .highPriorityGesture(
+                    DragGesture().onChanged { val in
+                        if val.startLocation.x < 24 && val.translation.width > 0 {
+                            dragOffset = val.translation.width
+                        }
+                    }
+                    .onEnded { val in
+                        if dragOffset > 80 { dismiss() }
+                        else { withAnimation { dragOffset = 0 } }
+                    }
+                )
         }
-        .listRowBackground(theme.currentTheme.accent)
     }
 }
 
-// MARK: - Helper Methods
+// MARK: - Logic Fixes
 extension AddExercise {
     private func createNewExercise() {
-        // Find the category object using the ID
         guard let id = selectedCategoryID,
               let category = categories.first(where: { $0.id == id }),
-              !searchText.isEmpty else { return }
-              
-        let newEx = Exercise(name: searchText, type: selectedType)
+              !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        let name = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Avoid duplicate exercise names within the same category (case-insensitive)
+        let duplicate = category.exercises.contains { $0.name.caseInsensitiveCompare(name) == .orderedSame }
+        guard !duplicate else {
+            // Simply reset focus to hint the user nothing happened due to duplicate
+            isFocused = nil
+            return
+        }
+
+        let newEx = Exercise(name: name, type: selectedType)
         newEx.userId = userId
+
+        // Ensure the object is tracked by the context so it receives a persistent ID
+        context.insert(newEx)
         category.exercises.append(newEx)
-        
-        try? context.save()
+
+        do {
+            try context.save()
+            // Expand the category to show the new exercise
+            expandedCategories.insert(category.id)
+        } catch {
+            // If save fails, remove the appended exercise to keep local state consistent
+            category.exercises.removeAll { $0.id == newEx.id }
+        }
+
+        // Reset fields
         searchText = ""
-        selectedCategoryID = nil // Reset using ID
         isFocused = nil
     }
 
@@ -244,22 +256,22 @@ extension AddExercise {
         newCat.userId = userId
         context.insert(newCat)
         
-        // AUTO-SELECT the new category so the user can immediately add exercises to it
-        selectedCategory = newCat
+        // CRITICAL FIX: Save context to generate the ID, then select it
+        try? context.save()
+        selectedCategoryID = newCat.id
         
         newCategoryName = ""
-        // isFocused = nil // Optional: hide keyboard after creating
     }
 
     private func deleteTargetExercise() {
         guard let exercise = exerciseToDelete else { return }
+        // Find the category containing this exercise
         if let category = categories.first(where: { $0.exercises.contains(where: { $0.id == exercise.id }) }) {
-            if let index = category.exercises.firstIndex(where: { $0.id == exercise.id }) {
-                category.exercises.remove(at: index)
-                context.delete(exercise)
-                try? context.save()
-            }
+            category.exercises.removeAll(where: { $0.id == exercise.id })
+            context.delete(exercise)
+            try? context.save()
         }
         exerciseToDelete = nil
     }
 }
+

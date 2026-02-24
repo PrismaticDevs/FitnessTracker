@@ -241,11 +241,12 @@ struct StrengthEntryView: View {
         .onTapGesture {
             isFocused = nil
         }
-        .onAppear {
-            if let userId = auth.user?.uid {
-                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
-            }
-        }
+        .background(
+            Color.black.opacity(0.001) // Invisible but tappable
+                .onTapGesture {
+                    isFocused = nil
+                }
+        )
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataSynced"))) { _ in
             // This forces the view to reload its local @State arrays from the now-updated UserDefaults
             autofillValues()

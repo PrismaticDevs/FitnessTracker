@@ -193,22 +193,28 @@ struct SessionDetailView: View {
         }
     }
     
-    private func deleteExercise(named exerciseName: String) {
-        if let index = session.exercises.firstIndex(where: { $0.name == exerciseName }) {
-            session.exercises.remove(at: index)
+    private func deleteExercise(withId id: UUID) {
+        // Find the specific instance by its unique ID
+        if let index = session.exercises.firstIndex(where: { $0.id == id }) {
+            let exerciseName = session.exercises[index].name
             
-            // Cleanup per-set keys (assuming a max of 20 sets for safety)
-            for i in 0..<20 {
+            withAnimation {
+                session.exercises.remove(at: index)
+                
+                // Cleanup per-set keys
+                // Note: Since name is used for keys, this cleans up the "Bench Press" defaults.
+                // (If you want separate data for duplicate exercises, use .id in the key instead of .name)
                 let baseKeys = ["weight", "left", "right", "reps", "rest", "iso"]
-                for base in baseKeys {
-                    defaults.removeObject(forKey: keyScope.scoped("\(base)\(exerciseName)_set\(i)"))
+                for i in 0..<20 {
+                    for base in baseKeys {
+                        defaults.removeObject(forKey: keyScope.scoped("\(base)\(exerciseName)_set\(i)"))
+                    }
                 }
-            }
-            defaults.removeObject(forKey: keyScope.scoped("sets\(exerciseName)"))
-            defaults.removeObject(forKey: keyScope.scoped("note\(exerciseName)"))
+                defaults.removeObject(forKey: keyScope.scoped("sets\(exerciseName)"))
+                defaults.removeObject(forKey: keyScope.scoped("note\(exerciseName)"))
 
-            // Save SwiftData context
-            try? context.save()
+                try? context.save()
+            }
         }
     }
     

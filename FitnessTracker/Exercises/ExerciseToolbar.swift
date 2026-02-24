@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ExerciseToolbar: View {
     @Environment(\.modelContext) var context
@@ -16,6 +17,8 @@ struct ExerciseToolbar: View {
     @State private var exerciseList = ExerciseList()
     @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
+    
+    @Query(sort: \ExerciseCategory.name) private var categories: [ExerciseCategory]
     
     init(title: String,
              exerciseName: Binding<String>,
@@ -38,7 +41,7 @@ struct ExerciseToolbar: View {
                 }
             }
             Section {
-                ForEach(exerciseList.categories) { category in
+                ForEach(categories) { category in
                     Menu {
                         ForEach(category.exercises, id: \.id) { exercise in
                             Button {

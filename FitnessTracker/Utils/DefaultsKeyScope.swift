@@ -17,6 +17,14 @@ struct DefaultsKeyScope {
             return "user_\(userID).\(base)"
         }
     }
+    
+    func exerciseScoped(base: String, exerciseId: UUID, setIndex: Int? = nil) -> String {
+        var key = "\(base)\(exerciseId.uuidString)"
+        if let idx = setIndex {
+            key += "_set\(idx)"
+        }
+        return scoped(key)
+    }
 
     /// Builds a legacy key that only includes the user prefix and base (no program/session).
     /// Use this for migrating from the older key format.

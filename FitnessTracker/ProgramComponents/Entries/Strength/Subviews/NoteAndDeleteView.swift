@@ -56,25 +56,14 @@ struct NoteAndDeleteView: View {
             }
             Button(action: {
                 isFocused.wrappedValue = nil
-                showDeleteConfirmation = true
+                deleteExercise(exercise)
             }) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
+                    .padding(12)
             }
             .accessibilityLabel("Delete exercise")
-            .confirmationDialog("Delete Exercise",
-                                isPresented: $showDeleteConfirmation,
-                                titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
-                    print("🚨 Delete confirmed for exercise: \(exercise)")
-                    deleteExercise(exercise)
-                }
-                Button("Cancel", role: .cancel) {
-                    print("🚫 Delete cancelled for exercise: \(exercise)")
-                }
-            } message: {
-                Text("Are you sure you want to remove \(exercise) from this session?")
-            }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 }

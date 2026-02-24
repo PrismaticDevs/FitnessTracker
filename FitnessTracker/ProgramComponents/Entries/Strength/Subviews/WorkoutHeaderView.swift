@@ -29,29 +29,29 @@ struct WorkoutHeaderView: View {
                     Text("\(exercise.type?.rawValue ?? "Strength") exercise")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Right Side: Completion Toggle
-                Button(action: {
-                    withAnimation(.spring()) {
-                        isCompleted.toggle()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            withAnimation(.spring()) {
+                                isCompleted.toggle()
+                            }
+                        }) {
+                            HStack(spacing: 8) {
+                                Text("Exercise Complete")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                                    .font(.title2)
+                            }
+                            .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                            .cornerRadius(10)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                }) {
-                    HStack(spacing: 8) {
-                        Text("Exercise Complete")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                            .font(.title2)
-                    }
-                    .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
-                    .cornerRadius(10)
                 }
             }
             
@@ -93,4 +93,45 @@ struct WorkoutHeaderView: View {
         }
         .padding(.vertical, 10)
     }
+}
+
+#Preview {
+    // 1. Create a container to handle @State and @FocusState
+    struct PreviewWrapper: View {
+        @State var isCompleted = false
+        @State var setsCount = "3"
+        @State var selectedSet = 0
+        @FocusState var isFocused: Bool?
+        
+        // Mocking a SwiftData Exercise
+        let mockExercise = Exercise(name: "Bench Press", type: .strength)
+        
+        var body: some View {
+            ZStack {
+                Color.black.ignoresSafeArea() // Matches your dark theme
+                
+                VStack {
+                    WorkoutHeaderView(
+                        exercise: mockExercise,
+                        isCompleted: $isCompleted,
+                        setsCountInput: $setsCount,
+                        selectedSetIndex: $selectedSet,
+                        adjustPerSetArrays: { newCount in
+                            print("Adjusted to \(newCount) sets")
+                        },
+                        keyScope: .from(previewUserID: "dev_user", liveUserID: nil),
+                        isFocused: $isFocused
+                    )
+                    .padding()
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(15)
+                }
+                .padding()
+            }
+            // 2. Inject the required EnvironmentObject
+            .environmentObject(AuthManager())
+        }
+    }
+    
+    return PreviewWrapper()
 }
