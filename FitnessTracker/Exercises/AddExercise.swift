@@ -162,7 +162,7 @@ extension AddExercise {
     }
 
     private var librarySection: some View {
-        Section(header: Text("Select a category to view exercises")) {
+        Section(header: Text("Browse Exercises by Category")) {
             ForEach(filteredResults) { category in
                 DisclosureGroup(
                     isExpanded: Binding(
@@ -193,17 +193,8 @@ extension AddExercise {
                     label: {
                         HStack {
                             Text(category.name)
-                                .font(.headline)
-                                .foregroundColor(selectedCategory == category ? .yellow : .white)
-                            Spacer()
-                            if selectedCategory == category {
-                                Image(systemName: "checkmark.circle.fill").foregroundColor(.yellow)
-                            }
                         }
                         .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedCategory = category
-                        }
                     }
                 )
                 .listRowBackground(theme.currentTheme.accent.opacity(0.5))

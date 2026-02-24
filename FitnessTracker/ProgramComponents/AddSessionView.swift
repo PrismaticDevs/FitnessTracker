@@ -94,41 +94,7 @@ struct AddSessionView: View {
             .offset(x: dragOffset)
             .animation(.interactiveSpring(), value: dragOffset)
             .padding(.top, 125)
-            customFloatingBar
-            Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .leading) {
-                    Color.clear
-                        .frame(width: 24) // leading-edge grab area
-                        .contentShape(Rectangle())
-                        .highPriorityGesture(
-                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                                .onChanged { value in
-                                    // Only respond to drags that start near the leading edge and move right
-                                    if value.startLocation.x < 24, value.translation.width > 0 {
-                                        dragOffset = value.translation.width
-                                    }
-                                }
-                                .onEnded { value in
-                                    if value.startLocation.x < 24, value.translation.width > 80 {
-                                        dismiss()
-                                    } else {
-                                        withAnimation(.spring()) {
-                                            dragOffset = 0
-                                        }
-                                    }
-                                }
-                        )
-                }
-        }
-        .brandedBackButton(title: "Add Session to", theme: theme.currentTheme, dismiss: dismiss)
-        .onTapGesture {
-            isFocused = nil
-        }
-    }
-    
-    private var customFloatingBar: some View {
-            HStack {
+            FloatingActionBar {
                 Spacer()
                 // Cancel Button
                 Button(action: { dismiss() }) {
@@ -162,12 +128,37 @@ struct AddSessionView: View {
                 
                 Spacer()
             }
-            .frame(width: UIScreen.main.bounds.width - 40, height: 60)
-            .background(theme.currentTheme.accent)
-            .cornerRadius(30)
-            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
-            .padding(.bottom, 20)
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: 24) // leading-edge grab area
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    // Only respond to drags that start near the leading edge and move right
+                                    if value.startLocation.x < 24, value.translation.width > 0 {
+                                        dragOffset = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.startLocation.x < 24, value.translation.width > 80 {
+                                        dismiss()
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                                }
+                        )
+                }
         }
+        .brandedBackButton(title: "Add Session to", theme: theme.currentTheme, dismiss: dismiss)
+        .onTapGesture {
+            isFocused = nil
+        }
+    }
     
     private func saveSessionToProgram() {
         // 2. Create the session and attach it to the existing program
@@ -181,4 +172,5 @@ struct AddSessionView: View {
             print("Error saving session: \(error)")
         }
     }
+    
 }

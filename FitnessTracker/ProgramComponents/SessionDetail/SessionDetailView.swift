@@ -13,170 +13,81 @@ struct SessionDetailView: View {
     var defaults = UserDefaults.standard
     var session: Session
     var workoutProgram: WorkoutProgram
+    var exercises: [Exercise]
+    
     @Environment(\.modelContext) var context
     @Environment(AIContextManager.self) var aiManager
     @EnvironmentObject var auth: AuthManager
     @Environment(\.dismiss) var dismiss
-    @State private var showingAddExerciseView = false
-    @State private var selectedExerciseName: String = ""
+    
+    @State private var editMode: EditMode = .inactive
+    @State private var completedExerciseIds: Set<UUID> = []
+    @State private var dragOffset: CGFloat = 0
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
-    @State private var dragOffset: CGFloat = 0
     
-    // Save and Upload
+    // Save/Upload State
     @State private var network = NetworkMonitor()
     @State private var hasSavedLocally = false
     @State private var isUploading = false
-    @State private var isOnline = true
     @State private var showSyncError = false
-    
-    @State private var completedExerciseIds: Set<UUID> = []
-    @State var exercises: [Exercise]
-
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.clear.edgesIgnoringSafeArea(.all)
-                VStack(spacing: 0) {
-                    Color.clear
-                        .frame(height: 120)
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            ForEach(session.exercises.sorted { lhs, rhs in lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending }) { exercise in
-                                StrengthEntryView(
-                                    isCompleted: Binding(
-                                        get: { completedExerciseIds.contains(exercise.id) },
-                                        set: { isDone in
-                                            if isDone { completedExerciseIds.insert(exercise.id)}
-                                            else { completedExerciseIds.remove(exercise.id)}
-                                        }
-                                    ),
-                                    exercise: exercise,
-                                    allExercises: session.exercises,
-                                    deleteExercise: { name in deleteExercise(named: name) },
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                        Color.clear.frame(height: 1)
+            VStack(spacing: 0) {
+                Color.clear.frame(height: 120)
+                
+                // 1. Pass the session directly.
+                // List will react to network.isConnected if needed.
+                ExerciseListSection(
+                    session: session,
+                    editMode: $editMode,
+                    completedExerciseIds: $completedExerciseIds,
+                    onMove: moveExercise,
+                    onDelete: deleteExercise
+                )
+                
+                BottomControls(
+                    session: session,
+                    theme: theme,
+                    isUploading: isUploading,
+                    isOnline: network.isConnected,
+                    hasSavedLocally: hasSavedLocally, // Direct access to the property
+                    completedCount: completedExerciseIds.count,
+                    onRename: {
+                        newSessionName = session.name
+                        showingRenameSheet = true
+                    },
+                    onAdd: addExercise,
+                    onSave: {
+                        if !hasSavedLocally { handleLocalSave() }
+                        else { handleCloudUpload() }
                     }
-                    .clipped()
-                    FloatingActionBar {
-                        Spacer()
-                        
-                            // Rename Session Button
-                            Button(action: {
-                                newSessionName = session.name
-                                showingRenameSheet = true
-                            }) {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Spacer()
-                            
-                            // Your existing Exercise Menu/Toolbar
-                            ExerciseToolbar(
-                                title: "",
-                                exerciseName: $selectedExerciseName,
-                                exercisesSelected: session.exercises.map { $0.name },
-                                onExerciseSelected: { exerciseName in
-                                    addExercise(named: exerciseName)
-                                }
-                            )
-                            .foregroundColor(.white)
-                            
-                            Spacer()
-                        
-                            // Save/Finish Workout Button
-                            Button(action: {
-                                if !hasSavedLocally {
-                                    handleLocalSave()
-                                } else {
-                                    handleCloudUpload()
-                                }
-                            }) {
-                                VStack(spacing: 2) {
-                                    Image(systemName: isUploading ? "arrow.clockwise" : hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .rotationEffect(.degrees(isUploading ? 360 : 0))
-                                        .animation(isUploading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isUploading)
-                                }
-                                .foregroundColor(completedExerciseIds.isEmpty ? .white.opacity(0.3) : .white)
-                            }
-                            .disabled(completedExerciseIds.isEmpty || (hasSavedLocally && isOnline))
-                            .opacity((hasSavedLocally && !network.isConnected) ? 0.5 : 1.0)
-                            
-                            Spacer()
-                        }
-                        .frame(width: UIScreen.main.bounds.width - 40, height: 50)
-                        .background(theme.currentTheme.accent)
-                        .cornerRadius(30)
-                        .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
-                        .alert("Upload Failed", isPresented: $showSyncError) {
-                                    Button("Retry") { startCloudUpload() }
-                                    Button("Cancel", role: .cancel) { }
-                                } message: {
-                                    Text("We couldn't reach the server. Please check your connection and try again.")
-                                }
-                }
-                .offset(x: dragOffset)
-                .animation(.interactiveSpring(), value: dragOffset)
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .onAppear {
-                    updateAIWithLiveSessionData()
-                }
-                .applyAppBranding()
-                .sheet(isPresented: $showingRenameSheet) {
-                    VStack {
-                        Text("Rename Session")
-                            .font(.headline)
-                            .padding()
-                        
-                        TextField("New Session Name", text: $newSessionName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
-                            .padding()
-                            .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                        
-                        Button("Rename") {
-                            renameSession()
-                            showingRenameSheet = false // Dismiss the sheet
-                        }
-                        .padding()
-                    }
-                    .padding()
-                }
+                )
+            }
+            .offset(x: dragOffset)
+            .applyAppBranding()
             
-            // Leading-edge swipe back hit area to avoid ScrollView conflicts
-            Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .leading) {
-                    Color.clear
-                        .frame(width: 24) // leading-edge grab area
-                        .contentShape(Rectangle())
-                        .highPriorityGesture(
-                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                                .onChanged { value in
-                                    // Only respond to drags that start near the leading edge and move right
-                                    if value.startLocation.x < 24, value.translation.width > 0 {
-                                        dragOffset = value.translation.width
-                                    }
-                                }
-                                .onEnded { value in
-                                    if value.startLocation.x < 24, value.translation.width > 80 {
-                                        dismiss()
-                                    } else {
-                                        withAnimation(.spring()) {
-                                            dragOffset = 0
-                                        }
-                                    }
-                                }
-                        )
-                }
+            LeadingEdgeDragHandler(dragOffset: $dragOffset, onDismiss: { dismiss() })
         }
-        .brandedBackButton(title: "\(session.name) Exercises", theme: theme.currentTheme, dismiss: dismiss)
+        .brandedBackButton(title: session.name, theme: theme.currentTheme, dismiss: dismiss)
+        .sheet(isPresented: $showingRenameSheet) {
+            RenameSheet(newName: $newSessionName, onRename: renameSession)
+        }
     }
+
+    // MARK: - Reordering Logic
+    private func moveExercise(from source: IndexSet, to destination: Int) {
+        // 1. Update the local array
+        session.exercises.move(fromOffsets: source, toOffset: destination)
+        
+        // 2. Persist to SwiftData
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save reorder: \(error)")
+        }
+        }
     
     private func startCloudUpload() {
         guard network.isConnected else {
@@ -224,18 +135,16 @@ struct SessionDetailView: View {
     }
 
     private func handleCloudUpload() {
-        guard isOnline else { return }
+        // Look at the network monitor directly instead of a local 'isOnline' state
+        guard network.isConnected else { return }
         
         isUploading = true
         
-        // Use the function you already have
+        // Your existing cloud upload logic
         uploadWholeSessionToCloud()
         
-        // Simulate a slight delay for the spinner, then finish
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isUploading = false
-            // Option A: Just stay here and show a checkmark
-            // Option B: Dismiss the view
             dismiss()
         }
     }

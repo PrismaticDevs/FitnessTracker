@@ -61,6 +61,7 @@ struct ExerciseToolbar: View {
 }
 
 #Preview {
+    let mockAuthManager = AuthManager()
     ExerciseToolbar(
         title: "Add Exercise",
         exerciseName: .constant(""), // Example binding
@@ -69,4 +70,5 @@ struct ExerciseToolbar: View {
             print("Selected exercise: \(selectedExercise)") // Example action
         }
     )
+    .environmentObject(mockAuthManager)
 }
