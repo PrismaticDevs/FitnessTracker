@@ -1,5 +1,5 @@
 //
-//  AddExercise.swift
+//  ExerciseManagement.swift
 //  FitnessTracker
 //
 //  Created by Matt on 1/17/26.
@@ -8,7 +8,7 @@ import SwiftUI
 import SwiftData
 import FirebaseAuth
 
-struct AddExercise: View {
+struct ExerciseManagement: View {
     @EnvironmentObject var auth: AuthManager
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
@@ -82,15 +82,28 @@ struct AddExercise: View {
         .onTapGesture { isFocused = nil }
         .applyGradientBackground()
         .brandedBackButton(title: "Add Exercise", theme: theme.currentTheme, dismiss: dismiss)
-        .alert("Remove Exercise?", isPresented: Binding(get: { exerciseToDelete != nil }, set: { if !$0 { exerciseToDelete = nil } })) {
-            Button("Remove", role: .destructive) { deleteTargetExercise() }
-            Button("Cancel", role: .cancel) { }
+        .confirmationDialog(
+            "Are you sure?",
+            isPresented: Binding(
+                get: { exerciseToDelete != nil },
+                set: { if !$0 { exerciseToDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Remove Exercise", role: .destructive) {
+                deleteTargetExercise()
+            }
+            Button("Cancel", role: .cancel) {
+                exerciseToDelete = nil
+            }
+        } message: {
+            Text("This will permanently delete '\(exerciseToDelete?.name ?? "this exercise")'. Any previous workout data associated with it will no longer show the exercise name.")
         }
     }
 }
 
 // MARK: - Sub-Views
-extension AddExercise {
+extension ExerciseManagement {
     
     private var managementSection: some View {
         Section(header: Text("Quick Actions").foregroundColor(.white.opacity(0.6))) {
@@ -99,7 +112,7 @@ extension AddExercise {
                     .focused($isFocused, equals: true)
                 
                 Button(action: createNewCategory) {
-                    Label("Add", systemImage: "plus.folder.fill")
+                    Label("", systemImage: "folder.badge.plus")
                         .fontWeight(.bold)
                         .foregroundColor(newCategoryName.isEmpty ? .gray : .yellow)
                 }
@@ -213,7 +226,7 @@ extension AddExercise {
 }
 
 // MARK: - Logic Fixes
-extension AddExercise {
+extension ExerciseManagement {
     private func createNewExercise() {
         guard let id = selectedCategoryID,
               let category = categories.first(where: { $0.id == id }),
@@ -248,6 +261,8 @@ extension AddExercise {
         // Reset fields
         searchText = ""
         isFocused = nil
+        
+        dismiss()
     }
 
     private func createNewCategory() {

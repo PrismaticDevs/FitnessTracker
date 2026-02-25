@@ -33,7 +33,7 @@ struct ExerciseToolbar: View {
     var body: some View {
         Menu {
             Section {
-                NavigationLink(destination: AddExercise(userId: auth.user?.uid ?? "")) {
+                NavigationLink(destination: ExerciseManagement(userId: auth.user?.uid ?? "")) {
                     HStack {
                         Image(systemName: "pencil")
                         Text("Edit Exercises")
@@ -43,7 +43,7 @@ struct ExerciseToolbar: View {
             Section {
                 ForEach(categories) { category in
                     Menu {
-                        ForEach(category.exercises, id: \.id) { exercise in
+                        ForEach(category.exercises.sorted(by: { $0.name.localizedStandardCompare($1.name) == .orderedAscending}), id: \.id) { exercise in
                             Button {
                                 exerciseName = exercise.name
                                 onExerciseSelected(exercise.name)

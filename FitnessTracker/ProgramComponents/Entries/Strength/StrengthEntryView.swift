@@ -54,90 +54,7 @@ struct StrengthEntryView: View {
     
     var deleteExercise: (String) -> Void
 
-    // MARK: - Helpers
-
-    private var isRunningInPreview: Bool {
-        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PLAYGROUNDS"] == "1"
-    }
-
-    private func exercisePreferencesPayload(userId: String) -> [String: Any] {
-        let n = max(1, int(from: setsCountInput))
-        var setsArray: [[String: Any]] = []
-
-        for idx in 0..<n {
-            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
-            let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)"))
-            let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)"))
-            let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)"))
-            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)"))
-            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)"))
-
-            var setDict: [String: Any] = [
-                "index": idx,
-                "iso": isIso,
-                "reps": reps,
-                "rest": rest
-            ]
-            if isIso {
-                setDict["left"] = left
-                setDict["right"] = right
-            } else {
-                setDict["combined"] = combined
-            }
-            setsArray.append(setDict)
-        }
-
-        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
-
-        return [
-            "exercise": exercise,
-            "setsCount": n,
-            "sets": setsArray,
-            "note": noteValue,
-            "updatedAt": Date().timeIntervalSince1970
-        ]
-    }
-
-    private func uploadExercisePreferencesToCloud() {
-        guard let userId = auth.user?.uid else { return }
-        let db = Firestore.firestore()
-        
-        // 1. Gather the data into our Codable struct
-        let n = max(1, int(from: setsCountInput))
-        var setPrefs: [SetPreference] = []
-        
-        for idx in 0..<n {
-            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
-            setPrefs.append(SetPreference(
-                index: idx,
-                iso: isIso,
-                reps: defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)")),
-                rest: defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)")),
-                weightCombined: isIso ? nil : defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)")),
-                weightLeft: isIso ? defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)")) : nil,
-                weightRight: isIso ? defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)")) : nil
-            ))
-        }
-        
-        let preference = ExercisePreference(
-            exerciseName: exercise.name,
-            setsCount: n,
-            note: note,
-            sets: setPrefs,
-            updatedAt: Date() // Captures current upload time
-        )
-        
-        // 2. Upload to a dedicated document per exercise
-        do {
-            try db.collection("users")
-                .document(userId)
-                .collection("exercise_preferences")
-                .document(exercise.name)
-                .setData(from: preference)
-        } catch {
-            print("Error encoding preferences: \(error)")
-        }
-    }
+    
     
     var body: some View {
 
@@ -269,6 +186,91 @@ struct StrengthEntryView: View {
                 details: "User viewing set \(selectedSetIndex + 1)",
                 preferences: generateAIContext()
             )
+        }
+    }
+    
+    // MARK: - Helpers
+
+    private var isRunningInPreview: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PLAYGROUNDS"] == "1"
+    }
+
+    private func exercisePreferencesPayload(userId: String) -> [String: Any] {
+        let n = max(1, int(from: setsCountInput))
+        var setsArray: [[String: Any]] = []
+
+        for idx in 0..<n {
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
+            let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)"))
+            let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)"))
+            let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)"))
+            let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)"))
+            let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)"))
+
+            var setDict: [String: Any] = [
+                "index": idx,
+                "iso": isIso,
+                "reps": reps,
+                "rest": rest
+            ]
+            if isIso {
+                setDict["left"] = left
+                setDict["right"] = right
+            } else {
+                setDict["combined"] = combined
+            }
+            setsArray.append(setDict)
+        }
+
+        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
+
+        return [
+            "exercise": exercise,
+            "setsCount": n,
+            "sets": setsArray,
+            "note": noteValue,
+            "updatedAt": Date().timeIntervalSince1970
+        ]
+    }
+
+    private func uploadExercisePreferencesToCloud() {
+        guard let userId = auth.user?.uid else { return }
+        let db = Firestore.firestore()
+        
+        // 1. Gather the data into our Codable struct
+        let n = max(1, int(from: setsCountInput))
+        var setPrefs: [SetPreference] = []
+        
+        for idx in 0..<n {
+            let isIso = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)_set\(idx)"))
+            setPrefs.append(SetPreference(
+                index: idx,
+                iso: isIso,
+                reps: defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(idx)")),
+                rest: defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(idx)")),
+                weightCombined: isIso ? nil : defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(idx)")),
+                weightLeft: isIso ? defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(idx)")) : nil,
+                weightRight: isIso ? defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(idx)")) : nil
+            ))
+        }
+        
+        let preference = ExercisePreference(
+            exerciseName: exercise.name,
+            setsCount: n,
+            note: note,
+            sets: setPrefs,
+            updatedAt: Date() // Captures current upload time
+        )
+        
+        // 2. Upload to a dedicated document per exercise
+        do {
+            try db.collection("users")
+                .document(userId)
+                .collection("exercise_preferences")
+                .document(exercise.name)
+                .setData(from: preference)
+        } catch {
+            print("Error encoding preferences: \(error)")
         }
     }
     

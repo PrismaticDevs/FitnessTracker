@@ -22,6 +22,9 @@ struct SessionDetailView: View {
     
     @State private var editMode: EditMode = .inactive
     @State private var completedExerciseIds: Set<UUID> = []
+    var liveCompletedCount: Int {
+        session.exercises.filter { $0.isCompleted }.count
+    }
     @State private var dragOffset: CGFloat = 0
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
@@ -31,19 +34,17 @@ struct SessionDetailView: View {
     @State private var hasSavedLocally = false
     @State private var isUploading = false
     @State private var showSyncError = false
+    
+    
 
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 Color.clear.frame(height: 120)
                 
-                // 1. Pass the session directly.
-                // List will react to network.isConnected if needed.
                 ExerciseListSection(
                     session: session,
-                    editMode: $editMode,
                     completedExerciseIds: $completedExerciseIds,
-                    onMove: moveExercise,
                     onDelete: deleteExercise
                 )
                 
@@ -53,7 +54,6 @@ struct SessionDetailView: View {
                     isUploading: isUploading,
                     isOnline: network.isConnected,
                     hasSavedLocally: hasSavedLocally, // Direct access to the property
-                    completedCount: completedExerciseIds.count,
                     onRename: {
                         newSessionName = session.name
                         showingRenameSheet = true
@@ -122,10 +122,17 @@ struct SessionDetailView: View {
     }
     
     private func handleLocalSave() {
-        // 1. Run your existing SwiftData logic
+        // 1. Process and save the workout history
         finishWorkoutSession()
         
-        // 2. Trigger haptic feedback for success
+        // 2. Reset the exercises so the session is fresh for next time
+        for exercise in session.exercises {
+            exercise.isCompleted = false
+        }
+        completedExerciseIds.removeAll()
+        try? context.save()
+        
+        // 3. Trigger haptic feedback for success
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         

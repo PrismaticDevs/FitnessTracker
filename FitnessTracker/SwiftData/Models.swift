@@ -39,13 +39,15 @@ class Exercise: UserOwned {
     var userId: String = ""
     var name: String
     var type: ExerciseType?
+    var isCompleted: Bool = false
     
     init(userId: String = "", name: String, type: ExerciseType = .strength) {
         self.id = UUID()
         self.userId = userId
         self.name = name
         self.type = type
-    }   
+        self.isCompleted = isCompleted
+    }
 }
 
 // Define an ExerciseCategory model

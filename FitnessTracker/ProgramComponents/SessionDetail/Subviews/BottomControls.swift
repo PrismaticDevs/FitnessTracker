@@ -12,10 +12,13 @@ struct BottomControls: View {
     var isUploading: Bool
     var isOnline: Bool
     var hasSavedLocally: Bool
-    var completedCount: Int
     var onRename: () -> Void
     var onAdd: (String) -> Void
     var onSave: () -> Void
+    
+    var completedCount: Int {
+        session.exercises.filter { $0.isCompleted }.count
+    }
 
     var body: some View {
         FloatingActionBar {
