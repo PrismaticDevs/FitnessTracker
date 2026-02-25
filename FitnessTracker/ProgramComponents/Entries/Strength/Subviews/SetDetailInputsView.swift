@@ -23,7 +23,7 @@ struct SetDetailInputsView: View {
         VStack {
             HStack {
                 VStack(spacing: 10) {
-                    if defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)")) {
+                    if iso {
                         HStack {
                             SetRow(title: "Left Weight",
                                    text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
@@ -44,9 +44,12 @@ struct SetDetailInputsView: View {
                 Button {
                     iso.toggle()
                     defaults.set(iso, forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
+                    print(iso)
                 } label: {
                     Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
                 }
+                .buttonStyle(PlainButtonStyle())
+                .contentShape(Rectangle())
             }
             HStack {
                 SetRow(title: "Reps",

@@ -23,16 +23,27 @@ struct SetRow: View {
                 .submitLabel(.done)
                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
-                    if let value = Int(newValue) {
-                        defaults.set(value, forKey: exerciseKey)
-                    } else {
-                        defaults.set(0, forKey: exerciseKey)
-                    }
+                    defaults.set(newValue, forKey: exerciseKey)
+                    print("💾 SAVED: [\(newValue)] to KEY: \(exerciseKey)")
                 }
                 .onAppear {
-                    text = "\(defaults.integer(forKey: exerciseKey))"
+//                    text = defaults.string(forKey: exerciseKey) ?? ""
+                    loadData()
                 }
                 .frame(minWidth: 80)
         }
     }
+    
+    private func loadData() {
+            // Attempt to fetch as string first
+            if let savedString = defaults.string(forKey: exerciseKey) {
+                text = savedString
+            } else {
+                // Fallback: If it was saved as an Int previously, convert it to String
+                let savedInt = defaults.integer(forKey: exerciseKey)
+                text = savedInt > 0 ? "\(savedInt)" : ""
+            }
+            print("🔍 FETCHED: [\(text)] from KEY: \(exerciseKey)")
+        }
 }
+

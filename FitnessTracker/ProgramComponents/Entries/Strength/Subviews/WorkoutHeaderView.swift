@@ -84,7 +84,7 @@ struct WorkoutHeaderView: View {
                     }
                     .onAppear {
                         // 3. Ensure the text field loads the saved value when it appears
-                        let savedSets = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
+                        let savedSets = defaults.integer(forKey: keyScope.scoped("setsCount\(exercise.name)"))
                         if savedSets > 0 {
                             setsCountInput = "\(savedSets)"
                         }
