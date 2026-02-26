@@ -17,7 +17,9 @@ struct SetRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline).padding(-4)
-            TextField(title, text: $text)
+            TextField(text: $text, prompt: Text(title).foregroundColor(.white.opacity(0.5))) {
+                Text(title) // This is the label for accessibility
+            }
                 .keyboardType(.numberPad)
                 .padding(8)
                 .submitLabel(.done)

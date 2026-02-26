@@ -46,7 +46,7 @@ struct ExerciseListSection: View {
                         VStack(spacing: 8) {
                             Text("\(tab.rawValue) (\(tab == .unfinished ? unfinishedExercises.count : completedExercises.count))")
                                 .font(.subheadline.bold())
-                                .foregroundColor(selectedTab == tab ? .white : .secondary)
+                                .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.5))
                             
                             // Animated Selection Indicator
                             Rectangle()
@@ -64,8 +64,43 @@ struct ExerciseListSection: View {
             ScrollViewReader { proxy in
                 List {
                     if selectedTab == .unfinished {
-                        ForEach(unfinishedExercises) { exercise in
-                            createStrengthEntryRow(for: exercise)
+                        if unfinishedExercises.isEmpty {
+                            // --- COMPLETION CARD ---
+                            VStack(spacing: 20) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.green)
+                                
+                                VStack(spacing: 8) {
+                                    Text("Session Complete!")
+                                        .font(.title2.bold())
+                                    Text("All exercises are marked finished.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Button(action: {
+                                    // This triggers the same logic as the BottomControls save
+                                    NotificationCenter.default.post(name: NSNotification.Name("TriggerSave"), object: nil)
+                                }) {
+                                    Text("Save to Workout History")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(ThemeManager.shared.currentTheme.accent)
+                                        .cornerRadius(12)
+                                }
+                                .padding(.horizontal, 40)
+                            }
+                            .padding(.vertical, 40)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            
+                        } else {
+                            ForEach(unfinishedExercises) { exercise in
+                                createStrengthEntryRow(for: exercise)
+                            }
                         }
                     } else {
                         ForEach(completedExercises) { exercise in

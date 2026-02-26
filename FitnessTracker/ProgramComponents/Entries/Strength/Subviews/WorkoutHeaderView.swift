@@ -26,9 +26,9 @@ struct WorkoutHeaderView: View {
                     Text(exercise.name)
                         .foregroundColor(.white)
                         .font(.title2.bold()) // Slightly smaller than .title for better fit
-                    Text("\(exercise.type?.rawValue ?? "Strength") exercise")
+                    Text("\(exercise.type?.rawValue ?? "Type") exercise")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.5))
                     HStack {
                         Spacer()
                         Button(action: {

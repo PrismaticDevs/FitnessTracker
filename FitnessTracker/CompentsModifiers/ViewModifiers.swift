@@ -146,7 +146,7 @@ extension View {
                     
                     // 2. Centered & Wrapping Title
                     Text(title)
-                        .font(.headline)
+                        .font(.subheadline)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2) // Allows wrapping to 2 lines if needed
@@ -161,7 +161,8 @@ extension View {
                         .accessibilityHidden(true)
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
             }
     }
 
