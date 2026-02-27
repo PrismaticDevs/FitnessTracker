@@ -81,7 +81,7 @@ struct ExerciseManagement: View {
         }
         .onTapGesture { isFocused = nil }
         .applyGradientBackground()
-        .brandedBackButton(title: "Add Exercise", theme: theme.currentTheme, dismiss: dismiss)
+        .brandedBackButton(title: "Manage Exercises", theme: theme.currentTheme, dismiss: dismiss)
         .confirmationDialog(
             "Are you sure?",
             isPresented: Binding(
@@ -188,9 +188,15 @@ extension ExerciseManagement {
                                     Text(exercise.type?.rawValue.capitalized ?? "Strength").font(.caption2).foregroundColor(.white.opacity(0.5))
                                 }
                                 Spacer()
-                                Button { exerciseToDelete = exercise } label: {
+                                Button {
+                                    exerciseToDelete = exercise
+                                    
+                                } label: {
                                     Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
+                                        .foregroundColor(.red)
+                                        .padding(8)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             .padding(.vertical, 4)
                         }
