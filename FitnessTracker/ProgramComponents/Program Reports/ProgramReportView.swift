@@ -12,7 +12,6 @@ import Charts
 struct ProgramReportView: View {
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.dismiss) var dismiss
-    @Environment(\.modelContext) var context
     @State private var dragOffset: CGFloat = 0
     var program: WorkoutProgram
     
@@ -22,6 +21,25 @@ struct ProgramReportView: View {
         allCompletedSessions
             .filter { $0.programTitle == program.title }
             .sorted { $0.date > $1.date }
+    }
+    
+    var displaySessions: [CompletedSession] {
+        if filteredSessions.isEmpty {
+            // Create a 'Transient' session (not saved to SwiftData)
+            let mockSession = CompletedSession(
+                programTitle: program.title,
+                sessionName: "No Data Recorded"
+            )
+            
+            // Add one empty entry of each type so the loops run once with 0s
+            mockSession.strengthEntries = [StrengthEntry(exercise: "None", date: .now, sets: [])]
+            mockSession.cardioEntries = [CardioEntry(exercise: "None", duration: 0, distance: 0, calories: 0)]
+            mockSession.mobilityEntries = [MobilityEntry(exercise: "None", holdTime: 0, rounds: 0)]
+            
+            return [mockSession]
+        } else {
+            return filteredSessions
+        }
     }
     
     @State private var reportRange: ReportRange = .weekly
@@ -34,42 +52,74 @@ struct ProgramReportView: View {
                     VStack(spacing: 20) {
                         Picker("Report Range", selection: $reportRange) {
                             Text("Weekly").tag(ReportRange.weekly)
+                                .foregroundColor(.white)
                             Text("Monthly").tag(ReportRange.monthly)
+                                .foregroundColor(.white)
                         }
                         .pickerStyle(.segmented)
                         .padding()
                         
+                        // Top Level Stats
                         HStack(spacing: 15) {
-                            StatCard(title: "Sessions", value: "\(filteredSessions.count)", icon: "bolt.fill", color: .orange)
-                            // This calls the function below
+                            StatCard(title: "Total Vol", value: "\(Int(calculateTotalStrengthVolume())) lb", icon: "dumbbell.fill", color: .purple)
+                            StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.flexibility", color: .blue)
                             StatCard(title: "Mobility", value: formatTime(calculateTotalMobility()), icon: "figure.flexibility", color: .blue)
                         }
                         .padding(.horizontal)
                         
+                        // Main Chart Card
                         VStack(alignment: .leading) {
                             Text(reportRange == .weekly ? "Weekly Activity" : "Monthly Progress")
                                 .font(.headline)
-                                .padding(.leading)
+                                .foregroundColor(.white)
+                                .padding([.top, .leading])
                             
-                            ChartSection(sessions: filteredSessions, range: reportRange)
-                                .frame(height: 200)
-                                .padding()
+                            // Chart displaying sessions over time
+                            Chart {
+                                ForEach(displaySessions) { session in
+                                    BarMark(
+                                        x: .value("Date", session.date, unit: .day),
+                                        y: .value("Sessions", 1)
+                                    )
+                                    .foregroundStyle(theme.currentTheme.accent)
+                                }
+                            }
+                            .frame(height: 200)
+                            .padding()
                         }
                         .background(theme.currentTheme.accent)
                         .cornerRadius(15)
                         .padding(.horizontal)
                         
+                        // Replace your existing metric rows with this structure
                         VStack(spacing: 12) {
-                            MetricRow(label: "Avg Cardio Heart Rate", value: "\(calculateAvgHR()) bpm", icon: "heart.fill")
-                            MetricRow(label: "Total Distance", value: String(format: "%.2f mi", calculateTotalDistance()), icon: "figure.run")
-                            MetricRow(label: "Total Mobility Rounds", value: "\(calculateTotalRounds())", icon: "repeat")
+                            expandableSection(
+                                label: "Strength",
+                                value: "\(calculateTotalSets()) Sets",
+                                icon: "dumbbell.fill",
+                                content: aggregateStrength().map { ($0.key, "\($0.value) total sets") }
+                            )
+                            
+                            expandableSection(
+                                label: "Cardio",
+                                value: String(format: "%.2f mi", calculateTotalDistance()),
+                                icon: "figure.run",
+                                content: aggregateCardio().map { ($0.key, String(format: "%.2f mi", $0.value)) }
+                            )
+                            
+                            expandableSection(
+                                label: "Mobility",
+                                value: formatTime(calculateTotalMobility()),
+                                icon: "figure.flexibility",
+                                content: aggregateMobility().map { ($0.key, "\($0.value) rounds") }
+                            )
                         }
-                        .padding()
+                        .padding(.horizontal)
                     }
                 }
-                .offset(x: dragOffset)
-                .animation(.interactiveSpring(), value: dragOffset)
             }
+            .offset(x: dragOffset)
+            .animation(.interactiveSpring(), value: dragOffset)
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .leading) {
@@ -98,54 +148,155 @@ struct ProgramReportView: View {
         }
         .applyAppBranding()
         .brandedBackButton(title: "\(program.title) Report", theme: theme.currentTheme, dismiss: dismiss)
-        .background(Color(.systemGroupedBackground))
     }
 
-    // --- MARK: - DATA LOGIC FUNCTIONS ---
-
-        func calculateTotalMobility() -> Int {
-            var totalSeconds: Double = 0
-            for session in filteredSessions {
-                for entry in session.mobilityEntries {
-                    // Using your actual model: holdTime * rounds
-                    totalSeconds += (entry.holdTime * Double(entry.rounds))
+    // MARK: - Expandable Section
+    @ViewBuilder
+    func expandableSection(label: String, value: String, icon: String, content: [(name: String, detail: String)]) -> some View {
+        VStack {
+            DisclosureGroup {
+                VStack(spacing: 10) {
+                    Divider().background(Color.white.opacity(0.3)) // Subtle separator
+                    
+                    if content.isEmpty {
+                        Text("No data recorded")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 5)
+                    } else {
+                        ForEach(content, id: \.name) { item in
+                            ExerciseSummaryRow(name: item.name, detail: item.detail)
+                        }
+                    }
                 }
+                .padding(.top, 5)
+            } label: {
+                MetricRow(label: label, value: value, icon: icon)
             }
-            return Int(totalSeconds)
+            .accentColor(.white) // The arrow color
         }
-
-        func calculateTotalDistance() -> Double {
-            var total: Double = 0.0
-            for session in filteredSessions {
-                for entry in session.cardioEntries {
-                    // Since distance is Double?, we safely unwrap it with ?? 0
-                    total += (entry.distance ?? 0.0)
-                }
-            }
-            return total
-        }
-
-        func calculateAvgHR() -> Int {
-            // NOTE: Your current CardioEntry model is missing 'averageHeartRate'.
-            // If you want to track this, add 'var averageHeartRate: Int?' to CardioEntry.swift
-            // For now, this returns 0 to stop the compiler error.
-            return 0
-        }
-
-        func calculateTotalRounds() -> Int {
-            var count = 0
-            for session in filteredSessions {
-                for entry in session.mobilityEntries {
-                    count += entry.rounds
-                }
-            }
-            return count
-        }
-
-        func formatTime(_ seconds: Int) -> String {
-            let m = seconds / 60
-            let s = seconds % 60
-            return "\(m)m \(s)s"
-        }
+        .padding() // Padding inside the colored box
+        .background(theme.currentTheme.accent) // The unified background
+        .cornerRadius(12)
+    }
     
+    // MARK: - DATA LOGIC
+    func aggregateStrength() -> [String: Int] {
+        var summary: [String: Int] = [:]
+        for session in filteredSessions {
+            for entry in session.strengthEntries {
+                summary[entry.exercise, default: 0] += entry.sets.count
+            }
+        }
+        return summary
+    }
+
+    func aggregateCardio() -> [String: Double] {
+        var summary: [String: Double] = [:]
+        for session in filteredSessions {
+            for entry in session.cardioEntries {
+                summary[entry.exercise, default: 0.0] += (entry.distance ?? 0.0)
+            }
+        }
+        return summary
+    }
+
+    func aggregateMobility() -> [String: Int] {
+        var summary: [String: Int] = [:]
+        for session in filteredSessions {
+            for entry in session.mobilityEntries {
+                summary[entry.exercise, default: 0] += entry.rounds
+            }
+        }
+        return summary
+    }
+    
+    func calculateTotalStrengthVolume() -> Double {
+        var totalVolume: Double = 0
+        
+        for session in filteredSessions {
+            for entry in session.strengthEntries {
+                for set in entry.sets {
+                    // Sum the weight types: Combined (Barbell) + Left + Right
+                    let totalWeightPerRep = Double(set.combined + set.left + set.right)
+                    totalVolume += (totalWeightPerRep * Double(set.reps))
+                }
+            }
+        }
+        return totalVolume
+    }
+
+    func calculateTotalSets() -> Int {
+        filteredSessions.reduce(0) { $0 + $1.strengthEntries.reduce(0) { $0 + $1.sets.count } }
+    }
+
+    func calculateTotalDistance() -> Double {
+        filteredSessions.reduce(0.0) { $0 + $1.cardioEntries.reduce(0.0) { $0 + ($1.distance ?? 0.0) } }
+    }
+
+    func calculateTotalCalories() -> Int {
+        filteredSessions.reduce(0) { $0 + $1.cardioEntries.reduce(0) { $0 + ($1.calories ?? 0) } }
+    }
+
+    func calculateTotalMobility() -> Int {
+        var totalSeconds: Double = 0
+        for session in filteredSessions {
+            for entry in session.mobilityEntries {
+                totalSeconds += (entry.holdTime * Double(entry.rounds))
+            }
+        }
+        return Int(totalSeconds)
+    }
+
+    func calculateTotalRounds() -> Int {
+        filteredSessions.reduce(0) { $0 + $1.mobilityEntries.reduce(0) { $0 + $1.rounds } }
+    }
+
+    func formatTime(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        return "\(m)m \(s)s"
+    }
 }
+
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Schema([WorkoutProgram.self, CompletedSession.self]), configurations: [config])
+
+    let mockProgram: WorkoutProgram = {
+        let p = WorkoutProgram(title: "Hypertrophy Phase 1", sessions: [])
+        container.mainContext.insert(p)
+        
+        let completed = CompletedSession(date: Date(), userId: "123", programTitle: "Hypertrophy Phase 1", sessionName: "Full Body Mix")
+        
+        // 1. Add Cardio (use only fields referenced elsewhere: distance, calories)
+        completed.cardioEntries = [
+            CardioEntry(exercise: "Sprints", duration: 1200, distance: 2.1, calories: 300)
+        ]
+        
+        // 2. Add Mobility (only holdTime and rounds are used by calculations)
+        completed.mobilityEntries = [
+            MobilityEntry(exercise: "Couch Stretch", holdTime: 60, rounds: 4)
+        ]
+        
+        // 3. Add Strength
+        // Create sets with left/right/combined weights to match calculateTotalStrengthVolume()
+        let strengthSets: [SetRecord] = [
+            SetRecord(id: UUID(), combined: 135, left: 50, right: 50, reps: 12, rest: 100),
+            SetRecord(id: UUID(), combined: 135, left: 0, right: 0, reps: 10, rest: 100)
+        ]
+        completed.strengthEntries = [
+            StrengthEntry(exercise: "Bench Press", date: Date(), sets: strengthSets)
+        ]
+        
+        container.mainContext.insert(completed)
+        return p
+    }()
+
+    NavigationStack {
+        ProgramReportView(program: mockProgram)
+            .modelContainer(container)
+    }
+}
+

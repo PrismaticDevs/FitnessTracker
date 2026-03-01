@@ -55,16 +55,17 @@ struct StatCard: View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: icon)
                 .font(.headline)
-                .foregroundColor(color)
+                .foregroundColor(.white)
             
             Text(value)
                 .font(.title2)
                 .bold()
                 .minimumScaleFactor(0.8) // Prevents text clipping
+                .foregroundColor(.white)
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -81,15 +82,23 @@ struct MetricRow: View {
     
     var body: some View {
         HStack {
-            Label(label, systemImage: icon)
-                .font(.subheadline)
+            // Label bundles the icon and text
+            Label {
+                Text(label)
+                    .foregroundColor(.white) // Forced White
+            } icon: {
+                Image(systemName: icon)
+                    .foregroundColor(.white) // Forced White
+            }
+            .font(.subheadline)
+            
             Spacer()
+            
             Text(value)
                 .font(.subheadline.bold())
-                .foregroundColor(.secondary)
+                .foregroundColor(.white) // Forced White
         }
         .padding()
-        .background(theme.currentTheme.accent)
         .cornerRadius(10)
     }
 }

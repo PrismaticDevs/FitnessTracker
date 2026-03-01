@@ -18,7 +18,14 @@ class MobilityEntry: Identifiable {
     var note: String?
     var session: CompletedSession? = nil
 
-    init(exercise: String, date: Date = Date(), holdTime: TimeInterval, rounds: Int, note: String? = nil, session: CompletedSession? = nil) {
+    init(
+        exercise: String,
+        date: Date = Date(),
+        holdTime: TimeInterval = 0,
+        rounds: Int = 0,
+        note: String? = nil,
+        session: CompletedSession? = nil
+    ) {
         self.id = UUID()
         self.exercise = exercise
         self.date = date

@@ -9,11 +9,15 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var aiManager = AIContextManager()
-    @Environment(\.modelContext) var context
-    @ObservedObject var theme = ThemeManager.shared
+    // Global Context Managers
     @EnvironmentObject var authManager: AuthManager
+    @Environment(\.modelContext) var context
+    @State private var aiManager = AIContextManager()
+    // AI context
     @State private var globalWorkoutContext: String = "User is browsing the main menu"
+    // Global Style
+    @ObservedObject var theme = ThemeManager.shared
+
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {

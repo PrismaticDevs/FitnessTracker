@@ -19,7 +19,15 @@ class CardioEntry: Identifiable {
     var note: String?
     var session: CompletedSession?
     
-    init(exercise: String, date: Date = Date(), duration: TimeInterval, distance: Double? = nil, calories: Int? = nil, note: String? = nil, session: CompletedSession? = nil) {
+    init(
+        exercise: String,
+        date: Date = Date(),
+        duration: TimeInterval,
+        distance: Double? = nil,
+        calories: Int? = nil,
+        note: String? = nil,
+        session: CompletedSession? = nil
+    ) {
         self.id = UUID()
         self.exercise = exercise
         self.date = date

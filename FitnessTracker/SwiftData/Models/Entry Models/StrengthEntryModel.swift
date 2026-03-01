@@ -17,7 +17,13 @@ class StrengthEntry: Identifiable {
     var note: String?
     var session: CompletedSession?
     
-    init(exercise: String, date: Date, sets: [SetRecord], note: String? = nil, session: CompletedSession? = nil) {
+    init(
+        exercise: String,
+        date: Date,
+        sets: [SetRecord],
+        note: String? = nil,
+        session: CompletedSession? = nil
+    ) {
         self.id = UUID()
         self.exercise = exercise
         self.date = date

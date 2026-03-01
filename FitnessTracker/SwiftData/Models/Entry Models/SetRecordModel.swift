@@ -17,7 +17,14 @@ class SetRecord: Identifiable {
     var reps: Int
     var rest: Int
     
-    init(id: UUID, combined: Int, left: Int, right: Int, reps: Int, rest: Int) {
+    init(
+        id: UUID = UUID(),
+        combined: Int = 0,
+        left: Int = 0,
+        right: Int = 0,
+        reps: Int = 0,
+        rest: Int = 0
+    ) {
         self.id = id
         self.combined = combined
         self.left = left
