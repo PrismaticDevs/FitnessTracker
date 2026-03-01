@@ -45,6 +45,7 @@ struct ChartSection: View {
 // MARK: - UI Components
 
 struct StatCard: View {
+    @ObservedObject var theme = ThemeManager.shared
     let title: String
     let value: String
     let icon: String
@@ -67,12 +68,13 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.secondarySystemBackground))
+        .background(theme.currentTheme.accent)
         .cornerRadius(12)
     }
 }
 
 struct MetricRow: View {
+    @ObservedObject var theme = ThemeManager.shared
     let label: String
     let value: String
     let icon: String
@@ -87,7 +89,7 @@ struct MetricRow: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
+        .background(theme.currentTheme.accent)
         .cornerRadius(10)
     }
 }

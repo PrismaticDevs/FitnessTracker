@@ -51,7 +51,7 @@ struct ProgramReportView: View {
                         .frame(height: 200)
                         .padding()
                 }
-                .background(Color(.secondarySystemBackground))
+                .background(theme.currentTheme.accent)
                 .cornerRadius(15)
                 .padding(.horizontal)
 
