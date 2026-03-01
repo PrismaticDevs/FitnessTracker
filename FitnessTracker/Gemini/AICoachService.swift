@@ -175,6 +175,7 @@ struct FloatingChatView: View {
     @State private var isExpanded = false
     @State private var isFullScreen = false
     @State private var inputText = ""
+    @FocusState private var isFocused: Bool?
     let workoutContext: String
     
     // Position tracking
@@ -294,6 +295,7 @@ struct FloatingChatView: View {
                             loadingIndicator.id("loadingIndicator")
                         }
                     }
+                    .onTapGesture { isFocused = nil }
                     .padding(.vertical)
                 }
                 .onChange(of: vm.currentDisplayMessages.count) { oldValue, newValue in
@@ -369,6 +371,7 @@ struct FloatingChatView: View {
                 .padding(8)
                 .background(Color(.tertiarySystemBackground))
                 .cornerRadius(8)
+                .focused($isFocused, equals: true)
             
             Button(action: sendMessage) {
                 Image(systemName: "arrow.up.circle.fill")

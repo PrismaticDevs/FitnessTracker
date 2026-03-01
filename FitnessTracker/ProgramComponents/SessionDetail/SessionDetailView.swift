@@ -29,14 +29,12 @@ struct SessionDetailView: View {
     @State private var showingRenameSheet = false
     @State private var newSessionName: String = ""
     
-    // Save/Upload State
+    // Save & Upload State
     @State private var network = NetworkMonitor()
     @State private var hasSavedLocally = false
     @State private var isUploading = false
     @State private var showSyncError = false
     
-    
-
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
@@ -76,240 +74,141 @@ struct SessionDetailView: View {
         }
     }
 
-    // MARK: - Reordering Logic
-    private func moveExercise(from source: IndexSet, to destination: Int) {
-        // 1. Update the local array
-        session.exercises.move(fromOffsets: source, toOffset: destination)
+    // MARK: - Save Logic
         
-        // 2. Persist to SwiftData
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save reorder: \(error)")
+        private func handleLocalSave() {
+            finishWorkoutSession()
+            
+            // Reset the exercises for the next time the template is used
+            for exercise in session.exercises {
+                exercise.isCompleted = false
+            }
+            completedExerciseIds.removeAll()
+            try? context.save()
+            
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            withAnimation {
+                hasSavedLocally = true
+            }
         }
-        }
-    
-    private func startCloudUpload() {
-        guard network.isConnected else {
-            showSyncError = true
-            return
-        }
-        guard let userId = auth.user?.uid else {
-            showSyncError = true
-            return
-        }
-        
-        isUploading = true
-        
-        Task {
-            do {
-                // Pass the session/history object here
-                try await SyncManager.shared.uploadWholeSession(from: session, userId: userId)
-                
-                await MainActor.run {
+
+        private func handleCloudUpload() {
+            guard network.isConnected, let userId = auth.user?.uid else {
+                showSyncError = true
+                return
+            }
+            
+            isUploading = true
+            
+            Task {
+                do {
+                    // 1. Sync Blueprints (UserDefaults)
+                    SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
+                    
+                    // 2. Sync the most recent CompletedSession
+                    let descriptor = FetchDescriptor<CompletedSession>(
+                        sortBy: [SortDescriptor(\.date, order: .reverse)]
+                    )
+                    
+                    if let lastSession = try context.fetch(descriptor).first {
+                        try await SyncManager.shared.uploadCompletedSession(userId: userId, session: lastSession)
+                    }
+                    
                     isUploading = false
-                    // Haptic feedback for successful cloud sync
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                     dismiss()
-                }
-            } catch {
-                await MainActor.run {
+                    
+                } catch {
+                    print("Sync failed: \(error)")
                     isUploading = false
                     showSyncError = true
                 }
             }
         }
-    }
-    
-    private func handleLocalSave() {
-        // 1. Process and save the workout history
-        finishWorkoutSession()
         
-        // 2. Reset the exercises so the session is fresh for next time
-        for exercise in session.exercises {
-            exercise.isCompleted = false
-        }
-        completedExerciseIds.removeAll()
-        try? context.save()
-        
-        // 3. Trigger haptic feedback for success
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        
-        withAnimation {
-            hasSavedLocally = true
-        }
-    }
-
-    private func handleCloudUpload() {
-        // Look at the network monitor directly instead of a local 'isOnline' state
-        guard network.isConnected else { return }
-        
-        isUploading = true
-        
-        // Your existing cloud upload logic
-        uploadWholeSessionToCloud()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isUploading = false
-            dismiss()
-        }
-    }
-    
-    private func updateAIWithLiveSessionData() {
-        let details = generateSessionContext()
-        
-        aiManager.updateContext(
-            screen: "Active Session \(session.name)",
-            details: "User is vieting their full workout session list",
-            preferences: details
-        )
-    }
-    
-    private func uploadWholeSessionToCloud() {
-        guard let userId = auth.user?.uid else { return }
-        
-        // We use the SyncManager to handle the heavy lifting
-        // This ensures consistency across the app
-        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
-        
-        // Optional: Trigger Haptic feedback or a toast notification
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-    }
-
-    // Add this computed property to SessionDetailView to match StrengthEntryView logic
-    private var keyScope: DefaultsKeyScope {
-        DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid)
-    }
-    
-    private func addExercise(named exerciseName: String) {
-        let newExercise = Exercise(name: exerciseName)
-        session.exercises.append(newExercise)
-        
-        // Save the updated session back to the workout program
-        if let index = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
-            workoutProgram.sessions[index] = session
-        }
-        
-        // Save the context to persist changes
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save context: \(error)")
-        }
-    }
-    
-    private func deleteExercise(withId id: UUID) {
-        // Find the specific instance by its unique ID
-        if let index = session.exercises.firstIndex(where: { $0.id == id }) {
-            let exerciseName = session.exercises[index].name
+        private func finishWorkoutSession() {
+            guard let userId = auth.user?.uid else { return }
+            let sessionDate = Date()
             
-            withAnimation {
-                session.exercises.remove(at: index)
-                
-                // Cleanup per-set keys
-                // Note: Since name is used for keys, this cleans up the "Bench Press" defaults.
-                // (If you want separate data for duplicate exercises, use .id in the key instead of .name)
-                let baseKeys = ["weight", "left", "right", "reps", "rest", "iso"]
-                for i in 0..<20 {
-                    for base in baseKeys {
-                        defaults.removeObject(forKey: keyScope.scoped("\(base)\(exerciseName)_set\(i)"))
-                    }
-                }
-                defaults.removeObject(forKey: keyScope.scoped("sets\(exerciseName)"))
-                defaults.removeObject(forKey: keyScope.scoped("note\(exerciseName)"))
-
-                try? context.save()
-            }
-        }
-    }
-    
-    private func renameSession() {
-        // Update the session name
-        session.name = newSessionName
-        
-        // Update the workout program to reflect the changes
-        if let programIndex = workoutProgram.sessions.firstIndex(where: { $0.id == session.id }) {
-            workoutProgram.sessions[programIndex] = session
-        }
-        
-        // Save the context to persist changes
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save context after renaming session: \(error)")
-        }
-    }
-    private func generateSessionContext() -> String {
-        var contextString = "Current Session: \(session.name)\n"
-        
-        for exercise in session.exercises {
-            contextString += "\nExercise: \(exercise.name)\n"
-            
-            // Fetch the data from UserDefaults (matches your EntryView keys)
-            let sets = defaults.integer(forKey: "sets\(exercise.name)")
-            let note = defaults.string(forKey: "note\(exercise.name)") ?? "No notes"
-            
-            contextString += "- Configured Sets: \(sets)\n"
-            
-            // Loop through the individual sets to get the weight/reps
-            // Assuming your keys follow the pattern: weightExerciseName_set0
-            for i in 0..<max(1, sets) {
-                let weight = defaults.integer(forKey: "weight\(exercise.name)_set\(i)")
-                let reps = defaults.integer(forKey: "reps\(exercise.name)_set\(i)")
-                if weight > 0 || reps > 0 {
-                    contextString += "  [Set \(i+1)]: \(weight)kg x \(reps) reps\n"
-                }
-            }
-            contextString += "- Note: \(note)\n"
-        }
-        return contextString
-    }
-    
-    private func finishWorkoutSession() {
-        guard let userId = FBAuth.auth().currentUser?.uid else { return }
-        let sessionDate = Date()
-        
-        // 1. Map every exercise in this session to a StrengthEntry
-        let strengthEntries: [StrengthEntry] = session.exercises.compactMap { exercise in
-            let setCount = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
-            guard setCount > 0 else { return nil } // Skip exercises with no sets
-            
-            var setRecords: [SetRecord] = []
-            
-            // Loop through the sets defined in UserDefaults
-            for i in 0..<setCount {
-                let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
-                let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(i)"))
-                let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(i)"))
-                let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
-                let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)"))
-                
-                // Only add the set if there's actual work recorded
-                if reps > 0 {
-                    setRecords.append(SetRecord(id: UUID(), combined: combined, left: left, right: right, reps: reps, rest: rest))
-                }
-            }
-            
-            guard !setRecords.isEmpty else { return nil }
-            
-            let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)"))
-            return StrengthEntry(exercise: exercise.name, date: sessionDate, sets: setRecords, note: note)
-        }
-        
-        // 2. Wrap everything into ONE WorkoutHistory object
-        if !strengthEntries.isEmpty {
-            let history = WorkoutHistory(
-                userId: userId,
+            // 1. Create the new "Envelope"
+            let completed = CompletedSession(
                 date: sessionDate,
-                exercise: session.name, // The "Master Name" is the Session Name (e.g., "Push Day")
-                entries: strengthEntries
+                programTitle: workoutProgram.title,
+                sessionName: session.name
             )
             
-            context.insert(history)
+            // 2. Map every exercise to StrengthEntry
+            for exercise in session.exercises {
+                let setsKey = keyScope.scoped("sets\(exercise.name)")
+                let setCount = Int(defaults.string(forKey: setsKey) ?? "0") ?? 0
+                
+                guard setCount > 0 else { continue }
+                
+                var setRecords: [SetRecord] = []
+                for i in 0..<setCount {
+                    let reps = Int(defaults.string(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)")) ?? "0") ?? 0
+                    if reps > 0 {
+                        let weight = Int(defaults.string(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)")) ?? "0") ?? 0
+                        let left = Int(defaults.string(forKey: keyScope.scoped("left\(exercise.name)_set\(i)")) ?? "0") ?? 0
+                        let right = Int(defaults.string(forKey: keyScope.scoped("right\(exercise.name)_set\(i)")) ?? "0") ?? 0
+                        let rest = Int(defaults.string(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)")) ?? "0") ?? 0
+                        
+                        setRecords.append(SetRecord(id: UUID(), combined: weight, left: left, right: right, reps: reps, rest: rest))
+                    }
+                }
+                
+                if !setRecords.isEmpty {
+                    let entry = StrengthEntry(
+                        exercise: exercise.name,
+                        date: sessionDate,
+                        sets: setRecords,
+                        note: defaults.string(forKey: keyScope.scoped("note\(exercise.name)")),
+                        programTitle: workoutProgram.title
+                    )
+                    completed.strengthEntries.append(entry)
+                }
+            }
+            
+            // 3. Persist individual session to SwiftData
+            if !completed.strengthEntries.isEmpty {
+                context.insert(completed)
+                do {
+                    try context.save()
+                    print("✅ Successfully saved CompletedSession: \(session.name)")
+                } catch {
+                    print("❌ SwiftData Save Error: \(error.localizedDescription)")
+                }
+            }
         }
-    }
+
+        // MARK: - Utilities
+        private var keyScope: DefaultsKeyScope {
+            DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid)
+        }
+
+        private func deleteExercise(withId id: UUID) {
+            if let index = session.exercises.firstIndex(where: { $0.id == id }) {
+                let exerciseName = session.exercises[index].name
+                withAnimation {
+                    session.exercises.remove(at: index)
+                    // Cleanup logic here...
+                    try? context.save()
+                }
+            }
+        }
+
+        private func renameSession() {
+            session.name = newSessionName
+            try? context.save()
+        }
+
+        private func addExercise(named exerciseName: String) {
+            let newExercise = Exercise(name: exerciseName)
+            session.exercises.append(newExercise)
+            try? context.save()
+        }
     
 }
 

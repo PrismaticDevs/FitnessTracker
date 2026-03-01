@@ -30,9 +30,17 @@ struct ContentView: View {
         .environmentObject(authManager)
         // Migration starts here
         .task(id: authManager.user?.uid) {
-            if let uid = authManager.user?.uid {
-                DataMigration.runAll(context: context, userId: uid)
-            }
+            guard let uid = authManager.user?.uid else { return }
+            
+            // 1. Run local migrations
+            DataMigration.runAll(context: context, userId: uid)
+            
+            // 2. Fetch cloud data
+            // Create the keyScope for UserDefaults
+            let keyScope = DefaultsKeyScope.from(previewUserID: nil, liveUserID: uid)
+            
+            // Pull Blueprints (UserDefaults) and History (SwiftData)
+            SyncManager.shared.fetchHistoryFromCloud(userId: uid, context: context)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("UpdateAIContext"))) { note in
             if let newContext = note.object as? String {
@@ -46,7 +54,6 @@ struct ContentView: View {
         migrate(WorkoutProgram.self, to: uid)
         migrate(Exercise.self, to: uid)
         migrate(ExerciseCategory.self, to: uid)
-        migrate(WorkoutHistory.self, to: uid)
         
         // Save the changes
         try? context.save()

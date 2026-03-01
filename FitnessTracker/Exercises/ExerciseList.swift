@@ -46,15 +46,8 @@ class ExerciseList: ObservableObject {
             Exercise(name: "Push-Up Variations", type: .strength)
         ]),
         ExerciseCategory(name: "Shoulders", exercises: [
-            Exercise(name: "Bent-Over Barbell Row", type: .strength),
-            Exercise(name: "Dumbbell Pullover", type: .strength),
             Exercise(name: "Shoulder Press", type: .strength),
             Exercise(name: "Converging Shoulder Press", type: .strength),
-            Exercise(name: "Wide Grip Lat Pulldown", type: .strength),
-            Exercise(name: "Diverging Lat Pull Down", type: .strength),
-            Exercise(name: "Pulldown", type: .strength),
-            Exercise(name: "Seated Row", type: .strength),
-            Exercise(name: "Row", type: .strength),
             Exercise(name: "Dumbbell Rear Delt Fly", type: .strength),
             Exercise(name: "Rear Delt Machine", type: .strength),
             Exercise(name: "Cable Face Pull", type: .strength),
@@ -77,7 +70,9 @@ class ExerciseList: ObservableObject {
             Exercise(name: "Bicycle Crunch", type: .strength),
             Exercise(name: "Hanging Leg Raise", type: .strength),
             Exercise(name: "Medicine Ball Slam", type: .strength),
-            Exercise(name: "Side Plank", type: .strength)
+            Exercise(name: "Side Plank", type: .strength),
+            Exercise(name: "Dead Bug", type: .strength),
+            Exercise(name: "Stability Ball Rollouts", type: .strength)
         ]),
         ExerciseCategory(name: "Legs", exercises: [
             Exercise(name: "Deadlift", type: .strength),
@@ -116,69 +111,63 @@ class ExerciseList: ObservableObject {
             Exercise(name: "Zottman Curl", type: .strength)
         ]),
         ExerciseCategory(name: "Back", exercises: [
+            Exercise(name: "Bent-Over Barbell Row", type: .strength),
             Exercise(name: "Bent-Over Dumbbell Row", type: .strength),
+            Exercise(name: "Dumbbell Pullover", type: .strength),
+            Exercise(name: "Wide Grip Lat Pulldown", type: .strength),
+            Exercise(name: "Diverging Lat Pull Down", type: .strength),
+            Exercise(name: "Pulldown", type: .strength),
+            Exercise(name: "Seated Row", type: .strength),
+            Exercise(name: "Row", type: .strength),
             Exercise(name: "T-Bar Row", type: .strength),
             Exercise(name: "Pull-Up/Chin-Up", type: .strength),
-            Exercise(name: "Seated Cable Row", type: .strength),
             Exercise(name: "Single-Arm Dumbbell Row", type: .strength)
         ]),
-        ExerciseCategory(name: "Full Body", exercises: [
-            Exercise(name: "Kettlebell Swing", type: .strength),
-            Exercise(name: "Burpees", type: .cardio),
-            Exercise(name: "Thrusters", type: .strength),
-            Exercise(name: "Battle Ropes", type: .cardio),
-            Exercise(name: "Medicine Ball Toss", type: .strength)
-        ]),
         ExerciseCategory(name: "Cardio", exercises: [
-            Exercise(name: "Treadmill Running", type: .cardio),
-            Exercise(name: "Stationary Biking", type: .cardio),
+            Exercise(name: "Treadmill", type: .cardio),
+            Exercise(name: "Stationary Bike", type: .cardio),
             Exercise(name: "Rowing Machine", type: .cardio),
+            Exercise(name: "Stairmaster", type: .cardio),
+            Exercise(name: "Elliptical Trainer", type: .cardio),
             Exercise(name: "Jump Rope", type: .cardio),
-            Exercise(name: "Elliptical Trainer", type: .cardio)
+            Exercise(name: "Outdoor Run", type: .cardio),
+            Exercise(name: "Swimming", type: .cardio),
+            Exercise(name: "Battle Ropes", type: .cardio),
+            Exercise(name: "Burpees", type: .cardio),
+            Exercise(name: "Shuttle Runs", type: .cardio),
+            Exercise(name: "HIIT", type: .cardio)
         ]),
-        ExerciseCategory(name: "Core", exercises: [
-            Exercise(name: "Plank", type: .strength),
-            Exercise(name: "Side Plank", type: .strength),
-            Exercise(name: "Hanging Knee Raises", type: .strength),
-            Exercise(name: "Medicine Ball Russian Twists", type: .strength),
-            Exercise(name: "Stability Ball Rollouts", type: .strength),
-            Exercise(name: "Dead Bug", type: .strength)
-        ]),
-        ExerciseCategory(name: "Plyometrics", exercises: [
-            Exercise(name: "Box Jumps", type: .strength),
-            Exercise(name: "Jump Squats", type: .strength),
-            Exercise(name: "Burpee Tuck Jumps", type: .cardio),
-            Exercise(name: "Plyometric Push-Ups", type: .strength),
-            Exercise(name: "Lateral Bounds", type: .strength)
-        ]),
-        ExerciseCategory(name: "Flexibility and Mobility", exercises: [
-            Exercise(name: "Dynamic Stretching", type: .mobility),
-            Exercise(name: "Static Stretching", type: .mobility),
+        ExerciseCategory(name: "Mobility & Flexibility", exercises: [
+            // Lower Body
+            Exercise(name: "Couch Stretch", type: .mobility),
+            Exercise(name: "90/90 Hip Switch", type: .mobility),
+            Exercise(name: "Pigeon Pose", type: .mobility),
+            Exercise(name: "Frog Stretch", type: .mobility),
+            Exercise(name: "World's Greatest Stretch", type: .mobility),
+            Exercise(name: "Ankle Dorsiflexion", type: .mobility),
+            Exercise(name: "Hamstring PNF Stretch", type: .mobility),
+            // Upper Body
+            Exercise(name: "Thoracic Spine Extensions", type: .mobility),
+            Exercise(name: "Shoulder Dislocations (PVC)", type: .mobility),
+            Exercise(name: "Scapular CARs", type: .mobility),
+            Exercise(name: "Puppy Pose", type: .mobility),
+            // Spine & Balance
+            Exercise(name: "Cat-Cow", type: .mobility),
+            Exercise(name: "Deep Squat Hold", type: .mobility),
             Exercise(name: "Downward Dog", type: .mobility),
             Exercise(name: "Cobra Pose", type: .mobility),
+            Exercise(name: "Child’s Pose", type: .mobility),
             Exercise(name: "Foam Rolling", type: .mobility),
-            Exercise(name: "Hip Openers", type: .mobility)
-        ]),
-        ExerciseCategory(name: "Balance and Stability", exercises: [
-            Exercise(name: "Single-Leg Deadlifts", type: .strength),
-            Exercise(name: "Bosu Ball Exercises", type: .mobility),
-            Exercise(name: "Stability Ball Pass", type: .strength),
-            Exercise(name: "Balance Board Exercises", type: .mobility),
+            Exercise(name: "Bosu Ball Balance", type: .mobility),
             Exercise(name: "Tai Chi Movements", type: .mobility)
         ]),
-        ExerciseCategory(name: "Agility", exercises: [
-            Exercise(name: "Ladder Drills", type: .cardio),
-            Exercise(name: "Cone Drills", type: .cardio),
-            Exercise(name: "Shuttle Runs", type: .cardio),
-            Exercise(name: "Hurdle Drills", type: .cardio),
-            Exercise(name: "Quick Feet Drills", type: .cardio)
-        ]),
-        ExerciseCategory(name: "Endurance", exercises: [
-            Exercise(name: "Long-Distance Running", type: .cardio),
-            Exercise(name: "Cycling", type: .cardio),
-            Exercise(name: "Swimming", type: .cardio),
-            Exercise(name: "Rowing", type: .cardio),
-            Exercise(name: "High-Intensity Interval Training (HIIT)", type: .cardio)
+        ExerciseCategory(name: "Full Body & Plyos", exercises: [
+            Exercise(name: "Kettlebell Swing", type: .strength),
+            Exercise(name: "Thrusters", type: .strength),
+            Exercise(name: "Medicine Ball Toss", type: .strength),
+            Exercise(name: "Box Jumps", type: .strength),
+            Exercise(name: "Jump Squats", type: .strength),
+            Exercise(name: "Lateral Bounds", type: .strength)
         ])
     ]
 }

@@ -34,23 +34,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C90340E02F53849100D39039 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = FitnessTracker.xcodeproj; path = FitnessTracker/FitnessTracker.xcodeproj; sourceTree = SOURCE_ROOT; };
-		C90341422F53A0DE00D39039 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
-		C922CADD2F53B431003F9734 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C998B04C2CACEB5700AD3898 /* FitnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B05C2CACEB5B00AD3898 /* FitnessTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C9483D192EE4F8170071B6D8 /* Exceptions for "FitnessTracker" folder in "FitnessTracker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = C998B04B2CACEB5700AD3898 /* FitnessTracker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C998B05F2CACEB5B00AD3898 /* FitnessTrackerTests */ = {
@@ -65,9 +52,6 @@
 		};
 		C9E389A32EC1620F00DCC8EE /* FitnessTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C9483D192EE4F8170071B6D8 /* Exceptions for "FitnessTracker" folder in "FitnessTracker" target */,
-			);
 			path = FitnessTracker;
 			sourceTree = "<group>";
 		};
@@ -105,27 +89,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C90340E32F53849200D39039 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		C90341482F53A0DE00D39039 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		C922CAE32F53B431003F9734 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		C9483D112EE4B0E80071B6D8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -267,25 +230,10 @@
 			packageReferences = (
 				C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C914B1A12EE4A59E0093E70E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				C922CB2D2F53B544003F9734 /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C998B04D2CACEB5700AD3898 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = C90341482F53A0DE00D39039 /* Products */;
-					ProjectRef = C90341422F53A0DE00D39039 /* FitnessTracker.xcodeproj */;
-				},
-				{
-					ProductGroup = C90340E32F53849200D39039 /* Products */;
-					ProjectRef = C90340E02F53849100D39039 /* FitnessTracker.xcodeproj */;
-				},
-				{
-					ProductGroup = C922CAE32F53B431003F9734 /* Products */;
-					ProjectRef = C922CADD2F53B431003F9734 /* FitnessTracker.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				C998B04B2CACEB5700AD3898 /* FitnessTracker */,
@@ -661,14 +609,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 9.0.0;
-			};
-		};
-		C922CB2D2F53B544003F9734 /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/generative-ai-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.5.6;
 			};
 		};
 		C9E3894C2EC1619200DCC8EE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {

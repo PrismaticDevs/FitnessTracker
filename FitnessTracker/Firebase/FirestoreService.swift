@@ -29,9 +29,18 @@ private func convertToFirestoreDocument(entry: StrengthEntry, userId: String) ->
 private func convertFirestoreDocumentToStrengthEntry(data: [String: Any]) -> StrengthEntry? {
     guard
         let exercise = data["exercise"] as? String,
-        let date = data["date"] as? Date,
         let setsData = data["sets"] as? [[String: Any]]
     else { return nil }
+    
+    // Handle Firestore Timestamp or Date for the date field
+    let date: Date
+    if let ts = data["date"] as? Timestamp {
+        date = ts.dateValue()
+    } else if let d = data["date"] as? Date {
+        date = d
+    } else {
+        return nil
+    }
     
     let sets = setsData.compactMap { setData -> SetRecord? in
         guard
@@ -58,7 +67,8 @@ private func convertFirestoreDocumentToStrengthEntry(data: [String: Any]) -> Str
         exercise: exercise,
         date: date,
         sets: sets,
-        note: data["note"] as? String
+        note: data["note"] as? String,
+        programTitle: (data["programTitle"] as? String) ?? ""
     )
 }
 

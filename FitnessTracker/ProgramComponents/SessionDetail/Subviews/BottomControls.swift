@@ -35,7 +35,7 @@ struct BottomControls: View {
             )
             Spacer()
             Button(action: onSave) {
-                Image(systemName: isUploading ? "arrow.clockwise" : (hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down"))
+                Image(systemName: isUploading ? "arrow.clockwise" : (hasSavedLocally ? "icloud.and.arrow.up" : "square.and.arrow.down"))
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(completedCount == 0 ? .white.opacity(0.3) : .white)
             }

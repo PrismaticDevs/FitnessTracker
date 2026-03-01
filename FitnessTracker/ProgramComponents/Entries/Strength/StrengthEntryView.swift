@@ -109,48 +109,27 @@ struct StrengthEntryView: View {
             .listRowInsets(EdgeInsets())
             HStack {
                 Spacer()
-                Text(showHistory ? "Hide History" : "View History")
                 Button {
-                    showHistory.toggle()
+                        showHistory.toggle()
                 } label: {
-                    Image(systemName: showHistory ? "eye.slash" : "eye")
+                    HStack {
+                        Text(showHistory ? "Hide History" : "View History")
+                        Image(systemName: showHistory ? "eye.slash" : "eye")
+                    }
+                    .font(.caption.bold())
+                    .foregroundColor(.secondary)
                 }
+                .buttonStyle(.plain)
                 Spacer()
             }
             
-            if !showHistory {
-                WorkoutHistoryList()
+            if showHistory {
+                ExerciseHistorySection(exercise: exercise)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .opacity
+                    ))
             }
-            
-//                        WorkoutHistoryView(
-//                            date: $date,
-//                            exercise: $exercise,
-//                            combined: Binding<Int>(
-//                                get: { Int(combinedInput) ?? 0},
-//                                set: { combinedInput = String($0)}
-//                            ),
-//                            left: Binding<Int>(
-//                                get: { left },
-//                                set: { left = $0 }
-//                            ),
-//                            right: Binding<Int>(
-//                                get: { right },
-//                                set: { right = $0 }
-//                            ),
-//                            sets: Binding<Int>(
-//                                get: { Int(setsCountInput) ?? 0},
-//                                set: { setsCountInput = String($0)}
-//                            ),
-//                            reps: Binding<Int>(
-//                                get: { reps },
-//                                set: { reps = $0 }
-//                            ),
-//                            rest: Binding<Int>(
-//                                get: { rest },
-//                                set: { rest = $0 }
-//                            ),
-//                            note: $note
-//                        )
         }
         .background(.clear)
         .padding(.horizontal, 5)
@@ -447,26 +426,26 @@ final class MockAuthManager: AuthManager {
 
 // MARK: - Preview
 
-#Preview {
-    let mockAuthManager = AuthManager() // Use your actual or mock manager
-    let previewExercise = Exercise(name: "Preview Exercise")
-    
-    // Create the view
-    StrengthEntryView(
-        isCompleted: .constant(false),
-        exercise: previewExercise,
-        combined: 0,
-        left: 0,
-        right: 0,
-        reps: 0,
-        rest: 0,
-        note: "",
-        // FIX: Wrap previewExercise in brackets to make it an array [Exercise]
-        allExercises: [previewExercise],
-        deleteExercise: { _ in }
-    )
-    .environmentObject(mockAuthManager)
-    // Adding the AI Manager since your view uses @Environment(AIContextManager.self)
-    .environment(AIContextManager())
-    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
-}
+//#Preview {
+//    let mockAuthManager = AuthManager() // Use your actual or mock manager
+//    let previewExercise = Exercise(name: "Preview Exercise")
+//    
+//    // Create the view
+//    StrengthEntryView(
+//        isCompleted: .constant(false),
+//        exercise: previewExercise,
+//        combined: 0,
+//        left: 0,
+//        right: 0,
+//        reps: 0,
+//        rest: 0,
+//        note: "",
+//        // FIX: Wrap previewExercise in brackets to make it an array [Exercise]
+//        allExercises: [previewExercise],
+//        deleteExercise: { _ in }
+//    )
+//    .environmentObject(mockAuthManager)
+//    // Adding the AI Manager since your view uses @Environment(AIContextManager.self)
+//    .environment(AIContextManager())
+//    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
+//}

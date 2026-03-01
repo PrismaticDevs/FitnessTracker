@@ -160,6 +160,7 @@ extension ExerciseManagement {
                     }
                     .disabled(selectedCategoryID == nil || searchText.isEmpty)
                 }
+                .buttonStyle(.plain)
                 .padding(.vertical, 8)
             }
         }
@@ -267,7 +268,7 @@ extension ExerciseManagement {
         // Reset fields
         searchText = ""
         isFocused = nil
-        
+        print("created exercise")
         dismiss()
     }
 
