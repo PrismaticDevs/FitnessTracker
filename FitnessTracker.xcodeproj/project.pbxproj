@@ -35,6 +35,7 @@
 
 /* Begin PBXFileReference section */
 		C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
+		C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C998B04C2CACEB5700AD3898 /* FitnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B05C2CACEB5B00AD3898 /* FitnessTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -113,6 +114,11 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C98D4F8E2F54A1AA00454064 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
 			sourceTree = "<group>";
 		};
 		C998B0432CACEB5700AD3898 = {
@@ -257,6 +263,10 @@
 				{
 					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
 					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
+				},
+				{
+					ProductGroup = C98D4F8E2F54A1AA00454064 /* Products */;
+					ProjectRef = C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */;
 				},
 			);
 			projectRoot = "";
