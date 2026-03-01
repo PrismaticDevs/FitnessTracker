@@ -46,7 +46,7 @@ struct ContentView: View {
         migrate(WorkoutProgram.self, to: uid)
         migrate(Exercise.self, to: uid)
         migrate(ExerciseCategory.self, to: uid)
-        migrate(WorkoutHistory.self, to: uid)
+//        migrate(WorkoutHistory.self, to: uid) ------------------------- REMOVE -----------------------
         
         // Save the changes
         try? context.save()

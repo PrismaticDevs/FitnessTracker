@@ -13,7 +13,7 @@ struct StrengthEntryView: View {
     @Environment(\.modelContext) var context
     @Environment(AIContextManager.self) private var aiManager
     @EnvironmentObject var auth: AuthManager
-    @StateObject private var sync = SyncManager.shared
+//    @StateObject private var sync = SyncManager.shared
     private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
     @Binding var isCompleted: Bool
@@ -119,38 +119,8 @@ struct StrengthEntryView: View {
             }
             
             if !showHistory {
-                WorkoutHistoryList()
+//                WorkoutHistoryList() ---------------------------- REMOVE ---------------------
             }
-            
-//                        WorkoutHistoryView(
-//                            date: $date,
-//                            exercise: $exercise,
-//                            combined: Binding<Int>(
-//                                get: { Int(combinedInput) ?? 0},
-//                                set: { combinedInput = String($0)}
-//                            ),
-//                            left: Binding<Int>(
-//                                get: { left },
-//                                set: { left = $0 }
-//                            ),
-//                            right: Binding<Int>(
-//                                get: { right },
-//                                set: { right = $0 }
-//                            ),
-//                            sets: Binding<Int>(
-//                                get: { Int(setsCountInput) ?? 0},
-//                                set: { setsCountInput = String($0)}
-//                            ),
-//                            reps: Binding<Int>(
-//                                get: { reps },
-//                                set: { reps = $0 }
-//                            ),
-//                            rest: Binding<Int>(
-//                                get: { rest },
-//                                set: { rest = $0 }
-//                            ),
-//                            note: $note
-//                        )
         }
         .background(.clear)
         .padding(.horizontal, 5)
@@ -170,7 +140,7 @@ struct StrengthEntryView: View {
         }
         .onAppear {
             if let userId = auth.user?.uid {
-                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+//                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
             }
             // Set initial context
             aiManager.updateContext(
@@ -468,5 +438,5 @@ final class MockAuthManager: AuthManager {
     .environmentObject(mockAuthManager)
     // Adding the AI Manager since your view uses @Environment(AIContextManager.self)
     .environment(AIContextManager())
-    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
+//    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
 }

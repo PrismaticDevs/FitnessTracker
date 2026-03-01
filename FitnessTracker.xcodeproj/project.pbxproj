@@ -34,6 +34,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C998B04C2CACEB5700AD3898 /* FitnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B05C2CACEB5B00AD3898 /* FitnessTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +103,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C922CBAE2F53C5DD003F9734 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C9483D112EE4B0E80071B6D8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -247,6 +253,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C998B04D2CACEB5700AD3898 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
+					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				C998B04B2CACEB5700AD3898 /* FitnessTracker */,

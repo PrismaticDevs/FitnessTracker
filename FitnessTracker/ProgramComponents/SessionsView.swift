@@ -51,7 +51,7 @@ struct SessionsView: View {
             .onAppear {
                 if let userId = auth.user?.uid {
                     // Ensure local UserDefaults are up to date with the cloud for all exercises in this program
-                    SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
+//                    SyncManager.shared.fetchAllFromCloud(userId: userId, keyScope: keyScope)
                 }
                 
                 aiManager.updateContext(
@@ -77,13 +77,11 @@ struct SessionsView: View {
                         .foregroundColor(.white)
                 }
                 Spacer()
-                // Star/Favorite
-                Button(action: {
-                    program.starred.toggle()
-                    try? context.save()
-                }) {
-                    Image(systemName: program.starred ? "star.fill" : "star")
-                        .foregroundColor(program.starred ? .yellow : .white)
+                // Navigation to Reports
+                NavigationLink(destination: ProgramReportView(program: program)) {
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white) // Or .white depending on your background
                 }
                 Spacer()
             }

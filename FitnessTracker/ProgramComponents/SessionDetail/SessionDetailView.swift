@@ -101,24 +101,24 @@ struct SessionDetailView: View {
         
         isUploading = true
         
-        Task {
-            do {
-                // Pass the session/history object here
-                try await SyncManager.shared.uploadWholeSession(from: session, userId: userId)
-                
-                await MainActor.run {
-                    isUploading = false
-                    // Haptic feedback for successful cloud sync
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    dismiss()
-                }
-            } catch {
-                await MainActor.run {
-                    isUploading = false
-                    showSyncError = true
-                }
-            }
-        }
+//        Task {
+//            do {
+//                // Pass the session/history object here
+//                try await SyncManager.shared.uploadWholeSession(from: session, userId: userId)
+//                
+//                await MainActor.run {
+//                    isUploading = false
+//                    // Haptic feedback for successful cloud sync
+//                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+//                    dismiss()
+//                }
+//            } catch {
+//                await MainActor.run {
+//                    isUploading = false
+//                    showSyncError = true
+//                }
+//            }
+//        }
     }
     
     private func handleLocalSave() {
@@ -171,7 +171,7 @@ struct SessionDetailView: View {
         
         // We use the SyncManager to handle the heavy lifting
         // This ensures consistency across the app
-        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
+//        SyncManager.shared.uploadAllToCloud(userId: userId, keyScope: keyScope)
         
         // Optional: Trigger Haptic feedback or a toast notification
         let generator = UINotificationFeedbackGenerator()
