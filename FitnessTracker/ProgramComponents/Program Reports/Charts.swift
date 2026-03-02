@@ -58,7 +58,7 @@ struct StatCard: View {
                 .foregroundColor(.white)
             
             Text(value)
-                .font(.title2)
+                .font(.headline)
                 .bold()
                 .minimumScaleFactor(0.8) // Prevents text clipping
                 .foregroundColor(.white)
@@ -67,7 +67,7 @@ struct StatCard: View {
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding()
         .background(theme.currentTheme.accent)
         .cornerRadius(12)

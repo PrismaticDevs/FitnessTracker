@@ -64,6 +64,7 @@ struct SessionDetailView: View {
                         else { handleCloudUpload() }
                     }
                 )
+                
             }
             .offset(x: dragOffset)
             .applyAppBranding()
@@ -77,18 +78,6 @@ struct SessionDetailView: View {
     }
 
     // MARK: - Reordering Logic
-    private func moveExercise(from source: IndexSet, to destination: Int) {
-        // 1. Update the local array
-        session.exercises.move(fromOffsets: source, toOffset: destination)
-        
-        // 2. Persist to SwiftData
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save reorder: \(error)")
-        }
-        }
-    
     private func startCloudUpload() {
         guard network.isConnected else {
             showSyncError = true
@@ -268,46 +257,74 @@ struct SessionDetailView: View {
     }
     
     private func finishWorkoutSession() {
-        guard let userId = FBAuth.auth().currentUser?.uid else { return }
+        // 1. Get User ID (handle both Firebase and Preview states)
+        let userId = auth.user?.uid ?? auth.previewUserID ?? "guest_id"
         let sessionDate = Date()
         
-        // 1. Map every exercise in this session to a StrengthEntry
-        let strengthEntries: [StrengthEntry] = session.exercises.compactMap { exercise in
+        // 2. Create the Master Record
+        let completedSession = CompletedSession(
+            date: sessionDate,
+            userId: userId,
+            programTitle: workoutProgram.title,
+            sessionName: session.name
+        )
+        
+        // 3. Loop through your live session exercises
+        for exercise in session.exercises {
+            // Fetch the set count you've saved in UserDefaults
             let setCount = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
-            guard setCount > 0 else { return nil } // Skip exercises with no sets
+            guard setCount > 0 else { continue }
             
             var setRecords: [SetRecord] = []
             
-            // Loop through the sets defined in UserDefaults
             for i in 0..<setCount {
-                let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
-                let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(i)"))
-                let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(i)"))
                 let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
-                let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)"))
                 
-                // Only add the set if there's actual work recorded
+                // Only save the set if there is actual data
                 if reps > 0 {
-                    setRecords.append(SetRecord(id: UUID(), combined: combined, left: left, right: right, reps: reps, rest: rest))
+                    let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
+                    let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(i)"))
+                    let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(i)"))
+                    let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)"))
+                    
+                    let record = SetRecord(
+                        id: UUID(),
+                        combined: combined,
+                        left: left,
+                        right: right,
+                        reps: reps,
+                        rest: rest
+                    )
+                    setRecords.append(record)
                 }
             }
             
-            guard !setRecords.isEmpty else { return nil }
-            
-            let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)"))
-            return StrengthEntry(exercise: exercise.name, date: sessionDate, sets: setRecords, note: note)
+            // 4. Create the StrengthEntry (Your old 'WorkoutHistory' style detail)
+            if !setRecords.isEmpty {
+                let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)"))
+                let entry = StrengthEntry(
+                    exercise: exercise.name,
+                    date: sessionDate,
+                    sets: setRecords,
+                    note: note
+                )
+                
+                // Link it to the main session
+                entry.session = completedSession
+                completedSession.strengthEntries.append(entry)
+            }
         }
         
-        // 2. Wrap everything into ONE WorkoutHistory object
-        if !strengthEntries.isEmpty {
-            let history = WorkoutHistory(
-                userId: userId,
-                date: sessionDate,
-                exercise: session.name, // The "Master Name" is the Session Name (e.g., "Push Day")
-                entries: strengthEntries
-            )
+        // 5. Save to SwiftData
+        if !completedSession.strengthEntries.isEmpty {
+            context.insert(completedSession)
             
-            context.insert(history)
+            do {
+                try context.save()
+                print("Successfully logged: \(session.name)")
+            } catch {
+                print("Save Error: \(error)")
+            }
         }
     }
     

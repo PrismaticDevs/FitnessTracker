@@ -15,6 +15,14 @@ struct ProgramReportView: View {
     @State private var dragOffset: CGFloat = 0
     var program: WorkoutProgram
     
+    @State private var selectedMetric: EntryType = .strength
+
+    enum EntryType: String, CaseIterable {
+        case strength = "Strength"
+        case cardio = "Cardio"
+        case mobility = "Mobility"
+    }
+    
     @Query private var allCompletedSessions: [CompletedSession]
     
     var filteredSessions: [CompletedSession] {
@@ -61,7 +69,7 @@ struct ProgramReportView: View {
                         
                         // Top Level Stats
                         HStack(spacing: 15) {
-                            StatCard(title: "Total Vol", value: "\(Int(calculateTotalStrengthVolume())) lb", icon: "dumbbell.fill", color: .purple)
+                            StatCard(title: "Max Lift", value: "\(Int(calculateMaxLift())) lb", icon: "dumbbell.fill", color: .purple)
                             StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.flexibility", color: .blue)
                             StatCard(title: "Mobility", value: formatTime(calculateTotalMobility()), icon: "figure.flexibility", color: .blue)
                         }
@@ -75,17 +83,64 @@ struct ProgramReportView: View {
                                 .padding([.top, .leading])
                             
                             // Chart displaying sessions over time
-                            Chart {
-                                ForEach(displaySessions) { session in
-                                    BarMark(
-                                        x: .value("Date", session.date, unit: .day),
-                                        y: .value("Sessions", 1)
-                                    )
-                                    .foregroundStyle(theme.currentTheme.accent)
+                            VStack(alignment: .leading, spacing: 15) {
+                                // 1. The Metric Picker
+                                Picker("Metric", selection: $selectedMetric) {
+                                    ForEach(EntryType.allCases, id: \.self) { type in
+                                        Text(type.rawValue).tag(type)
+                                    }
                                 }
+                                .pickerStyle(.segmented)
+                                .padding(.horizontal)
+
+                                // 2. The Dynamic Chart
+                                Chart {
+                                    ForEach(displaySessions) { session in
+                                        BarMark(
+                                            x: .value("Day", session.date, unit: .day),
+                                            y: .value("Value", getYValue(for: session))
+                                        )
+                                        .foregroundStyle(theme.currentTheme.accent2)
+                                        .cornerRadius(6)
+                                    }
+                                }
+                                // Axis Labels
+                                .chartXAxisLabel(position: .bottom, alignment: .center) {
+                                    Text("Days (Past 7)")
+                                        .font(.caption.bold())
+                                        .foregroundColor(.white.opacity(0.6))
+                                }
+                                .chartYAxisLabel(position: .top, alignment: .leading) {
+                                    Text(selectedMetric == .strength ? "Sets" : (selectedMetric == .cardio ? "Miles" : "Minutes"))
+                                        .font(.caption.bold())
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .padding(.bottom, 5)
+                                }
+                                // Axis Values
+                                .chartYAxis {
+                                    AxisMarks(position: .leading) { value in
+                                        AxisGridLine().foregroundStyle(.white.opacity(0.1))
+                                        AxisValueLabel {
+                                            if let val = value.as(Double.self) {
+                                                Text(formatYAxis(val))
+                                                    .foregroundStyle(.white.opacity(0.8))
+                                            }
+                                        }
+                                    }
+                                }
+                                .chartXAxis {
+                                    AxisMarks(values: .stride(by: .day)) { _ in
+                                        AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
+                                            .foregroundStyle(.white)
+                                    }
+                                }
+                                .chartXScale(domain: Calendar.current.date(byAdding: .day, value: -6, to: .now)!...Date.now)
+                                .frame(height: 180)
+                                .padding([.horizontal, .bottom])
                             }
-                            .frame(height: 200)
-                            .padding()
+                            .background(theme.currentTheme.accent)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
                         }
                         .background(theme.currentTheme.accent)
                         .cornerRadius(15)
@@ -182,6 +237,28 @@ struct ProgramReportView: View {
     }
     
     // MARK: - DATA LOGIC
+    func getYValue(for session: CompletedSession) -> Double {
+        switch selectedMetric {
+        case .strength:
+            return Double(session.strengthEntries.reduce(0) { $0 + $1.sets.count })
+        case .cardio:
+            // Using Distance as the primary cardio metric
+            return session.cardioEntries.reduce(0) { $0 + ($1.distance ?? 0) }
+        case .mobility:
+            // Using total minutes for mobility
+            let totalSeconds = session.mobilityEntries.reduce(0) { $0 + $1.holdTime }
+            return Double(totalSeconds) / 60.0
+        }
+    }
+
+    func formatYAxis(_ value: Double) -> String {
+        switch selectedMetric {
+        case .strength: return "\(Int(value)) s"
+        case .cardio: return String(format: "%.1f mi", value)
+        case .mobility: return "\(Int(value)) m"
+        }
+    }
+    
     func aggregateStrength() -> [String: Int] {
         var summary: [String: Int] = [:]
         for session in filteredSessions {
@@ -210,6 +287,23 @@ struct ProgramReportView: View {
             }
         }
         return summary
+    }
+    
+    func calculateMaxLift() -> Double {
+        var maxWeight: Double = 0
+        
+        for session in filteredSessions {
+            for entry in session.strengthEntries {
+                for set in entry.sets {
+                    // Calculate the weight for this specific set
+                    let currentWeight = Double(set.combined + set.left + set.right)
+                    if currentWeight > maxWeight {
+                        maxWeight = currentWeight
+                    }
+                }
+            }
+        }
+        return maxWeight
     }
     
     func calculateTotalStrengthVolume() -> Double {
