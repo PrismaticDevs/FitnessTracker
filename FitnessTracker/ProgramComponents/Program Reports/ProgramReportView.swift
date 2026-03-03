@@ -198,6 +198,31 @@ struct ProgramReportView: View {
                         .padding(.horizontal)
                     }
                 }
+                Spacer()
+                FloatingActionBar {
+                    Spacer()
+                    
+                    // Custom Toolbar (If you have a global version, or just a placeholder)
+                    Text("VEW SESSION DATA")
+                        .font(.caption2.bold())
+                        .foregroundColor(.white.opacity(0.5))
+                    
+                    Spacer()
+                    
+                    // Management Link (Replacing Rename/Pencil)
+                    NavigationLink(destination: SessionDataView(programTitle: program.title)) {
+                        Image(systemName: "list.clipboard")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    Spacer()
+                }
+                .frame(height: 50)
+                .background(theme.currentTheme.accent)
+                .cornerRadius(30)
+                .padding(.horizontal)
+                .padding(.bottom, 20)
             }
             .offset(x: dragOffset)
             .animation(.interactiveSpring(), value: dragOffset)
@@ -321,10 +346,17 @@ struct ProgramReportView: View {
         for session in filteredSessions {
             for entry in session.strengthEntries {
                 for set in entry.sets {
-                    // Calculate the weight for this specific set
-                    let currentWeight = Double(set.combined + set.left + set.right)
-                    if currentWeight > maxWeight {
-                        maxWeight = currentWeight
+                    // Find the highest single value within this specific set record
+                    // We compare the three columns: combined, left, and right
+                    let highestValueInSet = [
+                        Double(set.combined),
+                        Double(set.left),
+                        Double(set.right)
+                    ].max() ?? 0
+                    
+                    // If this single value is higher than our global max, update it
+                    if highestValueInSet > maxWeight {
+                        maxWeight = highestValueInSet
                     }
                 }
             }
