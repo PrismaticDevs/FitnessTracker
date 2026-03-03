@@ -9,6 +9,11 @@ import SwiftUI
 import SwiftData
 import Charts
 
+enum Timeframe: String, CaseIterable {
+    case weekly = "Weekly"
+    case monthly = "Monthly"
+}
+
 struct ProgramReportView: View {
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.dismiss) var dismiss
@@ -31,8 +36,16 @@ struct ProgramReportView: View {
             .sorted { $0.date > $1.date }
     }
     
+    @State private var selectedTimeframe: Timeframe = .weekly
+    
+    var startDate: Date {
+        let days = (reportRange == .monthly) ? -30 : -7
+        return Calendar.current.date(byAdding: .day, value: days, to: .now) ?? .now
+    }
+    
     var displaySessions: [CompletedSession] {
-        if filteredSessions.isEmpty {
+        let filtered = filteredSessions.filter{ $0.date >= startDate }
+        if filtered.isEmpty {
             // Create a 'Transient' session (not saved to SwiftData)
             let mockSession = CompletedSession(
                 programTitle: program.title,
@@ -46,7 +59,7 @@ struct ProgramReportView: View {
             
             return [mockSession]
         } else {
-            return filteredSessions
+            return filtered
         }
     }
     
@@ -70,7 +83,7 @@ struct ProgramReportView: View {
                         // Top Level Stats
                         HStack(spacing: 15) {
                             StatCard(title: "Max Lift", value: "\(Int(calculateMaxLift())) lb", icon: "dumbbell.fill", color: .purple)
-                            StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.flexibility", color: .blue)
+                            StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.run", color: .blue)
                             StatCard(title: "Mobility", value: formatTime(calculateTotalMobility()), icon: "figure.flexibility", color: .blue)
                         }
                         .padding(.horizontal)
@@ -106,7 +119,7 @@ struct ProgramReportView: View {
                                 }
                                 // Axis Labels
                                 .chartXAxisLabel(position: .bottom, alignment: .center) {
-                                    Text("Days (Past 7)")
+                                    Text(reportRange == .weekly ? "Past 7 Days" : "Past 30 Days")
                                         .font(.caption.bold())
                                         .foregroundColor(.white.opacity(0.6))
                                 }
@@ -114,7 +127,20 @@ struct ProgramReportView: View {
                                     Text(selectedMetric == .strength ? "Sets" : (selectedMetric == .cardio ? "Miles" : "Minutes"))
                                         .font(.caption.bold())
                                         .foregroundColor(.white.opacity(0.6))
-                                        .padding(.bottom, 5)
+                                }
+                                .chartXAxis {
+                                    if reportRange == .weekly {
+                                        AxisMarks(values: .stride(by: .day)) { _ in
+                                            AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
+                                                .foregroundStyle(.white)
+                                        }
+                                    } else {
+                                        // Only show a label every 7 days for monthly so it's readable
+                                        AxisMarks(values: .stride(by: .day, count: 7)) { _ in
+                                            AxisValueLabel(format: .dateTime.month().day(), centered: true)
+                                                .foregroundStyle(.white)
+                                        }
+                                    }
                                 }
                                 // Axis Values
                                 .chartYAxis {
@@ -150,9 +176,9 @@ struct ProgramReportView: View {
                         VStack(spacing: 12) {
                             expandableSection(
                                 label: "Strength",
-                                value: "\(calculateTotalSets()) Sets",
+                                value: "\(calculateTotalSets())",
                                 icon: "dumbbell.fill",
-                                content: aggregateStrength().map { ($0.key, "\($0.value) total sets") }
+                                content: aggregateStrength().map { ($0.key, "\($0.value)") }
                             )
                             
                             expandableSection(
@@ -362,33 +388,50 @@ struct ProgramReportView: View {
         let p = WorkoutProgram(title: "Hypertrophy Phase 1", sessions: [])
         container.mainContext.insert(p)
         
-        let completed = CompletedSession(date: Date(), userId: "123", programTitle: "Hypertrophy Phase 1", sessionName: "Full Body Mix")
+        let calendar = Calendar.current
+        let today = Date()
         
-        // 1. Add Cardio (use only fields referenced elsewhere: distance, calories)
-        completed.cardioEntries = [
-            CardioEntry(exercise: "Sprints", duration: 1200, distance: 2.1, calories: 300)
-        ]
+        // Let's create a mix of sessions over the last 10 days
+        // Days ago: 0 (today), 2, 3, 6, 8
+        let activeDays = [0, 2, 3, 6, 8]
         
-        // 2. Add Mobility (only holdTime and rounds are used by calculations)
-        completed.mobilityEntries = [
-            MobilityEntry(exercise: "Couch Stretch", holdTime: 60, rounds: 4)
-        ]
+        for daysAgo in activeDays {
+            let sessionDate = calendar.date(byAdding: .day, value: -daysAgo, to: today)!
+            let completed = CompletedSession(
+                date: sessionDate,
+                userId: "123",
+                programTitle: "Hypertrophy Phase 1",
+                sessionName: "Session \(daysAgo)"
+            )
+            
+            // Strength: Add a varying number of sets
+            let setCounts = Int.random(in: 3...6)
+            let sets = (1...setCounts).map { _ in
+                SetRecord(id: UUID(), combined: 135, left: 0, right: 0, reps: 10, rest: 60)
+            }
+            completed.strengthEntries = [
+                StrengthEntry(exercise: "Bench Press", date: sessionDate, sets: sets)
+            ]
+            
+            // Cardio: Only on some days
+            if daysAgo % 2 == 0 {
+                completed.cardioEntries = [
+                    CardioEntry(exercise: "Run", duration: 1200, distance: Double.random(in: 1.5...4.0), calories: 300)
+                ]
+            }
+            
+            // Mobility: On almost all days
+            completed.mobilityEntries = [
+                MobilityEntry(exercise: "Stretch", holdTime: 60, rounds: Int.random(in: 2...5))
+            ]
+            
+            container.mainContext.insert(completed)
+        }
         
-        // 3. Add Strength
-        // Create sets with left/right/combined weights to match calculateTotalStrengthVolume()
-        let strengthSets: [SetRecord] = [
-            SetRecord(id: UUID(), combined: 135, left: 50, right: 50, reps: 12, rest: 100),
-            SetRecord(id: UUID(), combined: 135, left: 0, right: 0, reps: 10, rest: 100)
-        ]
-        completed.strengthEntries = [
-            StrengthEntry(exercise: "Bench Press", date: Date(), sets: strengthSets)
-        ]
-        
-        container.mainContext.insert(completed)
         return p
     }()
 
-    NavigationStack {
+    return NavigationStack {
         ProgramReportView(program: mockProgram)
             .modelContainer(container)
     }

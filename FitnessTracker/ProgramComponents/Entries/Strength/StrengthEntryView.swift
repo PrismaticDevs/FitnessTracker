@@ -115,11 +115,12 @@ struct StrengthEntryView: View {
                 } label: {
                     Image(systemName: showHistory ? "eye.slash" : "eye")
                 }
+                .buttonStyle(.plain)
                 Spacer()
             }
             
-            if !showHistory {
-//                WorkoutHistoryList() ---------------------------- REMOVE ---------------------
+            if showHistory {
+                StrengthHistoryListView(exerciseName: exercise.name)
             }
         }
         .background(.clear)

@@ -275,6 +275,8 @@ struct SessionDetailView: View {
             let setCount = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
             guard setCount > 0 else { continue }
             
+            let isIsoSession = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)"))
+            
             var setRecords: [SetRecord] = []
             
             for i in 0..<setCount {
@@ -306,7 +308,8 @@ struct SessionDetailView: View {
                     exercise: exercise.name,
                     date: sessionDate,
                     sets: setRecords,
-                    note: note
+                    note: note,
+                    iso: isIsoSession
                 )
                 
                 // Link it to the main session
