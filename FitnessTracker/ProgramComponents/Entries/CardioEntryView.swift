@@ -12,14 +12,16 @@ struct CardioEntryView: View {
     @ObservedObject var theme = ThemeManager.shared
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
-    @State var id: UUID = UUID()
-    @State var exercise: String
+    @Binding var isCompleted: Bool
+    
+    var exercise: String
     @State var duration: String = "" // Duration in minutes
     @State var elevation: String = "" // Elevation in meters
     @State var heartRate: String = "" // Heart rate in bpm
     @State var note: String = ""
     @State var caloriesBurned: Double = 0.0
     @State var showDeleteConfirmation = false
+    var deleteExercise: (UUID) -> Void
 
     var body: some View {
         VStack {
@@ -28,9 +30,29 @@ struct CardioEntryView: View {
                     Text(exercise)
                         .foregroundColor(.white)
                         .font(.headline)
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            isCompleted.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Text("Exercise Complete")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            
+                            Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                                .font(.title2)
+                        }
+                        .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                        .cornerRadius(10)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                
-                VStack {
+                VStack(spacing: 15) {
                     HStack {
                         VStack {
                             Text("Duration (min)")
@@ -69,7 +91,6 @@ struct CardioEntryView: View {
                                 }
                         }
                     }
-                    
                     HStack {
                         VStack {
                             Text("Calories Burned")
@@ -78,35 +99,35 @@ struct CardioEntryView: View {
                                 .padding()
                                 .background(Color.gray.opacity(0.3).cornerRadius(10))
                         }
-                    }
-                    
-                    VStack {
-                        Text("Note")
-                            .font(.subheadline)
-                        TextField("Note", text: $note)
-                            .padding()
-                            .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                    }
-                    
-                    Button(action: {
-                        showDeleteConfirmation = true
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .alert(isPresented: $showDeleteConfirmation) {
-                        Alert(title: Text("Delete Cardio Entry"),
-                              message: Text("Are you sure you want to remove this entry?"),
-                              primaryButton: .destructive(Text("Delete")) {
-                        },
-                              secondaryButton: .cancel()
-                        )
-                    }
+                        VStack {
+                            Text("Note")
+                                .font(.subheadline)
+                            TextField("Note", text: $note)
+                                .padding()
+                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                        }
+                        Button(action: {
+                            showDeleteConfirmation = true
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .alert(isPresented: $showDeleteConfirmation) {
+                            Alert(title: Text("Delete Cardio Entry"),
+                                  message: Text("Are you sure you want to remove this entry?"),
+                                  primaryButton: .destructive(Text("Delete")) {
+                            },
+                                  secondaryButton: .cancel()
+                            )
+                        }
+                }
                 }
             }
             .listRowInsets(EdgeInsets()) // Remove default insets
         }
-        .background(.clear)
+        .padding()
+        .background(theme.currentTheme.accent.opacity(0.2))
+        .cornerRadius(15)
         .padding(.horizontal)
         .cornerRadius(15)
     }
@@ -124,5 +145,5 @@ struct CardioEntryView: View {
 }
 
 #Preview {
-    CardioEntryView(exercise: "5k")
+    CardioEntryView(isCompleted: .constant(false),exercise: "5k", deleteExercise: { id in print("Deleted \(id)") })
 }

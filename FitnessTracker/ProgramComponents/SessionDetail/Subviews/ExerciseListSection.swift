@@ -5,6 +5,7 @@
 //  Created by Matt on 2/23/26.
 //
 import SwiftUI
+import SwiftData
 
 struct ExerciseListSection: View {
     @Environment(\.modelContext) private var context
@@ -99,12 +100,12 @@ struct ExerciseListSection: View {
                             
                         } else {
                             ForEach(unfinishedExercises) { exercise in
-                                createStrengthEntryRow(for: exercise)
+                                createEntryRow(for: exercise)
                             }
                         }
                     } else {
                         ForEach(completedExercises) { exercise in
-                            createStrengthEntryRow(for: exercise)
+                            createEntryRow(for: exercise)
                         }
                     }
                 }
@@ -146,5 +147,55 @@ struct ExerciseListSection: View {
         .id(exercise.id)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
+    }
+    @ViewBuilder
+    private func createEntryRow(for exercise: Exercise) -> some View {
+        let isCompletedBinding = Binding(
+            get: { exercise.isCompleted },
+            set: { newValue in
+                withAnimation(.spring()) {
+                    exercise.isCompleted = newValue
+                    try? context.save()
+                }
+            }
+        )
+
+        switch exercise.type {
+        case .cardio:
+            CardioEntryView(
+                isCompleted: isCompletedBinding,
+                exercise: exercise.name,
+                deleteExercise: { _ in triggerDelete(exercise) } // Removed the unused "_"
+            )
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .id(exercise.id)
+
+        case .mobility:
+            MobilityEntryView(
+                isCompleted: isCompletedBinding,
+                exercise: exercise,
+                deleteExercise: { _ in triggerDelete(exercise) } // Keep if Mobility expects ID
+            )
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .id(exercise.id)
+
+        default:
+            StrengthEntryView(
+                isCompleted: isCompletedBinding,
+                exercise: exercise,
+                allExercises: session.exercises,
+                deleteExercise: { _ in triggerDelete(exercise) }
+            )
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .id(exercise.id)
+        }
+    }
+    
+    private func triggerDelete(_ exercise: Exercise) {
+        self.exerciseToInstance = exercise
+        self.showDeleteConfirmation = true
     }
 }
