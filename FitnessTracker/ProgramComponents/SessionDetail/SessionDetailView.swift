@@ -271,23 +271,28 @@ struct SessionDetailView: View {
         
         // 3. Loop through your live session exercises
         for exercise in session.exercises {
+            var cleanName = exercise.name
             // Fetch the set count you've saved in UserDefaults
-            let setCount = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
+            let setCount = defaults.integer(forKey: keyScope.scoped("setsCount\(cleanName)"))
             guard setCount > 0 else { continue }
             
-            let isIsoSession = defaults.bool(forKey: keyScope.scoped("iso\(exercise.name)"))
+            let isIsoSession = defaults.bool(forKey: keyScope.scoped("iso\(cleanName)"))
             
             var setRecords: [SetRecord] = []
             
             for i in 0..<setCount {
-                let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
+                let cleanName = exercise.name
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(cleanName)_set\(i)"))
+                let combined = defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(i)"))
+                let left = defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(i)"))
+                let right = defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(i)"))
                 
                 // Only save the set if there is actual data
-                if reps > 0 {
-                    let combined = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
-                    let left = defaults.integer(forKey: keyScope.scoped("left\(exercise.name)_set\(i)"))
-                    let right = defaults.integer(forKey: keyScope.scoped("right\(exercise.name)_set\(i)"))
-                    let rest = defaults.integer(forKey: keyScope.scoped("rest\(exercise.name)_set\(i)"))
+                if reps > 0 || combined > 0 || left > 0 || right > 0{
+                    let combined = defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(i)"))
+                    let left = defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(i)"))
+                    let right = defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(i)"))
+                    let rest = defaults.integer(forKey: keyScope.scoped("rest\(cleanName)_set\(i)"))
                     
                     let record = SetRecord(
                         id: UUID(),
@@ -303,7 +308,7 @@ struct SessionDetailView: View {
             
             // 4. Create the StrengthEntry (Your old 'WorkoutHistory' style detail)
             if !setRecords.isEmpty {
-                let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)"))
+                let note = defaults.string(forKey: keyScope.scoped("note\(cleanName)"))
                 let entry = StrengthEntry(
                     exercise: exercise.name,
                     date: sessionDate,

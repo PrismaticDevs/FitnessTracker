@@ -43,7 +43,7 @@ struct SetDetailInputsView: View {
                 }
                 Button {
                     iso.toggle()
-                    defaults.set(iso, forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
+                    defaults.set(iso, forKey: keyScope.scoped("iso\(exercise)"))
                     print(iso)
                 } label: {
                     Image(systemName: iso ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.line.vertical.and.arrow.right")
@@ -63,7 +63,7 @@ struct SetDetailInputsView: View {
             }
         }
         .onAppear {
-            iso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)_set\(selectedSetIndex)"))
+            iso = defaults.bool(forKey: keyScope.scoped("iso\(exercise)"))
         }
     }
 }
