@@ -9,7 +9,7 @@ struct DefaultsMigration {
     /// Migrates a single base key from a legacy scope (userID only) to the new scope which may include program/session.
     /// - Parameters:
     ///   - legacyScope: A scope representing the old format (userID only).
-    ///   - newScope: The new scoped format (may include programId/sessionId).
+    ///   - newScope: The new scoped format (may include programID/sessionID).
     ///   - baseKey: The base key to migrate (e.g., "strengthEntries").
     static func migrateIfNeeded(
         legacyScope: DefaultsKeyScope,

@@ -16,18 +16,18 @@ class UserDefaultsMigrationService {
     }
 
     /// LEVEL 2 MIGRATION: Migrates from user-namespaced keys to Program/Session specific keys.
-    /// New Key: user_<userId>.<programId>.<sessionId>.<baseKey>
-    func migrateToContextual(userId: String, programId: String, sessionId: String, exercises: [String]) {
-        let flagKey = "\(migrationFlagBase).\(userId).\(programId).\(sessionId)"
+    /// New Key: user_<userId>.<programID>.<sessionID>.<baseKey>
+    func migrateToContextual(userId: String, programID: String, sessionID: String, exercises: [String]) {
+        let flagKey = "\(migrationFlagBase).\(userId).\(programID).\(sessionID)"
         if defaults.bool(forKey: flagKey) {
                     print("ℹ️ Migration already completed for this session.")
                     return
                 }
 
-                print("🚀 Starting Contextual Migration for \(programId) / \(sessionId)...")
+                print("🚀 Starting Contextual Migration for \(programID) / \(sessionID)...")
 
         // We are moving data FROM: "user_<userId>.<baseKey>"
-        // TO: "user_<userId>.<programId>.<sessionId>.<baseKey>"
+        // TO: "user_<userId>.<programID>.<sessionID>.<baseKey>"
         
         for exName in exercises {
             // Define the base patterns we need to move for each exercise
@@ -40,7 +40,7 @@ class UserDefaultsMigrationService {
             // 1. Move basic exercise settings
             for pattern in patterns {
                 let sourceKey = "user_\(userId).\(pattern)"
-                let destinationKey = "user_\(userId).\(programId).\(sessionId).\(pattern)"
+                let destinationKey = "user_\(userId).\(programID).\(sessionID).\(pattern)"
                 copyValue(from: sourceKey, to: destinationKey)
             }
 
@@ -57,14 +57,14 @@ class UserDefaultsMigrationService {
                 
                 for pattern in setPatterns {
                     let sourceKey = "user_\(userId).\(pattern)"
-                    let destinationKey = "user_\(userId).\(programId).\(sessionId).\(pattern)"
+                    let destinationKey = "user_\(userId).\(programID).\(sessionID).\(pattern)"
                     copyValue(from: sourceKey, to: destinationKey)
                 }
             }
         }
 
         defaults.set(true, forKey: flagKey)
-        print("✅ Contextual Migration Complete for \(programId) / \(sessionId)")
+        print("✅ Contextual Migration Complete for \(programID) / \(sessionID)")
     }
 
     private func copyValue(from source: String, to destination: String) {

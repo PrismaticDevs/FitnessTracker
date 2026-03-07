@@ -25,19 +25,28 @@ struct SetDetailInputsView: View {
                 VStack(spacing: 10) {
                     if iso {
                         HStack {
-                            SetRow(title: "Left Weight",
-                                   text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: keyScope.scoped("left\(exercise)_set\(selectedSetIndex)"))
+                            SetRow(
+                                text: Binding(get: { leftInputs[selectedSetIndex] }, set: { leftInputs[selectedSetIndex] = $0 }),
+                                title: "Left Weight",
+                                keyScope: keyScope,
+                                baseKey: "left\(exercise)_set\(selectedSetIndex)"
+                            )
                             .focused(isFocused, equals: true)
-                            SetRow(title: "Right Weight",
-                                   text: Binding(get: { rightInputs[selectedSetIndex] }, set: { rightInputs[selectedSetIndex] = $0 }),
-                                   exerciseKey: keyScope.scoped("right\(exercise)_set\(selectedSetIndex)"))
+                            SetRow(
+                                text: Binding(get: { rightInputs[selectedSetIndex] }, set: { rightInputs[selectedSetIndex] = $0 }),
+                                title: "Right Weight",
+                                keyScope: keyScope,
+                                baseKey: "right\(exercise)_set\(selectedSetIndex)"
+                            )
                             .focused(isFocused, equals: true)
                         }
                     } else {
-                        SetRow(title: "Combined Weight",
+                        SetRow(
                                text: Binding(get: { combinedInputs[selectedSetIndex] }, set: { combinedInputs[selectedSetIndex] = $0 }),
-                               exerciseKey: keyScope.scoped("weight\(exercise)_set\(selectedSetIndex)"))
+                               title: "Combined Weight",
+                               keyScope: keyScope,
+                               baseKey: "weight\(exercise)_set\(selectedSetIndex)"
+                        )
                         .focused(isFocused, equals: true)
                     }
                 }
@@ -52,13 +61,19 @@ struct SetDetailInputsView: View {
                 .contentShape(Rectangle())
             }
             HStack {
-                SetRow(title: "Reps",
+                SetRow(
                        text: Binding(get: { repsInputs[selectedSetIndex] }, set: { repsInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: keyScope.scoped("reps\(exercise)_set\(selectedSetIndex)"))
+                       title: "Reps",
+                       keyScope: keyScope,
+                       baseKey: "reps\(exercise)_set\(selectedSetIndex)"
+                )
                 .focused(isFocused, equals: true)
-                SetRow(title: "Rest",
+                SetRow(
                        text: Binding(get: { restInputs[selectedSetIndex] }, set: { restInputs[selectedSetIndex] = $0 }),
-                       exerciseKey: keyScope.scoped("rest\(exercise)_set\(selectedSetIndex)"))
+                       title: "Rest",
+                       keyScope: keyScope,
+                       baseKey: "rest\(exercise)_set\(selectedSetIndex)"
+                )
                 .focused(isFocused, equals: true)
             }
         }

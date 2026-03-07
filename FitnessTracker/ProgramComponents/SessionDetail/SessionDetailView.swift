@@ -169,7 +169,12 @@ struct SessionDetailView: View {
 
     // Add this computed property to SessionDetailView to match StrengthEntryView logic
     private var keyScope: DefaultsKeyScope {
-        DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid)
+        DefaultsKeyScope.from(
+            previewUserID: auth.previewUserID,
+            liveUserID: auth.user?.uid,
+            programID: workoutProgram.id.uuidString,
+            sessionID: session.id.uuidString
+        )
     }
     
     private func addExercise(named exerciseName: String) {
@@ -271,7 +276,7 @@ struct SessionDetailView: View {
         
         // 3. Loop through your live session exercises
         for exercise in session.exercises {
-            var cleanName = exercise.name
+            let cleanName = exercise.name
             // Fetch the set count you've saved in UserDefaults
             let setCount = defaults.integer(forKey: keyScope.scoped("setsCount\(cleanName)"))
             guard setCount > 0 else { continue }

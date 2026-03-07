@@ -6,12 +6,12 @@ import SwiftUI
 struct DefaultsKeyScope {
     /// The resolved user identifier used to namespace keys (e.g. preview ID, auth uid, or fallback).
     let userID: String
-    let programId: String?
-    let sessionId: String?
+    let programID: String?
+    let sessionID: String?
 
     /// Builds a fully-scoped key by prefixing with `user_<id>.`.
     func scoped(_ base: String) -> String {
-        if let pid = programId, let sid = sessionId {
+        if let pid = programID, let sid = sessionID {
             return "user_\(userID).\(pid).\(sid).\(base)"
         } else {
             return "user_\(userID).\(base)"
@@ -38,20 +38,20 @@ extension DefaultsKeyScope {
     /// - Parameters:
     ///   - previewUserID: A preview/testing user id if available.
     ///   - liveUserID: The authenticated user's id if available.
-    ///   - programId: The ID of the current workout program.
-    ///   - sessionId: The ID of the current workout session.
+    ///   - programID: The ID of the current workout program.
+    ///   - sessionID: The ID of the current workout session.
     /// - Returns: A DefaultsKeyScope that prefers preview id, then live id, then "guest".
     static func from(
         previewUserID: String?,
         liveUserID: String?,
-        programId: String? = nil,
-        sessionId: String? = nil
+        programID: String? = nil,
+        sessionID: String? = nil
     ) -> DefaultsKeyScope {
         let uid = previewUserID ?? liveUserID ?? "guest"
         return DefaultsKeyScope(
             userID: uid,
-            programId: programId,
-            sessionId: sessionId
+            programID: programID,
+            sessionID: sessionID
         )
     }
 }
