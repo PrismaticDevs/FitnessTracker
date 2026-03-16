@@ -38,9 +38,12 @@
 		C989EC492F5738B6003B98E7 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C98A7F992F5B8D7800996ED4 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
+		C995F6572F5F599A00B71EF2 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C998B04C2CACEB5700AD3898 /* FitnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B05C2CACEB5B00AD3898 /* FitnessTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C99C9BC02F68932100152CFB /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
+		C99D9F502F5C8BFF007E9972 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 		C9A0719C2F58A78600F82623 /* FitnessTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FitnessTracker.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -134,6 +137,11 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		C995F65D2F5F599A00B71EF2 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C998B0432CACEB5700AD3898 = {
 			isa = PBXGroup;
 			children = (
@@ -152,6 +160,16 @@
 				C998B05C2CACEB5B00AD3898 /* FitnessTrackerTests.xctest */,
 				C998B0662CACEB5B00AD3898 /* FitnessTrackerUITests.xctest */,
 			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C99C9BC62F68932100152CFB /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C99D9F562F5C8BFF007E9972 /* Products */ = {
+			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -283,20 +301,32 @@
 					ProjectRef = C989EC492F5738B6003B98E7 /* FitnessTracker.xcodeproj */;
 				},
 				{
+					ProductGroup = C98D4F8E2F54A1AA00454064 /* Products */;
+					ProjectRef = C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */;
+				},
+				{
 					ProductGroup = C9A071A22F58A78600F82623 /* Products */;
 					ProjectRef = C9A0719C2F58A78600F82623 /* FitnessTracker.xcodeproj */;
+				},
+				{
+					ProductGroup = C99D9F562F5C8BFF007E9972 /* Products */;
+					ProjectRef = C99D9F502F5C8BFF007E9972 /* FitnessTracker.xcodeproj */;
 				},
 				{
 					ProductGroup = C98A7F9F2F5B8D7800996ED4 /* Products */;
 					ProjectRef = C98A7F992F5B8D7800996ED4 /* FitnessTracker.xcodeproj */;
 				},
 				{
-					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
-					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
+					ProductGroup = C99C9BC62F68932100152CFB /* Products */;
+					ProjectRef = C99C9BC02F68932100152CFB /* FitnessTracker.xcodeproj */;
 				},
 				{
-					ProductGroup = C98D4F8E2F54A1AA00454064 /* Products */;
-					ProjectRef = C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */;
+					ProductGroup = C995F65D2F5F599A00B71EF2 /* Products */;
+					ProjectRef = C995F6572F5F599A00B71EF2 /* FitnessTracker.xcodeproj */;
+				},
+				{
+					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
+					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
 				},
 			);
 			projectRoot = "";

@@ -201,16 +201,10 @@ struct ProgramReportView: View {
                 Spacer()
                 FloatingActionBar {
                     Spacer()
-                    
-                    // Custom Toolbar (If you have a global version, or just a placeholder)
-                    Text("VEW SESSION DATA")
-                        .font(.caption2.bold())
-                        .foregroundColor(.white.opacity(0.5))
-                    
-                    Spacer()
-                    
-                    // Management Link (Replacing Rename/Pencil)
                     NavigationLink(destination: SessionDataView(programTitle: program.title)) {
+                        Text("VEW SESSION DATA")
+                            .font(.caption2.bold())
+                            .foregroundColor(.white.opacity(0.5))
                         Image(systemName: "list.clipboard")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)

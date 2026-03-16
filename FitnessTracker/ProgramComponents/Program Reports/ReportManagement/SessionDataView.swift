@@ -10,12 +10,19 @@ import SwiftData
 struct SessionDataView: View {
     let programTitle: String
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var context
     @ObservedObject var theme = ThemeManager.shared
     @State private var dragOffset: CGFloat = 0
     @Query(sort: \CompletedSession.date, order: .reverse) private var allSessions: [CompletedSession]
     
     // Standard access to UserDefaults
     let defaults = UserDefaults.standard
+
+    @State private var showDeleteConfirm = false
+    @State private var pendingSession: CompletedSession?
+    @State private var pendingStrengthEntry: StrengthEntry?
+    @State private var pendingCardioEntry: CardioEntry?
+    @State private var pendingMobilityEntry: MobilityEntry?
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -26,10 +33,35 @@ struct SessionDataView: View {
                     let filtered = allSessions.filter { $0.programTitle == programTitle }
                     
                     ForEach(filtered) { session in
-                        Section(header: Text("\(session.sessionName) • \(session.date.formatted(.dateTime.month().day().hour().minute()))")
-                            .foregroundColor(.white.opacity(0.8))
-                            .font(.caption.bold())) {
-                            
+                        Section {
+
+                            // Session header row with swipe-to-delete for the whole completed session
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(session.sessionName)
+                                        .font(.headline)
+                                    HStack {
+                                        Text(session.date.formatted(.dateTime.month().day().hour().minute()))
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.7))
+                                        Text("Swipe to delete")
+                                            .font(.caption)
+                                            .foregroundColor(.red.opacity(0.5))
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .listRowBackground(theme.currentTheme.accent2)
+                            .contentShape(Rectangle())
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    pendingSession = session
+                                    showDeleteConfirm = true
+                                } label: {
+                                    Label("Delete Session", systemImage: "trash")
+                                }
+                            }
+
                             // 1. STRENGTH SECTION
                             if !session.strengthEntries.isEmpty {
                                 DisclosureGroup("Strength Raw Data") {
@@ -39,12 +71,10 @@ struct SessionDataView: View {
                                             HStack {
                                                 Text(entry.exercise).font(.subheadline.bold()).foregroundColor(.orange)
                                                 Spacer()
-                                                // Fetching current default for this exercise
                                                 let currentDefault = defaults.double(forKey: "\(entry.exercise)_last_weight")
                                                 Text("Current Default: \(currentDefault, specifier: "%.1f")")
                                                     .font(.caption2).padding(4).background(.white.opacity(0.1)).cornerRadius(4)
                                             }
-                                            
                                             // Raw recorded set data
                                             ForEach(entry.sets.indices, id: \.self) { i in
                                                 let set = entry.sets[i]
@@ -54,6 +84,14 @@ struct SessionDataView: View {
                                             }
                                         }
                                         .padding(.vertical, 4)
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                pendingStrengthEntry = entry
+                                                showDeleteConfirm = true
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
                                     }
                                 }
                                 .listRowBackground(theme.currentTheme.accent)
@@ -73,6 +111,14 @@ struct SessionDataView: View {
                                             Text("Recorded: \(entry.distance ?? 0, specifier: "%.2f") mi | \(entry.duration / 60)m | \(entry.calories ?? 0) kcal")
                                                 .font(.system(.caption2, design: .monospaced))
                                         }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                pendingCardioEntry = entry
+                                                showDeleteConfirm = true
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
                                     }
                                 }
                                 .listRowBackground(theme.currentTheme.accent)
@@ -91,6 +137,14 @@ struct SessionDataView: View {
                                             }
                                             Text("Recorded: \(Int(entry.holdTime))s hold x \(entry.rounds) rounds")
                                                 .font(.system(.caption2, design: .monospaced))
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                pendingMobilityEntry = entry
+                                                showDeleteConfirm = true
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
                                         }
                                     }
                                 }
@@ -132,5 +186,69 @@ struct SessionDataView: View {
         .applyAppBranding()
         .brandedBackButton(title: "Session Data", theme: theme.currentTheme, dismiss: dismiss)
         .toolbar(.hidden, for: .navigationBar)
+        .confirmationDialog(
+            "Are you sure you want to delete?",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            if let s = pendingSession {
+                Button("Delete Session", role: .destructive) {
+                    withAnimation {
+                        context.delete(s)
+                        do { try context.save() } catch { print("[SessionDataView] Failed to delete session: \(error)") }
+                        pendingSession = nil
+                    }
+                }
+            }
+            if let e = pendingStrengthEntry {
+                Button("Delete Strength Entry", role: .destructive) {
+                    withAnimation {
+                        if let parent = e.session,
+                           let idx = parent.strengthEntries.firstIndex(where: { $0.id == e.id }) {
+                            parent.strengthEntries.remove(at: idx)
+                        }
+                        do { try context.save() } catch { print("[SessionDataView] Failed to delete strength entry: \(error)") }
+                        pendingStrengthEntry = nil
+                    }
+                }
+            }
+            if let e = pendingCardioEntry {
+                Button("Delete Cardio Entry", role: .destructive) {
+                    withAnimation {
+                        if let parent = e.session,
+                           let idx = parent.cardioEntries.firstIndex(where: { $0.id == e.id }) {
+                            parent.cardioEntries.remove(at: idx)
+                        }
+                        do { try context.save() } catch { print("[SessionDataView] Failed to delete cardio entry: \(error)") }
+                        pendingCardioEntry = nil
+                    }
+                }
+            }
+            if let e = pendingMobilityEntry {
+                Button("Delete Mobility Entry", role: .destructive) {
+                    withAnimation {
+                        if let parent = e.session,
+                           let idx = parent.mobilityEntries.firstIndex(where: { $0.id == e.id }) {
+                            parent.mobilityEntries.remove(at: idx)
+                        }
+                        do { try context.save() } catch { print("[SessionDataView] Failed to delete mobility entry: \(error)") }
+                        pendingMobilityEntry = nil
+                    }
+                }
+            }
+            Button("Cancel") {
+                pendingSession = nil
+                pendingStrengthEntry = nil
+                pendingCardioEntry = nil
+                pendingMobilityEntry = nil
+            }
+            Button("Cancel", role: .cancel) {
+                pendingSession = nil
+                pendingStrengthEntry = nil
+                pendingCardioEntry = nil
+                pendingMobilityEntry = nil
+            }
+        }
     }
 }
+
