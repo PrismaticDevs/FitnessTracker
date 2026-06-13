@@ -301,8 +301,8 @@
 					ProjectRef = C989EC492F5738B6003B98E7 /* FitnessTracker.xcodeproj */;
 				},
 				{
-					ProductGroup = C98D4F8E2F54A1AA00454064 /* Products */;
-					ProjectRef = C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */;
+					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
+					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
 				},
 				{
 					ProductGroup = C9A071A22F58A78600F82623 /* Products */;
@@ -325,8 +325,8 @@
 					ProjectRef = C995F6572F5F599A00B71EF2 /* FitnessTracker.xcodeproj */;
 				},
 				{
-					ProductGroup = C922CBAE2F53C5DD003F9734 /* Products */;
-					ProjectRef = C922CBA82F53C5DD003F9734 /* FitnessTracker.xcodeproj */;
+					ProductGroup = C98D4F8E2F54A1AA00454064 /* Products */;
+					ProjectRef = C98D4F882F54A1AA00454064 /* FitnessTracker.xcodeproj */;
 				},
 			);
 			projectRoot = "";
