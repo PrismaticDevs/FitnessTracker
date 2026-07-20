@@ -242,16 +242,18 @@ struct SessionDetailView: View {
             contextString += "\nExercise: \(exercise.name)\n"
             
             // Fetch the data from UserDefaults (matches your EntryView keys)
-            let sets = defaults.integer(forKey: "sets\(exercise.name)")
-            let note = defaults.string(forKey: "note\(exercise.name)") ?? "No notes"
+            // CORRECTED: Use keyScope.scoped for consistency
+            let sets = defaults.integer(forKey: keyScope.scoped("sets\(exercise.name)"))
+            let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)")) ?? "No notes"
             
             contextString += "- Configured Sets: \(sets)\n"
             
             // Loop through the individual sets to get the weight/reps
             // Assuming your keys follow the pattern: weightExerciseName_set0
             for i in 0..<max(1, sets) {
-                let weight = defaults.integer(forKey: "weight\(exercise.name)_set\(i)")
-                let reps = defaults.integer(forKey: "reps\(exercise.name)_set\(i)")
+                // CORRECTED: Use keyScope.scoped for consistency
+                let weight = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
                 if weight > 0 || reps > 0 {
                     contextString += "  [Set \(i+1)]: \(weight)kg x \(reps) reps\n"
                 }
@@ -278,7 +280,8 @@ struct SessionDetailView: View {
         for exercise in session.exercises {
             let cleanName = exercise.name
             // Fetch the set count you've saved in UserDefaults
-            let setCount = defaults.integer(forKey: keyScope.scoped("setsCount\(cleanName)"))
+            // CORRECTED: Changed "setsCount" to "sets" to match deletion logic
+            let setCount = defaults.integer(forKey: keyScope.scoped("sets\(cleanName)"))
             guard setCount > 0 else { continue }
             
             let isIsoSession = defaults.bool(forKey: keyScope.scoped("iso\(cleanName)"))
