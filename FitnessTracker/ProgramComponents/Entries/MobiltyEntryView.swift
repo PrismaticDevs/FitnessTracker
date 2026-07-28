@@ -9,19 +9,41 @@ import SwiftUI
 import SwiftData
 
 struct MobilityEntryView: View {
+    @ObservedObject var theme = ThemeManager.shared
+    var defaults = UserDefaults.standard
+    @EnvironmentObject var auth: AuthManager
+
     @Binding var isCompleted: Bool
     var exercise: Exercise
-    var deleteExercise: (UUID) -> Void
+    var workoutProgram: WorkoutProgram
+    var session: Session
+    var deleteExercise: () -> Void // Changed to no-argument closure
     
-    @ObservedObject var theme = ThemeManager.shared
-    
-    // Local state for the inputs
-    @State private var holdTime: String = ""
-    @State private var rounds: String = ""
-    
+    // Explicit initializer
+    init(isCompleted: Binding<Bool>, exercise: Exercise, workoutProgram: WorkoutProgram, session: Session, deleteExercise: @escaping () -> Void) {
+        self._isCompleted = isCompleted
+        self.exercise = exercise
+        self.workoutProgram = workoutProgram
+        self.session = session
+        self.deleteExercise = deleteExercise
+    }
+
+    private var keyScope: DefaultsKeyScope {
+        DefaultsKeyScope.from(
+            previewUserID: auth.previewUserID,
+            liveUserID: auth.user?.uid,
+            programID: workoutProgram.id.uuidString,
+            sessionID: session.id.uuidString
+        )
+    }
+
+    @State private var holdTimeInput: String = ""
+    @State private var roundsInput: String = ""
+    @State private var note: String = ""
+    @State private var showDeleteConfirmation = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // --- Header: Name and Delete ---
             HStack {
                 VStack {
                     Text(exercise.name)
@@ -36,6 +58,7 @@ struct MobilityEntryView: View {
                     Button(action: {
                         withAnimation(.spring()) {
                             isCompleted.toggle()
+                            saveToDefaults()
                         }
                     }) {
                         HStack(spacing: 8) {
@@ -55,28 +78,61 @@ struct MobilityEntryView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            // --- Input Fields ---
             HStack(spacing: 15) {
-                // Hold Time Input
                 VStack(alignment: .leading, spacing: 4) {
                     Text("HOLD (SEC)")
                         .font(.caption2.bold())
                         .foregroundColor(.secondary)
                     
-                    TextField("0", text: $holdTime)
+                    TextField("0", text: $holdTimeInput)
                         .keyboardType(.numberPad)
                         .textFieldStyle(MobilityTextFieldStyle())
+                        .onChange(of: holdTimeInput) { oldValue, newValue in
+                            saveToDefaults()
+                        }
                 }
                 
-                // Rounds Input
                 VStack(alignment: .leading, spacing: 4) {
                     Text("ROUNDS")
                         .font(.caption2.bold())
                         .foregroundColor(.secondary)
                     
-                    TextField("0", text: $rounds)
+                    TextField("0", text: $roundsInput)
                         .keyboardType(.numberPad)
                         .textFieldStyle(MobilityTextFieldStyle())
+                        .onChange(of: roundsInput) { oldValue, newValue in
+                            saveToDefaults()
+                        }
+                }
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("NOTE")
+                    .font(.caption2.bold())
+                        .foregroundColor(.secondary)
+                
+                TextField("Add a note...", text: $note)
+                    .textFieldStyle(MobilityTextFieldStyle())
+                    .onChange(of: note) { oldValue, newValue in
+                        saveToDefaults()
+                    }
+            }
+            
+            HStack {
+                Spacer()
+                Button(action: {
+                    showDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .alert("Delete Mobility Entry", isPresented: $showDeleteConfirmation) {
+                    Button("Delete", role: .destructive) {
+                        deleteExercise() // No argument needed, parent will identify
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Are you sure you want to remove this entry?")
                 }
             }
         }
@@ -89,23 +145,18 @@ struct MobilityEntryView: View {
     // MARK: - Persistence Logic
     
     private func loadFromDefaults() {
-        let savedHold = UserDefaults.standard.integer(forKey: "\(exercise.name)_last_hold")
-        let savedRounds = UserDefaults.standard.integer(forKey: "\(exercise.name)_last_rounds")
-        
-        // Only set if they aren't zero
-        if savedHold > 0 { holdTime = "\(savedHold)" }
-        if savedRounds > 0 { rounds = "\(savedRounds)" }
+        holdTimeInput = "\(defaults.integer(forKey: keyScope.scoped("holdTime\(exercise.name)")))"
+        roundsInput = "\(defaults.integer(forKey: keyScope.scoped("rounds\(exercise.name)")))"
+        note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)")) ?? ""
     }
     
     private func saveToDefaults() {
-        if let h = Int(holdTime), let r = Int(rounds) {
-            UserDefaults.standard.set(h, forKey: "\(exercise.name)_last_hold")
-            UserDefaults.standard.set(r, forKey: "\(exercise.name)_last_rounds")
-        }
+        defaults.set(Int(holdTimeInput) ?? 0, forKey: keyScope.scoped("holdTime\(exercise.name)"))
+        defaults.set(Int(roundsInput) ?? 0, forKey: keyScope.scoped("rounds\(exercise.name)"))
+        defaults.set(note, forKey: keyScope.scoped("note\(exercise.name)"))
     }
 }
 
-// Custom styling to keep the UI tight
 struct MobilityTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
@@ -119,25 +170,28 @@ struct MobilityTextFieldStyle: TextFieldStyle {
 }
 
 #Preview {
-    // 1. Setup SwiftData mock container
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Exercise.self, configurations: config)
-    
-    // 2. Create mock exercise
+    let mockAuthManager = AuthManager()
+    let mockProgram = WorkoutProgram(title: "Preview Program", sessions: [])
+    let mockSession = Session(name: "Preview Session", exercises: [])
+
     let mockExercise = Exercise(
         userId: "user_123",
         name: "Pigeon Pose",
         type: .mobility
     )
     
-    return ZStack {
+    ZStack {
         Color.black.ignoresSafeArea()
         MobilityEntryView(
             isCompleted: .constant(false),
             exercise: mockExercise,
-            deleteExercise: { id in print("Deleted \(id)") }
+            workoutProgram: mockProgram,
+            session: mockSession,
+            deleteExercise: { print("Deleted") } // Updated closure
         )
         .padding()
     }
-    .modelContainer(container) // 3. Inject container
+    .environmentObject(mockAuthManager) // Provide AuthManager as an environment object
+    .environment(\.modelContext, try! ModelContainer(for: Exercise.self, configurations: .init(isStoredInMemoryOnly: true)).mainContext) // Corrected ModelContainer initialization
 }
+

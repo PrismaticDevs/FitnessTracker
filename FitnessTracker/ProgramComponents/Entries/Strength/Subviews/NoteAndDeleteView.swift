@@ -11,11 +11,12 @@ struct NoteAndDeleteView: View {
     @ObservedObject var theme = ThemeManager.shared
     let exercise: String
     @Binding var note: String
-    @Binding var showDeleteConfirmation: Bool
+    @Binding var showDeleteConfirmation: Bool // This binding is now correctly used
     var keyScope: DefaultsKeyScope
     var isFocused: FocusState<Bool?>.Binding
     var deleteExercise: (String) -> Void
     var defaults = UserDefaults.standard
+    
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
@@ -56,7 +57,7 @@ struct NoteAndDeleteView: View {
             }
             Button(action: {
                 isFocused.wrappedValue = nil
-                deleteExercise(exercise)
+                showDeleteConfirmation = true // Now sets the binding, which will trigger the alert in the parent StrengthEntryView
             }) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
@@ -69,26 +70,25 @@ struct NoteAndDeleteView: View {
 }
 
 #Preview {
-    // We use a container to manage the @FocusState and @State
     struct PreviewContainer: View {
         @State var note: String = "Test note"
         @State var showDelete: Bool = false
-        @FocusState var focus: Bool? // This matches your Bool? type
+        @FocusState var focus: Bool?
         
         var body: some View {
             NoteAndDeleteView(
                 exercise: "Bench Press",
                 note: $note,
                 showDeleteConfirmation: $showDelete,
-                // Assuming DefaultsKeyScope has this initializer
-                keyScope: .from(previewUserID: "dev_user", liveUserID: nil),
+                keyScope: .from(previewUserID: "dev_user", liveUserID: nil, programID: "preview_program_id", sessionID: "preview_session_id"), // Updated for consistency
                 isFocused: $focus,
                 deleteExercise: { name in print("Deleted \(name)") }
             )
             .padding()
-            .background(Color.black.opacity(0.9)) // So you can see the white text
+            .background(Color.black.opacity(0.9))
         }
     }
     
     return PreviewContainer()
 }
+

@@ -9,52 +9,69 @@ import SwiftData
 import FirebaseFirestore
 
 struct StrengthEntryView: View {
-    var defaults = UserDefaults.standard
+    // These are environment objects/properties that don't need to be in the initializer
+    var defaults = UserDefaults.standard // Use directly, no @State or init arg
     @Environment(\.modelContext) var context
     @Environment(AIContextManager.self) private var aiManager
     @EnvironmentObject var auth: AuthManager
-//    @StateObject private var sync = SyncManager.shared
-    private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
     
+    // Properties that MUST be passed from the parent
+    var workoutProgram: WorkoutProgram
+    var session: Session
     @Binding var isCompleted: Bool
+    var exercise: Exercise // Now a simple var, initialized by parent
+    var allExercises: [Exercise]
+    var deleteExercise: () -> Void // Changed to no-argument closure
+
+    // Explicit Initializer
+    init(workoutProgram: WorkoutProgram, session: Session, isCompleted: Binding<Bool>, exercise: Exercise, allExercises: [Exercise], deleteExercise: @escaping () -> Void) {
+        self.workoutProgram = workoutProgram
+        self.session = session
+        self._isCompleted = isCompleted
+        self.exercise = exercise
+        self.allExercises = allExercises
+        self.deleteExercise = deleteExercise
+    }
+
+    // Computed property for keyScope
+    private var keyScope: DefaultsKeyScope {
+        DefaultsKeyScope.from(
+            previewUserID: auth.previewUserID,
+            liveUserID: auth.user?.uid,
+            programID: workoutProgram.id.uuidString,
+            sessionID: session.id.uuidString
+        )
+    }
     
-    @State var id: UUID = UUID()
-    @State var exercise: Exercise
-    @State var combined: Int = 0
-    @State var left: Int = 0
-    @State var right: Int = 0
+    // Internal @State properties, initialized to defaults or loaded on appear
+    // These no longer need to be passed as arguments in the initializer from the parent view.
+    @State private var id: UUID = UUID() 
+    @State private var combined: Int = 0
+    @State private var left: Int = 0 // Renamed from 'var' to 'left'
+    @State private var right: Int = 0
+    @State private var reps: Int = 0
+    @State private var rest: Int = 0
+    @State private var note: String = "" 
+    @State private var iso: Bool = false 
     
     @State private var setsCountInput: String = "1"
-    @State private var sets: Int = 1
-    @State private var combinedInputs: [String] = [""]
+    @State private var sets: Int = 1 
+    @State private var combinedInputs: [String] = [""] 
     @State private var leftInputs: [String] = [""]
     @State private var rightInputs: [String] = [""]
     @State private var repsInputs: [String] = [""]
     @State private var restInputs: [String] = [""]
     @State private var selectedSetIndex: Int = 0
     
-    @State var reps: Int = 0
-    @State var rest: Int = 0
-    @State var note: String = ""
-    @State var date: Date = Date()
-    @State var iso: Bool = false
-    @State var itemToDelete: StrengthEntry?
-    @State var showConfirmationDialogue = false
-    @State var showHistory: Bool = false
-    @State private var showEmptyEntryAlert = false
-    @State private var combinedInput: String = ""
-    @State private var leftInput: String = ""
-    @State private var rightInput: String = ""
-    @State private var showDeleteConfirmation = false
-    @State var emptyEntry: Bool = true
-    
-    @State var allExercises: [Exercise]
-    
+    @State private var itemToDelete: StrengthEntry?
+    @State private var showConfirmationDialogue = false
+    @State private var showHistory: Bool = false
+    @State private var showDeleteConfirmation = false // Passed to NoteAndDeleteView
+    @State private var emptyEntry: Bool = true
+
     @FocusState private var isFocused: Bool?
     
-    var deleteExercise: (String) -> Void
-
-    
+    // No explicit init needed, SwiftUI will synthesize one for the `var` properties.
     
     var body: some View {
 
@@ -89,10 +106,10 @@ struct StrengthEntryView: View {
                         NoteAndDeleteView(
                             exercise: exercise.name,
                             note: $note,
-                            showDeleteConfirmation: $showDeleteConfirmation,
+                            showDeleteConfirmation: $showDeleteConfirmation, // Passed here
                             keyScope: keyScope,
                             isFocused: $isFocused,
-                            deleteExercise: deleteExercise
+                            deleteExercise: deleteExercise // Now expects no argument
                         )
                     }
                     .opacity((isCompleted ? 0.5 : 1.0))
@@ -120,7 +137,7 @@ struct StrengthEntryView: View {
             }
             
             if showHistory {
-                StrengthHistoryListView(exerciseName: exercise.name)
+                StrengthHistoryListView(exerciseName: exercise.name) 
             }
         }
         .background(.clear)
@@ -130,20 +147,16 @@ struct StrengthEntryView: View {
             isFocused = nil
         }
         .background(
-            Color.black.opacity(0.001) // Invisible but tappable
+            Color.black.opacity(0.001) 
                 .onTapGesture {
                     isFocused = nil
                 }
         )
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DataSynced"))) { _ in
-            // This forces the view to reload its local @State arrays from the now-updated UserDefaults
-            autofillValues()
+            loadExerciseDataFromUserDefaults()
         }
         .onAppear {
-            if let userId = auth.user?.uid {
-//                sync.fetchAllFromCloud(userId: userId, keyScope: keyScope)
-            }
-            // Set initial context
+            loadExerciseDataFromUserDefaults() // Load initial data
             aiManager.updateContext(
                 screen: "Strength Entry",
                 details: "User is logging \(exercise.name)",
@@ -151,12 +164,62 @@ struct StrengthEntryView: View {
             )
         }
         .onChange(of: selectedSetIndex) {
-            // Update context whenever they switch sets so the AI knows which set is being viewed
             aiManager.updateContext(
                 screen: "Strength Entry",
                 details: "User viewing set \(selectedSetIndex + 1)",
                 preferences: generateAIContext()
             )
+        }
+        // This is the alert for StrengthEntryView's context
+        // It relies on NoteAndDeleteView setting showDeleteConfirmation to true
+        .alert("Delete Exercise", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                // The deleteExercise closure is called from here
+                deleteExercise() // No argument needed, parent will identify
+            }
+            Button("Cancel", role: .cancel) {
+                // Reset state if cancelled
+                showDeleteConfirmation = false
+            }
+        } message: {
+            Text("Are you sure you want to remove \(exercise.name) from this session?")
+        }
+    }
+    
+    // MARK: - Data Loading and Saving
+    
+    private func loadExerciseDataFromUserDefaults() {
+        let cleanName = exercise.name
+        
+        // Load Sets Count
+        let loadedSetsCount = defaults.integer(forKey: keyScope.scoped("sets\(cleanName)"))
+        if loadedSetsCount > 0 {
+            setsCountInput = "\(loadedSetsCount)"
+            sets = loadedSetsCount
+        } else {
+            setsCountInput = "1"
+            sets = 1
+        }
+        
+        // Ensure arrays are sized correctly
+        adjustPerSetArrays(to: sets)
+        
+        // Load note and iso
+        note = defaults.string(forKey: keyScope.scoped("note\(cleanName)")) ?? ""
+        iso = defaults.bool(forKey: keyScope.scoped("iso\(cleanName)"))
+        
+        // Load per-set data for all sets
+        for i in 0..<sets {
+            combinedInputs[i] = "\(defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(i)")))"
+            leftInputs[i] = "\(defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(i)")))"
+            rightInputs[i] = "\(defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(i)")))"
+            repsInputs[i] = "\(defaults.integer(forKey: keyScope.scoped("reps\(cleanName)_set\(i)")))"
+            restInputs[i] = "\(defaults.integer(forKey: keyScope.scoped("rest\(cleanName)_set\(i)")))"
+        }
+        
+        // Autofill current set if needed (this will update based on selectedSetIndex)
+        if selectedSetIndex < sets {
+            autofillValues()
         }
     }
     
@@ -193,10 +256,10 @@ struct StrengthEntryView: View {
             setsArray.append(setDict)
         }
 
-        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
+        let noteValue = defaults.string(forKey: keyScope.scoped("note\(exercise.name)")) ?? "" // Corrected exercise to exercise.name
 
         return [
-            "exercise": exercise,
+            "exercise": exercise.name, // Use exercise.name here, not the Exercise object
             "setsCount": n,
             "sets": setsArray,
             "note": noteValue,
@@ -208,7 +271,6 @@ struct StrengthEntryView: View {
         guard let userId = auth.user?.uid else { return }
         let db = Firestore.firestore()
         
-        // 1. Gather the data into our Codable struct
         let n = max(1, int(from: setsCountInput))
         var setPrefs: [SetPreference] = []
         
@@ -233,7 +295,6 @@ struct StrengthEntryView: View {
             updatedAt: Date() // Captures current upload time
         )
         
-        // 2. Upload to a dedicated document per exercise
         do {
             try db.collection("users")
                 .document(userId)
@@ -250,12 +311,11 @@ struct StrengthEntryView: View {
         
         for ex in allExercisesInSession {
             let isCurrent = ex.id == exercise.id ? "[CURRENTLY VIEWING] " : ""
-            let sets = defaults.integer(forKey: keyScope.scoped("setsCount\(ex.name)"))
-            let isDone = defaults.bool(forKey: keyScope.scoped("isCompleted\(ex.name)")) // If you persist completion
+            let sets = defaults.integer(forKey: keyScope.scoped("sets\(ex.name)")) 
+            let isDone = defaults.bool(forKey: keyScope.scoped("isCompleted\(ex.name)")) 
             
             fullContext += "\(isCurrent)Exercise: \(ex.name) | Sets: \(sets) | Status: \(isDone ? "Done" : "In Progress")\n"
             
-            // Brief detail for each set of EVERY exercise in the session
             for idx in 0..<max(1, sets) {
                 let reps = defaults.integer(forKey: keyScope.scoped("reps\(ex.name)_set\(idx)"))
                 let weight = defaults.integer(forKey: keyScope.scoped("weight\(ex.name)_set\(idx)"))
@@ -284,7 +344,6 @@ struct StrengthEntryView: View {
     }
     
     private func lastNonZero(for baseKey: String, upTo index: Int) -> Int {
-        // Walk backwards from index to 0 to find last non-zero value for this per-set key
         if index >= 0 {
             for i in stride(from: index, through: 0, by: -1) {
                 let v = defaults.integer(forKey: scopedKey("\(baseKey)_set\(i)"))
@@ -351,33 +410,17 @@ struct StrengthEntryView: View {
     }
     
     private func autofillValues() {
-        // Check and autofill leftInput
-        if leftInputs[selectedSetIndex].isEmpty {
-            leftInputs[selectedSetIndex] = "\(lastNonZero(for: "left\(exercise.name)", upTo: selectedSetIndex))"
-        }
+        let cleanName = exercise.name
         
-        // Check and autofill rightInput
-        if rightInputs[selectedSetIndex].isEmpty {
-            rightInputs[selectedSetIndex] = "\(lastNonZero(for: "right\(exercise.name)", upTo: selectedSetIndex))"
-        }
-        
-        // Check and autofill combinedInput
-        if combinedInputs[selectedSetIndex].isEmpty {
-            combinedInputs[selectedSetIndex] = "\(lastNonZero(for: "weight\(exercise.name)", upTo: selectedSetIndex))"
-        }
-        
-        // Check and autofill repsInput
-        if repsInputs[selectedSetIndex].isEmpty {
-            repsInputs[selectedSetIndex] = "\(lastNonZero(for: "reps\(exercise.name)", upTo: selectedSetIndex))"
-        }
-        
-        // Check and autofill restInput
-        if restInputs[selectedSetIndex].isEmpty {
-            restInputs[selectedSetIndex] = "\(lastNonZero(for: "rest\(exercise.name)", upTo: selectedSetIndex))"
-        }
+        // This function now primarily populates the text field strings for the CURRENTLY selected set
+        // by reading from UserDefaults, after the initial full load in onAppear.
+        combinedInputs[selectedSetIndex] = "\(defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(selectedSetIndex)")))"
+        leftInputs[selectedSetIndex] = "\(defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(selectedSetIndex)")))"
+        rightInputs[selectedSetIndex] = "\(defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(selectedSetIndex)")))"
+        repsInputs[selectedSetIndex] = "\(defaults.integer(forKey: keyScope.scoped("reps\(cleanName)_set\(selectedSetIndex)")))"
+        restInputs[selectedSetIndex] = "\(defaults.integer(forKey: keyScope.scoped("rest\(cleanName)_set\(selectedSetIndex)")))"
     }
     
-    // Add this inside StrengthEntryView
     private func generateAIContext() -> String {
         let n = max(1, int(from: setsCountInput))
         var contextString = "Current exercise: \(exercise.name). Planned sets: \(n).\n"
@@ -419,25 +462,21 @@ final class MockAuthManager: AuthManager {
 // MARK: - Preview
 
 #Preview {
-    let mockAuthManager = AuthManager() // Use your actual or mock manager
+    let mockAuthManager = AuthManager()
     let previewExercise = Exercise(name: "Preview Exercise")
     
-    // Create the view
+    let mockProgram = WorkoutProgram(title: "Preview Program", sessions: [])
+    let mockSession = Session(name: "Preview Session", exercises: [previewExercise])
+    
     StrengthEntryView(
+        workoutProgram: mockProgram,
+        session: mockSession,
         isCompleted: .constant(false),
         exercise: previewExercise,
-        combined: 0,
-        left: 0,
-        right: 0,
-        reps: 0,
-        rest: 0,
-        note: "",
-        // FIX: Wrap previewExercise in brackets to make it an array [Exercise]
         allExercises: [previewExercise],
-        deleteExercise: { _ in }
+        deleteExercise: { } // Updated closure to no arguments
     )
     .environmentObject(mockAuthManager)
-    // Adding the AI Manager since your view uses @Environment(AIContextManager.self)
     .environment(AIContextManager())
-//    .modelContainer(for: [WorkoutHistory.self, StrengthEntry.self], inMemory: true)
 }
+

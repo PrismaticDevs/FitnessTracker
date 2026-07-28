@@ -10,6 +10,7 @@ import SwiftData
 struct ExerciseListSection: View {
     @Environment(\.modelContext) private var context
     var session: Session
+    var workoutProgram: WorkoutProgram // NEW: Accept workoutProgram directly
     @Binding var completedExerciseIds: Set<UUID>
     var onDelete: (UUID) -> Void
     
@@ -126,13 +127,13 @@ struct ExerciseListSection: View {
     // MARK: Entry Row
     @ViewBuilder
     private func createStrengthEntryRow(for exercise: Exercise) -> some View {
+        // This is not called, but keeping it updated for consistency if it were to be used.
         StrengthEntryView(
             isCompleted: Binding(
                 get: { exercise.isCompleted },
                 set: { newValue in
                     withAnimation(.spring()) {
                         exercise.isCompleted = newValue
-                        // Trigger a save so it survives an app kill
                         try? context.save()
                     }
                 }
@@ -142,7 +143,9 @@ struct ExerciseListSection: View {
             deleteExercise: { _ in
                 self.exerciseToInstance = exercise
                 self.showDeleteConfirmation = true
-            }
+            },
+            workoutProgram: workoutProgram, // Pass the direct property
+            session: session
         )
         .id(exercise.id)
         .listRowBackground(Color.clear)
@@ -164,8 +167,10 @@ struct ExerciseListSection: View {
         case .cardio:
             CardioEntryView(
                 isCompleted: isCompletedBinding,
-                exercise: exercise.name,
-                deleteExercise: { _ in triggerDelete(exercise) } // Removed the unused "_"
+                exerciseName: exercise.name, // Renamed to match CardioEntryView's expected var
+                deleteExercise: { _ in triggerDelete(exercise) },
+                workoutProgram: workoutProgram, // Pass the direct property
+                session: session
             )
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -175,18 +180,22 @@ struct ExerciseListSection: View {
             MobilityEntryView(
                 isCompleted: isCompletedBinding,
                 exercise: exercise,
-                deleteExercise: { _ in triggerDelete(exercise) } // Keep if Mobility expects ID
+                deleteExercise: { _ in triggerDelete(exercise) },
+                workoutProgram: workoutProgram, // Pass the direct property
+                session: session
             )
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .id(exercise.id)
 
-        default:
+        default: // .strength
             StrengthEntryView(
                 isCompleted: isCompletedBinding,
                 exercise: exercise,
                 allExercises: session.exercises,
-                deleteExercise: { _ in triggerDelete(exercise) }
+                deleteExercise: { _ in triggerDelete(exercise) },
+                workoutProgram: workoutProgram, // Pass the direct property
+                session: session
             )
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -199,3 +208,4 @@ struct ExerciseListSection: View {
         self.showDeleteConfirmation = true
     }
 }
+
