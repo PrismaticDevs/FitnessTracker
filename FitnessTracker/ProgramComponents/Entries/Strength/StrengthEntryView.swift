@@ -14,8 +14,9 @@ struct StrengthEntryView: View {
     @Environment(AIContextManager.self) private var aiManager
     @EnvironmentObject var auth: AuthManager
 //    @StateObject private var sync = SyncManager.shared
-    private var keyScope: DefaultsKeyScope { DefaultsKeyScope.from(previewUserID: auth.previewUserID, liveUserID: auth.user?.uid) }
-    
+    // Passed in from SessionDetailView so writes and reads always use the same namespace.
+    var keyScope: DefaultsKeyScope
+
     @Binding var isCompleted: Bool
     
     @State var id: UUID = UUID()
@@ -424,6 +425,7 @@ final class MockAuthManager: AuthManager {
     
     // Create the view
     StrengthEntryView(
+        keyScope: .from(previewUserID: "preview", liveUserID: nil),
         isCompleted: .constant(false),
         exercise: previewExercise,
         combined: 0,
@@ -432,7 +434,6 @@ final class MockAuthManager: AuthManager {
         reps: 0,
         rest: 0,
         note: "",
-        // FIX: Wrap previewExercise in brackets to make it an array [Exercise]
         allExercises: [previewExercise],
         deleteExercise: { _ in }
     )

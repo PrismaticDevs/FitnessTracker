@@ -44,6 +44,7 @@ struct SessionDetailView: View {
                 
                 ExerciseListSection(
                     session: session,
+                    keyScope: keyScope,
                     completedExerciseIds: $completedExerciseIds,
                     onDelete: deleteExercise
                 )
@@ -242,16 +243,14 @@ struct SessionDetailView: View {
             contextString += "\nExercise: \(exercise.name)\n"
             
             // Fetch the data from UserDefaults (matches your EntryView keys)
-            let sets = defaults.integer(forKey: "sets\(exercise.name)")
-            let note = defaults.string(forKey: "note\(exercise.name)") ?? "No notes"
-            
+            let sets = defaults.integer(forKey: keyScope.scoped("setsCount\(exercise.name)"))
+            let note = defaults.string(forKey: keyScope.scoped("note\(exercise.name)")) ?? "No notes"
+
             contextString += "- Configured Sets: \(sets)\n"
-            
-            // Loop through the individual sets to get the weight/reps
-            // Assuming your keys follow the pattern: weightExerciseName_set0
+
             for i in 0..<max(1, sets) {
-                let weight = defaults.integer(forKey: "weight\(exercise.name)_set\(i)")
-                let reps = defaults.integer(forKey: "reps\(exercise.name)_set\(i)")
+                let weight = defaults.integer(forKey: keyScope.scoped("weight\(exercise.name)_set\(i)"))
+                let reps = defaults.integer(forKey: keyScope.scoped("reps\(exercise.name)_set\(i)"))
                 if weight > 0 || reps > 0 {
                     contextString += "  [Set \(i+1)]: \(weight)kg x \(reps) reps\n"
                 }

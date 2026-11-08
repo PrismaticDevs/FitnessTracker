@@ -10,6 +10,7 @@ import SwiftData
 struct ExerciseListSection: View {
     @Environment(\.modelContext) private var context
     var session: Session
+    var keyScope: DefaultsKeyScope
     @Binding var completedExerciseIds: Set<UUID>
     var onDelete: (UUID) -> Void
     
@@ -127,6 +128,7 @@ struct ExerciseListSection: View {
     @ViewBuilder
     private func createStrengthEntryRow(for exercise: Exercise) -> some View {
         StrengthEntryView(
+            keyScope: keyScope,
             isCompleted: Binding(
                 get: { exercise.isCompleted },
                 set: { newValue in
@@ -183,6 +185,7 @@ struct ExerciseListSection: View {
 
         default:
             StrengthEntryView(
+                keyScope: keyScope,
                 isCompleted: isCompletedBinding,
                 exercise: exercise,
                 allExercises: session.exercises,

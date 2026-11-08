@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 import Firebase
+import FirebaseAppCheck
 import FirebaseFirestore
 import GoogleSignIn
 
@@ -16,6 +17,15 @@ import GoogleSignIn
 struct FitnessTrackerApp: App {
     @StateObject private var auth = AuthManager()
     init() {
+        // App Check must be configured BEFORE FirebaseApp.configure().
+        // On simulator/debug builds, use the debug provider so the AI Logic
+        // API calls succeed. On real device release builds, App Attest is used.
+        #if DEBUG
+        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+        #else
+        AppCheck.setAppCheckProviderFactory(AppAttestProviderFactory())
+        #endif
+
         //Firebase and Firestore
         FirebaseApp.configure()
         // 1. Explicitly Enable Offline Persistence

@@ -6,6 +6,7 @@
 //
 
 import FirebaseAILogic
+import FirebaseCore
 import SwiftUI
 import FirebaseFirestore
 
@@ -55,9 +56,17 @@ class AIContextManager {
 
 struct AICoachService {
     private let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-    
+
     private var model: GenerativeModel {
         ai.generativeModel(modelName: "gemini-2.5-flash")
+    }
+
+    /// Ensures Firebase is configured before using the AI model.
+    /// Safe to call from tests or previews where the app's `init` may not have run.
+    static func configureFirebaseIfNeeded() {
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
     }
     
     func getWorkoutAdvice(context: String, userQuery: String) async throws -> String {
@@ -151,14 +160,20 @@ class ChatViewModel: ObservableObject {
         do {
             // 2. Get AI Advice
             let response = try await coachService.getWorkoutAdvice(context: workoutContext, userQuery: userMessage)
-            
+
             // 3. Local Update (AI Response)
             self.groupedMessages[today, default: []].append((text: response, isUser: false))
             self.saveToFirestore(text: response, isUser: false, userId: userId)
-            
+
         } catch {
-            print("❌ AI Error: \(error)")
-            let errorMsg = "Sorry, I'm having trouble connecting to my brain right now."
+            // Log the full error so it shows up in Xcode's debug console.
+            // This is the real failure reason — check here to troubleshoot.
+            print("❌ AI Error type: \(type(of: error))")
+            print("❌ AI Error full: \(error)")
+            print("❌ AI Error localized: \(error.localizedDescription)")
+            print("❌ AI Error reflecting: \(String(reflecting: error))")
+
+            let errorMsg = "Error: \(error.localizedDescription)"
             self.groupedMessages[today, default: []].append((text: errorMsg, isUser: false))
             self.saveToFirestore(text: errorMsg, isUser: false, userId: userId)
         }
