@@ -75,19 +75,29 @@ struct WorkoutHeaderView: View {
                     .focused(isFocused, equals: true)
                     .onChange(of: setsCountInput) { oldValue, newValue in
                         let n = Int(newValue) ?? 1
-                        
-                        // 1. Persist the set count to UserDefaults immediately
                         defaults.set(n, forKey: keyScope.scoped("setsCount\(exercise.name)"))
-                        
-                        // 2. Adjust the arrays in the parent view
                         adjustPerSetArrays(n)
                     }
                     .onAppear {
-                        // 3. Ensure the text field loads the saved value when it appears
-                        let savedSets = defaults.integer(forKey: keyScope.scoped("setsCount\(exercise.name)"))
+                        // Try the full-scoped key first; fall back to the legacy
+                        // short-scoped key for data written before the scope fix.
+                        var savedSets = defaults.integer(forKey: keyScope.scoped("setsCount\(exercise.name)"))
+                        if savedSets == 0 {
+                            savedSets = defaults.integer(forKey: keyScope.legacyScoped("setsCount\(exercise.name)"))
+                        }
+
                         if savedSets > 0 {
                             setsCountInput = "\(savedSets)"
                         }
+
+                        // Always write the resolved count back with the full scope so
+                        // finishWorkoutSession() can read it even if the user never
+                        // changes the field (onChange only fires on changes, not on load).
+                        let count = savedSets > 0 ? savedSets : (Int(setsCountInput) ?? 1)
+                        let writeKey = keyScope.scoped("setsCount\(exercise.name)")
+                        defaults.set(count, forKey: writeKey)
+                        print("📝 WorkoutHeaderView.onAppear [\(exercise.name)] wrote setsCount=\(count) to '\(writeKey)'")
+                        adjustPerSetArrays(count)
                     }
             }
         }

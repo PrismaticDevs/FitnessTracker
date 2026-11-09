@@ -264,7 +264,11 @@ struct SessionDetailView: View {
         // 1. Get User ID (handle both Firebase and Preview states)
         let userId = auth.user?.uid ?? auth.previewUserID ?? "guest_id"
         let sessionDate = Date()
-        
+
+        print("🏋️ finishWorkoutSession — program: '\(workoutProgram.title)', session: '\(session.name)'")
+        print("🔑 keyScope: user=\(keyScope.userID) program=\(keyScope.programID ?? "nil") session=\(keyScope.sessionID ?? "nil")")
+        print("📋 exercises in session: \(session.exercises.map { $0.name })")
+
         // 2. Create the Master Record
         let completedSession = CompletedSession(
             date: sessionDate,
@@ -272,45 +276,60 @@ struct SessionDetailView: View {
             programTitle: workoutProgram.title,
             sessionName: session.name
         )
-        
+
         // 3. Loop through your live session exercises
         for exercise in session.exercises {
             let cleanName = exercise.name
-            // Fetch the set count you've saved in UserDefaults
-            let setCount = defaults.integer(forKey: keyScope.scoped("setsCount\(cleanName)"))
-            guard setCount > 0 else { continue }
-            
+
+            let fullScopeKey = keyScope.scoped("setsCount\(cleanName)")
+            let legacyKey    = keyScope.legacyScoped("setsCount\(cleanName)")
+            var setCount = defaults.integer(forKey: fullScopeKey)
+            print("  📌 [\(cleanName)] setsCount fullScope '\(fullScopeKey)' = \(setCount)")
+            if setCount == 0 {
+                setCount = defaults.integer(forKey: legacyKey)
+                print("  📌 [\(cleanName)] setsCount legacyScope '\(legacyKey)' = \(setCount)")
+            }
+
+            guard setCount > 0 else {
+                print("  ⚠️ [\(cleanName)] setCount=0, skipping")
+                continue
+            }
+
             let isIsoSession = defaults.bool(forKey: keyScope.scoped("iso\(cleanName)"))
-            
+
             var setRecords: [SetRecord] = []
-            
+
+            func intVal(_ key: String) -> Int {
+                if let s = defaults.string(forKey: key), let n = Int(s) { return n }
+                return defaults.integer(forKey: key)
+            }
+
             for i in 0..<setCount {
-                let cleanName = exercise.name
-                let reps = defaults.integer(forKey: keyScope.scoped("reps\(cleanName)_set\(i)"))
-                let combined = defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(i)"))
-                let left = defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(i)"))
-                let right = defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(i)"))
-                
-                // Only save the set if there is actual data
-                if reps > 0 || combined > 0 || left > 0 || right > 0{
-                    let combined = defaults.integer(forKey: keyScope.scoped("weight\(cleanName)_set\(i)"))
-                    let left = defaults.integer(forKey: keyScope.scoped("left\(cleanName)_set\(i)"))
-                    let right = defaults.integer(forKey: keyScope.scoped("right\(cleanName)_set\(i)"))
-                    let rest = defaults.integer(forKey: keyScope.scoped("rest\(cleanName)_set\(i)"))
-                    
-                    let record = SetRecord(
+                let repsKey     = keyScope.scoped("reps\(cleanName)_set\(i)")
+                let weightKey   = keyScope.scoped("weight\(cleanName)_set\(i)")
+                let reps     = intVal(repsKey)
+                let combined = intVal(weightKey)
+                let left     = intVal(keyScope.scoped("left\(cleanName)_set\(i)"))
+                let right    = intVal(keyScope.scoped("right\(cleanName)_set\(i)"))
+                let rest     = intVal(keyScope.scoped("rest\(cleanName)_set\(i)"))
+
+                print("    set\(i): reps=\(reps) weight=\(combined) left=\(left) right=\(right) rest=\(rest) | repsKey='\(repsKey)'")
+
+                if reps > 0 || combined > 0 || left > 0 || right > 0 {
+                    setRecords.append(SetRecord(
                         id: UUID(),
                         combined: combined,
                         left: left,
                         right: right,
                         reps: reps,
                         rest: rest
-                    )
-                    setRecords.append(record)
+                    ))
+                } else {
+                    print("    ⚠️ set\(i) has all-zero values, skipping")
                 }
             }
-            
-            // 4. Create the StrengthEntry (Your old 'WorkoutHistory' style detail)
+
+            // 4. Create the StrengthEntry
             if !setRecords.isEmpty {
                 let note = defaults.string(forKey: keyScope.scoped("note\(cleanName)"))
                 let entry = StrengthEntry(
@@ -320,23 +339,26 @@ struct SessionDetailView: View {
                     note: note,
                     iso: isIsoSession
                 )
-                
-                // Link it to the main session
                 entry.session = completedSession
                 completedSession.strengthEntries.append(entry)
+                print("  ✅ [\(cleanName)] added \(setRecords.count) set(s) to completedSession")
+            } else {
+                print("  ⚠️ [\(cleanName)] no valid sets to save")
             }
         }
-        
+
         // 5. Save to SwiftData
+        print("💾 total strength entries: \(completedSession.strengthEntries.count)")
         if !completedSession.strengthEntries.isEmpty {
             context.insert(completedSession)
-            
             do {
                 try context.save()
-                print("Successfully logged: \(session.name)")
+                print("✅ Successfully saved: \(session.name)")
             } catch {
-                print("Save Error: \(error)")
+                print("❌ Save Error: \(error)")
             }
+        } else {
+            print("❌ Nothing to save — completedSession.strengthEntries is empty")
         }
     }
     
