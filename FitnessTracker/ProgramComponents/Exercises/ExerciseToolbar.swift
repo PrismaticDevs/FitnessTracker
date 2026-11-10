@@ -12,7 +12,7 @@ struct ExerciseToolbar: View {
     @Environment(\.modelContext) var context
     @Binding var exerciseName: String
     var exercisesSelected: [String]
-    var onExerciseSelected: (String) -> Void
+    var onExerciseSelected: (Exercise) -> Void
     let title: String
     @State private var exerciseList = ExerciseList()
     @ObservedObject var theme = ThemeManager.shared
@@ -23,7 +23,7 @@ struct ExerciseToolbar: View {
     init(title: String,
              exerciseName: Binding<String>,
              exercisesSelected: [String],
-             onExerciseSelected: @escaping (String) -> Void) {
+             onExerciseSelected: @escaping (Exercise) -> Void) {
             self.title = title
             self._exerciseName = exerciseName
             self.exercisesSelected = exercisesSelected
@@ -46,7 +46,7 @@ struct ExerciseToolbar: View {
                         ForEach(category.exercises.sorted(by: { $0.name.localizedStandardCompare($1.name) == .orderedAscending}), id: \.id) { exercise in
                             Button {
                                 exerciseName = exercise.name
-                                onExerciseSelected(exercise.name)
+                                onExerciseSelected(exercise)
                             } label: {
                                 Label(exercise.name, systemImage: "plus.circle.fill")
                             }

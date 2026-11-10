@@ -13,7 +13,7 @@ import SwiftData
 // MARK: - Chart Components
 
 struct ChartSection: View {
-    // UPDATED: Now uses your new Grand Container model
+    @ObservedObject var theme = ThemeManager.shared
     let sessions: [CompletedSession]
     let range: ReportRange
 
@@ -22,10 +22,9 @@ struct ChartSection: View {
             ForEach(sessions) { session in
                 BarMark(
                     x: .value("Date", session.date, unit: range == .weekly ? .day : .weekOfYear),
-                    // We are counting occurrences of sessions
                     y: .value("Count", 1)
                 )
-                .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .bottom, endPoint: .top))
+                .foregroundStyle(LinearGradient(colors: theme.currentTheme.gradientColors, startPoint: .bottom, endPoint: .top))
                 .cornerRadius(4)
             }
         }
@@ -49,7 +48,6 @@ struct StatCard: View {
     let title: String
     let value: String
     let icon: String
-    let color: Color
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {

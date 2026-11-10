@@ -13,7 +13,7 @@ struct BottomControls: View {
     var isOnline: Bool
     var hasSavedLocally: Bool
     var onRename: () -> Void
-    var onAdd: (String) -> Void
+    var onAdd: (Exercise) -> Void
     var onSave: () -> Void
     
     var completedCount: Int {

@@ -72,20 +72,27 @@ struct SetRow: View {
     }
     
     private func loadData() {
-        // 4. Try the scoped key first
-        if let savedString = defaults.string(forKey: actualKey) {
+        // 1. Try the full-scoped key (user.<program>.<session>.<base>)
+        if let savedString = defaults.string(forKey: actualKey), !savedString.isEmpty {
             text = savedString
-        } else {
-            // 5. EMERGENCY FALLBACK: Check for the "Ghost" key (un-scoped)
-            // This is how you "catch" the old data and move it to the new scope!
-            if let ghostValue = defaults.string(forKey: baseKey) {
-                text = ghostValue
-                defaults.set(ghostValue, forKey: actualKey) // Migrate it now!
-            } else {
-                let savedInt = defaults.integer(forKey: actualKey)
-                text = savedInt > 0 ? "\(savedInt)" : ""
-            }
+            return
         }
+        // 2. Fallback: legacy-scoped key (user.<base>) — written before the program/session scope was added
+        let legacyKey = keyScope.legacyScoped(baseKey)
+        if let legacyValue = defaults.string(forKey: legacyKey), !legacyValue.isEmpty {
+            text = legacyValue
+            defaults.set(legacyValue, forKey: actualKey) // migrate to full scope
+            return
+        }
+        // 3. Fallback: bare unscoped key — very old data
+        if let ghostValue = defaults.string(forKey: baseKey), !ghostValue.isEmpty {
+            text = ghostValue
+            defaults.set(ghostValue, forKey: actualKey)
+            return
+        }
+        // 4. Last resort: integer value at full-scoped key
+        let savedInt = defaults.integer(forKey: actualKey)
+        text = savedInt > 0 ? "\(savedInt)" : ""
     }
 }
 

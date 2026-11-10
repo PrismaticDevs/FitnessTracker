@@ -81,8 +81,8 @@ struct AddSessionView: View {
                                 title: "Add Exercise",
                                 exerciseName: .constant(""),
                                 exercisesSelected: selectedExercises.map { $0.name },
-                                onExerciseSelected: { name in
-                                    let newExercise = Exercise(name: name)
+                                onExerciseSelected: { template in
+                                    let newExercise = Exercise(name: template.name, type: template.type ?? .strength)
                                     selectedExercises.append(newExercise)
                                 }
                             )

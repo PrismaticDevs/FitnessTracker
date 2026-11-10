@@ -129,9 +129,9 @@ struct AddWorkoutProgramView: View {
                                 ExerciseToolbar(
                                     title: "Add Exercise",
                                     exerciseName: .constant(""),
-                                    exercisesSelected: newSessions[index].exercises.map { $0.name }, // Pass selected exercises
-                                    onExerciseSelected: { exerciseName in
-                                        let exercise = Exercise(name: exerciseName)
+                                    exercisesSelected: newSessions[index].exercises.map { $0.name },
+                                    onExerciseSelected: { template in
+                                        let exercise = Exercise(name: template.name, type: template.type ?? .strength)
                                         addExercise(to: &newSessions[index], exercise: exercise)
                                     }
                                 )

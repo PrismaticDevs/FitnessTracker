@@ -114,7 +114,7 @@ extension ExerciseManagement {
                 Button(action: createNewCategory) {
                     Label("", systemImage: "folder.badge.plus")
                         .fontWeight(.bold)
-                        .foregroundColor(newCategoryName.isEmpty ? .gray : .yellow)
+                        .foregroundColor(newCategoryName.isEmpty ? .gray : theme.currentTheme.accent)
                 }
                 .disabled(newCategoryName.isEmpty)
             }
@@ -132,7 +132,7 @@ extension ExerciseManagement {
                 }
             }
             .pickerStyle(.menu)
-            .tint(.yellow)
+            .tint(theme.currentTheme.accent)
 
             TextField("", text: $searchText, prompt: Text("Exercise Name (e.g. Bench Press)").foregroundColor(.white.opacity(0.7)))
                 .focused($isFocused, equals: true)
@@ -155,7 +155,7 @@ extension ExerciseManagement {
                         }
                         .foregroundColor(.white)
                         .padding()
-                        .background(selectedCategoryID == nil ? Color.gray.opacity(0.3) : Color.yellow.opacity(0.8))
+                        .background(selectedCategoryID == nil ? Color.gray.opacity(0.3) : theme.currentTheme.accent)
                         .cornerRadius(10)
                     }
                     .disabled(selectedCategoryID == nil || searchText.isEmpty)

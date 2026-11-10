@@ -82,9 +82,9 @@ struct ProgramReportView: View {
                         
                         // Top Level Stats
                         HStack(spacing: 15) {
-                            StatCard(title: "Max Lift", value: "\(Int(calculateMaxLift())) lb", icon: "dumbbell.fill", color: .purple)
-                            StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.run", color: .blue)
-                            StatCard(title: "Mobility", value: formatTime(calculateTotalMobility()), icon: "figure.flexibility", color: .blue)
+                            StatCard(title: "Max Lift", value: "\(Int(calculateMaxLift())) lb", icon: "dumbbell.fill")
+                            StatCard(title: "Cardio", value: formatTime(calculateTotalCalories()), icon: "figure.run")
+                            StatCard(title: "Mobility", value: formatTime(calculateTotalMobility()), icon: "figure.flexibility")
                         }
                         .padding(.horizontal)
                         

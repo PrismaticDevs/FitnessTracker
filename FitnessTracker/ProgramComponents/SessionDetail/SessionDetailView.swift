@@ -59,7 +59,7 @@ struct SessionDetailView: View {
                         newSessionName = session.name
                         showingRenameSheet = true
                     },
-                    onAdd: addExercise,
+                    onAdd: { addExercise($0) },
                     onSave: {
                         if !hasSavedLocally { handleLocalSave() }
                         else { handleCloudUpload() }
@@ -178,8 +178,8 @@ struct SessionDetailView: View {
         )
     }
     
-    private func addExercise(named exerciseName: String) {
-        let newExercise = Exercise(name: exerciseName)
+    private func addExercise(_ template: Exercise) {
+        let newExercise = Exercise(name: template.name, type: template.type ?? .strength)
         session.exercises.append(newExercise)
         
         // Save the updated session back to the workout program

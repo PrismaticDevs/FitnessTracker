@@ -94,7 +94,7 @@ struct CardioEntryView: View {
                                 .font(.subheadline)
                             Text("\(caloriesBurned, specifier: "%.1f") cal")
                                 .padding()
-                                .background(Color.gray.opacity(0.3).cornerRadius(10))
+                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
                         }
                         VStack {
                             Text("Note")
