@@ -67,6 +67,6 @@ struct FitnessTrackerApp: App {
                 GIDSignIn.sharedInstance.handle(url)
             }
         }
-        .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, StrengthEntry.self])
+        .modelContainer(for: [WorkoutProgram.self, Exercise.self, Session.self, ExerciseCategory.self, StrengthEntry.self, CardioEntry.self, MobilityEntry.self])
     }
 }

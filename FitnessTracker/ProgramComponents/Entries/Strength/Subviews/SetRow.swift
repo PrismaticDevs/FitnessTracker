@@ -32,6 +32,9 @@ struct SetRow: View {
                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
                     defaults.set(newValue, forKey: actualKey)
+                    if !newValue.isEmpty {
+                        print("📝 SetRow [\(title)] key='\(actualKey)' value='\(newValue)'")
+                    }
                 }
                 .onAppear {
                     loadData()

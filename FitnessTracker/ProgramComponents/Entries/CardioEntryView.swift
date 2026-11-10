@@ -13,11 +13,13 @@ struct CardioEntryView: View {
     var defaults = UserDefaults.standard
     @Environment(\.modelContext) var context
     @Binding var isCompleted: Bool
-    
+
     var exercise: String
-    @State var duration: String = "" // Duration in minutes
-    @State var elevation: String = "" // Elevation in meters
-    @State var heartRate: String = "" // Heart rate in bpm
+    var keyScope: DefaultsKeyScope
+
+    @State var duration: String = ""    // minutes
+    @State var distance: String = ""    // km / miles
+    @State var heartRate: String = ""   // bpm (used for calorie estimate, not persisted to model)
     @State var note: String = ""
     @State var caloriesBurned: Double = 0.0
     @State var showDeleteConfirmation = false
@@ -32,15 +34,12 @@ struct CardioEntryView: View {
                         .font(.headline)
                     Spacer()
                     Button(action: {
-                        withAnimation(.spring()) {
-                            isCompleted.toggle()
-                        }
+                        withAnimation(.spring()) { isCompleted.toggle() }
                     }) {
                         HStack(spacing: 8) {
                             Text("Exercise Complete")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                            
                             Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                                 .font(.title2)
                         }
@@ -61,21 +60,20 @@ struct CardioEntryView: View {
                                 .keyboardType(.numberPad)
                                 .padding()
                                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                                .onChange(of: duration) { oldValue, newValue in
-                                    duration = newValue
+                                .onChange(of: duration) { _, newValue in
+                                    defaults.set(newValue, forKey: keyScope.scoped("cardioDuration\(exercise)"))
                                     calculateCaloriesBurned()
                                 }
                         }
                         VStack {
-                            Text("Elevation (m)")
+                            Text("Distance (km)")
                                 .font(.caption)
-                            TextField("Elevation", text: $elevation)
-                                .keyboardType(.numberPad)
+                            TextField("Distance", text: $distance)
+                                .keyboardType(.decimalPad)
                                 .padding()
                                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                                .onChange(of: elevation) { oldValue, newValue in
-                                    elevation = newValue
-                                    calculateCaloriesBurned()
+                                .onChange(of: distance) { _, newValue in
+                                    defaults.set(newValue, forKey: keyScope.scoped("cardioDistance\(exercise)"))
                                 }
                         }
                         VStack {
@@ -85,8 +83,7 @@ struct CardioEntryView: View {
                                 .keyboardType(.numberPad)
                                 .padding()
                                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
-                                .onChange(of: heartRate) { oldValue, newValue in
-                                    heartRate = newValue
+                                .onChange(of: heartRate) { _, _ in
                                     calculateCaloriesBurned()
                                 }
                         }
@@ -105,45 +102,51 @@ struct CardioEntryView: View {
                             TextField("Note", text: $note)
                                 .padding()
                                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .onChange(of: note) { _, newValue in
+                                    defaults.set(newValue, forKey: keyScope.scoped("cardioNote\(exercise)"))
+                                }
                         }
-                        Button(action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
+                        Button(action: { showDeleteConfirmation = true }) {
+                            Image(systemName: "trash").foregroundColor(.red)
                         }
-                        .alert(isPresented: $showDeleteConfirmation) {
-                            Alert(title: Text("Delete Cardio Entry"),
-                                  message: Text("Are you sure you want to remove this entry?"),
-                                  primaryButton: .destructive(Text("Delete")) {
-                            },
-                                  secondaryButton: .cancel()
-                            )
+                        .confirmationDialog("Remove Exercise", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                            Button("Delete", role: .destructive) { deleteExercise(UUID()) }
+                            Button("Cancel", role: .cancel) {}
                         }
-                }
+                    }
                 }
             }
-            .listRowInsets(EdgeInsets()) // Remove default insets
+            .listRowInsets(EdgeInsets())
         }
         .padding()
         .background(theme.currentTheme.accent.opacity(0.2))
         .cornerRadius(15)
         .padding(.horizontal)
-        .cornerRadius(15)
+        .onAppear(perform: loadFromDefaults)
     }
-    
+
+    private func loadFromDefaults() {
+        duration    = defaults.string(forKey: keyScope.scoped("cardioDuration\(exercise)")) ?? ""
+        distance    = defaults.string(forKey: keyScope.scoped("cardioDistance\(exercise)")) ?? ""
+        note        = defaults.string(forKey: keyScope.scoped("cardioNote\(exercise)")) ?? ""
+        calculateCaloriesBurned()
+    }
+
     private func calculateCaloriesBurned() {
         let durationInMinutes = Double(duration) ?? 0
-        let elevationInMeters = Double(elevation) ?? 0
-        let heartRateValue = Double(heartRate) ?? 0
-        
-        // Example calculation: (duration * MET value) - this is a placeholder
-        let metValue = 8.0 // MET value for running, adjust as needed
-        // You can adjust the formula to include elevation if needed
-        caloriesBurned = (metValue * 3.5 * heartRateValue * durationInMinutes) / 200 + (elevationInMeters * 0.1) // Example adjustment
+        let heartRateValue    = Double(heartRate) ?? 0
+        let distanceKm        = Double(distance) ?? 0
+        let metValue          = 8.0
+        caloriesBurned = (metValue * 3.5 * heartRateValue * durationInMinutes) / 200 + (distanceKm * 60)
+        defaults.set(Int(caloriesBurned), forKey: keyScope.scoped("cardioCalories\(exercise)"))
     }
 }
 
 #Preview {
-    CardioEntryView(isCompleted: .constant(false),exercise: "5k", deleteExercise: { id in print("Deleted \(id)") })
+    CardioEntryView(
+        isCompleted: .constant(false),
+        exercise: "5k",
+        keyScope: .from(previewUserID: "preview", liveUserID: nil),
+        deleteExercise: { id in print("Deleted \(id)") }
+    )
 }

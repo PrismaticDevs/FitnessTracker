@@ -11,19 +11,21 @@ import SwiftData
 struct MobilityEntryView: View {
     @Binding var isCompleted: Bool
     var exercise: Exercise
+    var keyScope: DefaultsKeyScope
     var deleteExercise: (UUID) -> Void
-    
+
     @ObservedObject var theme = ThemeManager.shared
-    
-    // Local state for the inputs
+    var defaults = UserDefaults.standard
+
     @State private var holdTime: String = ""
     @State private var rounds: String = ""
-    
+    @State private var note: String = ""
+    @State private var showDeleteConfirmation = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // --- Header: Name and Delete ---
             HStack {
-                VStack {
+                VStack(alignment: .leading) {
                     Text(exercise.name)
                         .font(.headline)
                         .foregroundColor(.white)
@@ -31,52 +33,65 @@ struct MobilityEntryView: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                 }
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.spring()) {
-                            isCompleted.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 8) {
-                            Text("Exercise Complete")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            
-                            Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                                .font(.title2)
-                        }
-                        .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
-                        .cornerRadius(10)
+                Spacer()
+                Button(action: {
+                    withAnimation(.spring()) { isCompleted.toggle() }
+                }) {
+                    HStack(spacing: 8) {
+                        Text("Exercise Complete")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                    .cornerRadius(10)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
-            // --- Input Fields ---
+
             HStack(spacing: 15) {
-                // Hold Time Input
                 VStack(alignment: .leading, spacing: 4) {
                     Text("HOLD (SEC)")
                         .font(.caption2.bold())
                         .foregroundColor(.secondary)
-                    
                     TextField("0", text: $holdTime)
                         .keyboardType(.numberPad)
                         .textFieldStyle(MobilityTextFieldStyle())
+                        .onChange(of: holdTime) { _, newValue in
+                            defaults.set(newValue, forKey: keyScope.scoped("mobilityHold\(exercise.name)"))
+                        }
                 }
-                
-                // Rounds Input
                 VStack(alignment: .leading, spacing: 4) {
                     Text("ROUNDS")
                         .font(.caption2.bold())
                         .foregroundColor(.secondary)
-                    
                     TextField("0", text: $rounds)
                         .keyboardType(.numberPad)
                         .textFieldStyle(MobilityTextFieldStyle())
+                        .onChange(of: rounds) { _, newValue in
+                            defaults.set(newValue, forKey: keyScope.scoped("mobilityRounds\(exercise.name)"))
+                        }
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("NOTE")
+                        .font(.caption2.bold())
+                        .foregroundColor(.secondary)
+                    TextField("Note", text: $note)
+                        .textFieldStyle(MobilityTextFieldStyle())
+                        .onChange(of: note) { _, newValue in
+                            defaults.set(newValue, forKey: keyScope.scoped("mobilityNote\(exercise.name)"))
+                        }
+                }
+                Button(action: { showDeleteConfirmation = true }) {
+                    Image(systemName: "trash").foregroundColor(.red)
+                }
+                .confirmationDialog("Remove Exercise", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) { deleteExercise(exercise.id) }
+                    Button("Cancel", role: .cancel) {}
                 }
             }
         }
@@ -85,23 +100,11 @@ struct MobilityEntryView: View {
         .cornerRadius(15)
         .onAppear(perform: loadFromDefaults)
     }
-    
-    // MARK: - Persistence Logic
-    
+
     private func loadFromDefaults() {
-        let savedHold = UserDefaults.standard.integer(forKey: "\(exercise.name)_last_hold")
-        let savedRounds = UserDefaults.standard.integer(forKey: "\(exercise.name)_last_rounds")
-        
-        // Only set if they aren't zero
-        if savedHold > 0 { holdTime = "\(savedHold)" }
-        if savedRounds > 0 { rounds = "\(savedRounds)" }
-    }
-    
-    private func saveToDefaults() {
-        if let h = Int(holdTime), let r = Int(rounds) {
-            UserDefaults.standard.set(h, forKey: "\(exercise.name)_last_hold")
-            UserDefaults.standard.set(r, forKey: "\(exercise.name)_last_rounds")
-        }
+        holdTime = defaults.string(forKey: keyScope.scoped("mobilityHold\(exercise.name)")) ?? ""
+        rounds   = defaults.string(forKey: keyScope.scoped("mobilityRounds\(exercise.name)")) ?? ""
+        note     = defaults.string(forKey: keyScope.scoped("mobilityNote\(exercise.name)")) ?? ""
     }
 }
 
@@ -135,6 +138,7 @@ struct MobilityTextFieldStyle: TextFieldStyle {
         MobilityEntryView(
             isCompleted: .constant(false),
             exercise: mockExercise,
+            keyScope: .from(previewUserID: "preview", liveUserID: nil),
             deleteExercise: { id in print("Deleted \(id)") }
         )
         .padding()

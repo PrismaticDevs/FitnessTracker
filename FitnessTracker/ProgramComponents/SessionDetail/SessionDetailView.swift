@@ -84,11 +84,11 @@ struct SessionDetailView: View {
             showSyncError = true
             return
         }
-        guard let userId = auth.user?.uid else {
+        guard auth.user?.uid != nil else {
             showSyncError = true
             return
         }
-        
+
         isUploading = true
         
 //        Task {
@@ -157,7 +157,7 @@ struct SessionDetailView: View {
     }
     
     private func uploadWholeSessionToCloud() {
-        guard let userId = auth.user?.uid else { return }
+        guard auth.user?.uid != nil else { return }
         
         // We use the SyncManager to handle the heavy lifting
         // This ensures consistency across the app
@@ -304,18 +304,31 @@ struct SessionDetailView: View {
                 return defaults.integer(forKey: key)
             }
 
+            // Track the last set that had any real data so we can forward-fill.
+            // This handles the common case where the user sets e.g. Total Sets=3
+            // and enters data only on Set 1 — the other sets inherit those values.
+            var lastNonZeroRecord: (reps: Int, combined: Int, left: Int, right: Int, rest: Int)?
+
             for i in 0..<setCount {
                 let repsKey     = keyScope.scoped("reps\(cleanName)_set\(i)")
                 let weightKey   = keyScope.scoped("weight\(cleanName)_set\(i)")
-                let reps     = intVal(repsKey)
-                let combined = intVal(weightKey)
-                let left     = intVal(keyScope.scoped("left\(cleanName)_set\(i)"))
-                let right    = intVal(keyScope.scoped("right\(cleanName)_set\(i)"))
-                let rest     = intVal(keyScope.scoped("rest\(cleanName)_set\(i)"))
+                var reps     = intVal(repsKey)
+                var combined = intVal(weightKey)
+                var left     = intVal(keyScope.scoped("left\(cleanName)_set\(i)"))
+                var right    = intVal(keyScope.scoped("right\(cleanName)_set\(i)"))
+                var rest     = intVal(keyScope.scoped("rest\(cleanName)_set\(i)"))
 
                 print("    set\(i): reps=\(reps) weight=\(combined) left=\(left) right=\(right) rest=\(rest) | repsKey='\(repsKey)'")
 
+                // If this set has no data at all, forward-fill from the last set that did
+                if reps == 0 && combined == 0 && left == 0 && right == 0, let fill = lastNonZeroRecord {
+                    reps = fill.reps; combined = fill.combined
+                    left = fill.left; right = fill.right; rest = fill.rest
+                    print("    ↩️ set\(i) forward-filled from previous set: reps=\(reps) weight=\(combined)")
+                }
+
                 if reps > 0 || combined > 0 || left > 0 || right > 0 {
+                    lastNonZeroRecord = (reps, combined, left, right, rest)
                     setRecords.append(SetRecord(
                         id: UUID(),
                         combined: combined,
@@ -347,18 +360,77 @@ struct SessionDetailView: View {
             }
         }
 
+        // 4b. Cardio and mobility entries
+        for exercise in session.exercises {
+            let cleanName = exercise.name
+
+            func strVal(_ key: String) -> String {
+                defaults.string(forKey: keyScope.scoped(key)) ?? ""
+            }
+            func dblVal(_ key: String) -> Double {
+                Double(strVal(key)) ?? 0
+            }
+            func intVal2(_ key: String) -> Int {
+                Int(strVal(key)) ?? defaults.integer(forKey: keyScope.scoped(key))
+            }
+
+            switch exercise.type {
+            case .cardio:
+                let durationMins = dblVal("cardioDuration\(cleanName)")
+                guard durationMins > 0 else {
+                    print("  ⚠️ cardio [\(cleanName)] no duration, skipping")
+                    continue
+                }
+                let entry = CardioEntry(
+                    exercise: cleanName,
+                    date: sessionDate,
+                    duration: durationMins * 60,
+                    distance: dblVal("cardioDistance\(cleanName)") > 0 ? dblVal("cardioDistance\(cleanName)") : nil,
+                    calories: intVal2("cardioCalories\(cleanName)") > 0 ? intVal2("cardioCalories\(cleanName)") : nil,
+                    note: strVal("cardioNote\(cleanName)").isEmpty ? nil : strVal("cardioNote\(cleanName)")
+                )
+                entry.session = completedSession
+                completedSession.cardioEntries.append(entry)
+                print("  ✅ cardio [\(cleanName)] duration=\(durationMins)min")
+
+            case .mobility:
+                let holdSecs = dblVal("mobilityHold\(cleanName)")
+                let roundsVal = intVal2("mobilityRounds\(cleanName)")
+                guard holdSecs > 0 || roundsVal > 0 else {
+                    print("  ⚠️ mobility [\(cleanName)] no data, skipping")
+                    continue
+                }
+                let entry = MobilityEntry(
+                    exercise: cleanName,
+                    date: sessionDate,
+                    holdTime: holdSecs,
+                    rounds: roundsVal,
+                    note: strVal("mobilityNote\(cleanName)").isEmpty ? nil : strVal("mobilityNote\(cleanName)")
+                )
+                entry.session = completedSession
+                completedSession.mobilityEntries.append(entry)
+                print("  ✅ mobility [\(cleanName)] hold=\(holdSecs)s rounds=\(roundsVal)")
+
+            default:
+                break // strength already handled above
+            }
+        }
+
         // 5. Save to SwiftData
         print("💾 total strength entries: \(completedSession.strengthEntries.count)")
-        if !completedSession.strengthEntries.isEmpty {
+        let hasEntries = !completedSession.strengthEntries.isEmpty
+                      || !completedSession.cardioEntries.isEmpty
+                      || !completedSession.mobilityEntries.isEmpty
+        if hasEntries {
             context.insert(completedSession)
             do {
                 try context.save()
-                print("✅ Successfully saved: \(session.name)")
+                print("✅ Successfully saved: \(session.name) — strength:\(completedSession.strengthEntries.count) cardio:\(completedSession.cardioEntries.count) mobility:\(completedSession.mobilityEntries.count)")
             } catch {
                 print("❌ Save Error: \(error)")
             }
         } else {
-            print("❌ Nothing to save — completedSession.strengthEntries is empty")
+            print("❌ Nothing to save — all entry arrays are empty")
         }
     }
     

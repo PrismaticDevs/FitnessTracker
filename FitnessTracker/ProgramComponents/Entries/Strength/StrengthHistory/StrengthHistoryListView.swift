@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct StrengthHistoryListView: View {
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.modelContext) var context
     // Entry History
     @Query private var history: [StrengthEntry]
@@ -41,7 +42,7 @@ struct StrengthHistoryListView: View {
                 List {
                     ForEach(history) { entry in
                         StrengthHistoryItem(entry: entry) 
-                            .listRowBackground(Color.blue.opacity(0.3)) // Matches your blue theme
+                            .listRowBackground(theme.currentTheme.accent.opacity(0.3))
                             .listRowSeparatorTint(.white.opacity(0.2))
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button {

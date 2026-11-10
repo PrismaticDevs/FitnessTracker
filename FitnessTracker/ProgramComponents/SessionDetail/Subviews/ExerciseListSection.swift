@@ -167,7 +167,8 @@ struct ExerciseListSection: View {
             CardioEntryView(
                 isCompleted: isCompletedBinding,
                 exercise: exercise.name,
-                deleteExercise: { _ in triggerDelete(exercise) } // Removed the unused "_"
+                keyScope: keyScope,
+                deleteExercise: { _ in triggerDelete(exercise) }
             )
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -177,7 +178,8 @@ struct ExerciseListSection: View {
             MobilityEntryView(
                 isCompleted: isCompletedBinding,
                 exercise: exercise,
-                deleteExercise: { _ in triggerDelete(exercise) } // Keep if Mobility expects ID
+                keyScope: keyScope,
+                deleteExercise: { _ in triggerDelete(exercise) }
             )
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
