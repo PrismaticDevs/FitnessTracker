@@ -17,9 +17,11 @@ struct StrengthHistoryListView: View {
     @State private var showDeleteAlert = false
     
     let exerciseName: String
+    let isFullScreen: Bool
 
-    init(exerciseName: String) {
+    init(exerciseName: String, isFullScreen: Bool = false) {
         self.exerciseName = exerciseName
+        self.isFullScreen = isFullScreen
         let name = exerciseName
         _history = Query(
             filter: #Predicate<StrengthEntry> { $0.exercise == name },
@@ -54,7 +56,7 @@ struct StrengthHistoryListView: View {
                             }
                     }
                 }
-                .frame(minHeight: 300, maxHeight: 500) // Keeps it contained in your entry view
+                .frame(minHeight: 300, maxHeight: isFullScreen ? .infinity : 500) // Contained when inline, fills when full screen
                 .scrollContentBackground(.hidden)
                 .listStyle(.plain)
             }

@@ -18,7 +18,7 @@ struct CardioEntryView: View {
     var keyScope: DefaultsKeyScope
 
     @State var duration: String = ""    // minutes
-    @State var distance: String = ""    // km / miles
+    @State var distance: String = ""    // miles
     @State var heartRate: String = ""   // bpm (used for calorie estimate, not persisted to model)
     @State var note: String = ""
     @State var caloriesBurned: Double = 0.0
@@ -66,7 +66,7 @@ struct CardioEntryView: View {
                                 }
                         }
                         VStack {
-                            Text("Distance (km)")
+                            Text("Distance (mi)")
                                 .font(.caption)
                             TextField("Distance", text: $distance)
                                 .keyboardType(.decimalPad)
@@ -74,6 +74,7 @@ struct CardioEntryView: View {
                                 .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
                                 .onChange(of: distance) { _, newValue in
                                     defaults.set(newValue, forKey: keyScope.scoped("cardioDistance\(exercise)"))
+                                    calculateCaloriesBurned()
                                 }
                         }
                         VStack {
@@ -135,7 +136,7 @@ struct CardioEntryView: View {
     private func calculateCaloriesBurned() {
         let durationInMinutes = Double(duration) ?? 0
         let heartRateValue    = Double(heartRate) ?? 0
-        let distanceKm        = Double(distance) ?? 0
+        let distanceKm        = (Double(distance) ?? 0) * 1.60934 // input is miles
         let metValue          = 8.0
         caloriesBurned = (metValue * 3.5 * heartRateValue * durationInMinutes) / 200 + (distanceKm * 60)
         defaults.set(Int(caloriesBurned), forKey: keyScope.scoped("cardioCalories\(exercise)"))

@@ -110,18 +110,30 @@ struct StrengthEntryView: View {
             .listRowInsets(EdgeInsets())
             HStack {
                 Spacer()
-                Text(showHistory ? "Hide History" : "View History")
                 Button {
-                    showHistory.toggle()
+                    showHistory = true
                 } label: {
-                    Image(systemName: showHistory ? "eye.slash" : "eye")
+                    HStack {
+                        Text("View History")
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    }
                 }
                 .buttonStyle(.plain)
                 Spacer()
             }
-            
-            if showHistory {
-                StrengthHistoryListView(exerciseName: exercise.name)
+        }
+        .fullScreenCover(isPresented: $showHistory) {
+            NavigationStack {
+                StrengthHistoryListView(exerciseName: exercise.name, isFullScreen: true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .navigationTitle("\(exercise.name) History")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showHistory = false }
+                        }
+                    }
+                    .applyAppBranding()
             }
         }
         .background(.clear)
