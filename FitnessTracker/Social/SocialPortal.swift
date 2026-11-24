@@ -9,32 +9,23 @@ import SwiftUI
 
 struct SocialPortal: View {
     @ObservedObject var theme = ThemeManager.shared
+    @ObservedObject var social = SocialService.shared
     @EnvironmentObject var auth: AuthManager
     @Environment(\.dismiss) var dismiss
-    @State private var navigateToAuthView = false // State variable for navigation
-    @State private var returnToRoot = false
     @State private var dragOffset: CGFloat = 0
+    @State private var showProfileEditor = false
+    @State private var postToDelete: WorkoutPost?
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                HStack {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                        .foregroundColor(theme.currentTheme.accent2)
-                    Text("FiT Social")
-                        .font(.headline)
-                        .foregroundColor(theme.currentTheme.accent2)
-                }
-                .padding()
-                .foregroundColor(.white.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .offset(x: dragOffset)
-            .animation(.interactiveSpring(), value: dragOffset)
-            .padding(.top, 130)
-            customFloatingBar
+        ZStack(alignment: .top) {
+            content
+                .padding(.top, 100)
+                .offset(x: dragOffset)
+                .animation(.interactiveSpring(), value: dragOffset)
+
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(false)
                 .overlay(alignment: .leading) {
                     Color.clear
                         .frame(width: 24) // leading-edge grab area
@@ -42,7 +33,6 @@ struct SocialPortal: View {
                         .highPriorityGesture(
                             DragGesture(minimumDistance: 10, coordinateSpace: .local)
                                 .onChanged { value in
-                                    // Only respond to drags that start near the leading edge and move right
                                     if value.startLocation.x < 24, value.translation.width > 0 {
                                         dragOffset = value.translation.width
                                     }
@@ -51,9 +41,7 @@ struct SocialPortal: View {
                                     if value.startLocation.x < 24, value.translation.width > 80 {
                                         dismiss()
                                     } else {
-                                        withAnimation(.spring()) {
-                                            dragOffset = 0
-                                        }
+                                        withAnimation(.spring()) { dragOffset = 0 }
                                     }
                                 }
                         )
@@ -61,20 +49,169 @@ struct SocialPortal: View {
         }
         .applyAppBranding()
         .brandedBackButton(title: "", theme: theme.currentTheme, dismiss: dismiss)
-    }
-    
-    private var customFloatingBar: some View {
-            HStack {
-                Text("Hi")
-                Image(systemName: "hand.wave")
+        .task(id: auth.user?.uid) {
+            guard let uid = auth.user?.uid else {
+                social.reset()
+                return
             }
-            .frame(width: UIScreen.main.bounds.width - 40, height: 50)
-            .background(theme.currentTheme.accent) // Themed bar color
-            .cornerRadius(30)
-            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+            if social.myProfile?.id != uid || !social.hasLoadedProfile {
+                social.reset()
+                await social.loadMyProfile(uid: uid)
+            }
+            if social.myProfile != nil { await social.refreshFeed() }
+            await auth.clearNotification(for: .social)
         }
+        .onChange(of: social.myProfile) { old, new in
+            // First profile just got created: load the feed.
+            if old == nil, new != nil { Task { await social.refreshFeed() } }
+        }
+        .sheet(isPresented: $showProfileEditor) {
+            NavigationStack {
+                SocialProfileEditor()
+                    .navigationTitle("Edit Profile")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .applyAppBranding()
+            }
+        }
+        .confirmationDialog(
+            "Delete this post?",
+            isPresented: Binding(get: { postToDelete != nil }, set: { if !$0 { postToDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Delete Post", role: .destructive) {
+                if let post = postToDelete, let uid = auth.user?.uid {
+                    Task {
+                        do { try await social.deletePost(post, uid: uid) }
+                        catch { social.errorMessage = error.localizedDescription }
+                    }
+                }
+                postToDelete = nil
+            }
+        } message: {
+            Text("This removes it from FiT Social. Your workout history isn't affected.")
+        }
+    }
+
+    // MARK: - States
+
+    @ViewBuilder
+    private var content: some View {
+        if auth.user == nil {
+            messageView(icon: "person.crop.circle.badge.questionmark",
+                        title: "Sign in to use FiT Social",
+                        detail: "Share your workouts and see what others are training.")
+        } else if !social.hasLoadedProfile {
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if social.myProfile == nil {
+            SocialProfileEditor(isFirstRun: true)
+        } else {
+            feedView
+        }
+    }
+
+    private var feedView: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                titleBar
+                if let profile = social.myProfile { profileHeader(profile) }
+
+                if let error = social.errorMessage {
+                    Text(error)
+                        .font(.callout)
+                        .foregroundColor(.orange)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if social.feed.isEmpty && !social.isLoadingFeed {
+                    messageView(icon: "square.and.arrow.up",
+                                title: "No posts yet",
+                                detail: "Open a program's Session Data and tap Share on a completed session to post it here.")
+                        .padding(.top, 20)
+                } else {
+                    LazyVStack(spacing: 14) {
+                        ForEach(social.feed) { post in
+                            let isMine = post.authorId == auth.user?.uid
+                            WorkoutPostCard(post: post, isMine: isMine) {
+                                postToDelete = post
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 40)
+        }
+        .refreshable { await social.refreshFeed() }
+    }
+
+    private var titleBar: some View {
+        HStack {
+            Image(systemName: "bubble.left.and.bubble.right")
+            Text("FiT Social").font(.title2.bold())
+            Spacer()
+            if social.isLoadingFeed { ProgressView() }
+        }
+        .foregroundColor(.white)
+    }
+
+    private func profileHeader(_ profile: PublicProfile) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            AvatarView(text: profile.initials, size: 60)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(profile.displayName).font(.headline)
+                Text("@\(profile.username)")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+                if !profile.homeGym.isEmpty {
+                    Label(profile.homeGym, systemImage: "mappin.and.ellipse")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.85))
+                }
+                if !profile.bio.isEmpty {
+                    Text(profile.bio).font(.subheadline).padding(.top, 2)
+                }
+                HStack(spacing: 16) {
+                    countLabel(profile.postCount, "posts")
+                    countLabel(profile.followerCount, "followers")
+                    countLabel(profile.followingCount, "following")
+                }
+                .padding(.top, 4)
+            }
+            Spacer()
+            Button { showProfileEditor = true } label: {
+                Image(systemName: "pencil.circle.fill").font(.title2)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(theme.currentTheme.accent2.opacity(0.85))
+        .cornerRadius(18)
+    }
+
+    private func countLabel(_ value: Int, _ label: String) -> some View {
+        HStack(spacing: 3) {
+            Text("\(value)").font(.caption.bold())
+            Text(label).font(.caption).foregroundColor(.white.opacity(0.7))
+        }
+    }
+
+    private func messageView(icon: String, title: String, detail: String) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: icon).font(.system(size: 40))
+            Text(title).font(.headline)
+            Text(detail)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.75))
+                .multilineTextAlignment(.center)
+        }
+        .padding(30)
+        .frame(maxWidth: .infinity)
+    }
 }
 
 #Preview {
-    SocialPortal()
+    NavigationStack {
+        SocialPortal()
+            .environmentObject(AuthManager())
+    }
 }

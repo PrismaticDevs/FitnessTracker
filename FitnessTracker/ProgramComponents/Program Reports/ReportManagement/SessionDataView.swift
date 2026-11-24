@@ -23,6 +23,7 @@ struct SessionDataView: View {
     @State private var pendingStrengthEntry: StrengthEntry?
     @State private var pendingCardioEntry: CardioEntry?
     @State private var pendingMobilityEntry: MobilityEntry?
+    @State private var sessionToShare: CompletedSession?
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -50,6 +51,17 @@ struct SessionDataView: View {
                                     }
                                 }
                                 Spacer()
+                                Button {
+                                    sessionToShare = session
+                                } label: {
+                                    Label("Share", systemImage: "square.and.arrow.up")
+                                        .font(.caption.bold())
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(Color.white.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
                             }
                             .listRowBackground(theme.currentTheme.accent2)
                             .contentShape(Rectangle())
@@ -185,6 +197,9 @@ struct SessionDataView: View {
         }
         .applyAppBranding()
         .brandedBackButton(title: "Session Data", theme: theme.currentTheme, dismiss: dismiss)
+        .sheet(item: $sessionToShare) { session in
+            ShareWorkoutView(session: session)
+        }
         .toolbar(.hidden, for: .navigationBar)
         .confirmationDialog(
             "Are you sure you want to delete?",

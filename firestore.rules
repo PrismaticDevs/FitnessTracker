@@ -1,0 +1,92 @@
+rules_version = '2';
+
+// Firestore security rules for FitnessTracker + FiT Social.
+// Deploy from the Firebase console (Firestore Database → Rules) or with
+// `firebase deploy --only firestore:rules`. Compare with your current rules
+// first so nothing you rely on is removed.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Only the listed fields changed between the old and new document.
+    function onlyChanged(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    // ---------- Private data (profile stats, chat history, workout entries, preferences)
+
+    match /users/{uid} {
+      allow read, write: if isUser(uid);
+
+      match /{document=**} {
+        allow read, write: if isUser(uid);
+      }
+    }
+
+    // ---------- FiT Social: usernames (one document per username, value = owner uid)
+
+    match /usernames/{username} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && username.matches('^[a-z0-9_.]{3,20}$');
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ---------- FiT Social: public profiles
+
+    match /profiles/{uid} {
+      allow read: if signedIn();
+
+      allow create: if isUser(uid)
+        && request.resource.data.username is string
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 50
+        && request.resource.data.bio.size() <= 160
+        && request.resource.data.followerCount == 0
+        && request.resource.data.followingCount == 0
+        && request.resource.data.postCount == 0;
+
+      allow update: if isUser(uid)
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid
+        && request.resource.data.displayName.size() <= 50
+        && request.resource.data.bio.size() <= 160
+        // Follow counts can't be edited by the client (they'll be maintained server-side later).
+        && request.resource.data.followerCount == resource.data.followerCount
+        && request.resource.data.followingCount == resource.data.followingCount
+        // Post count only moves by one at a time (create/delete post).
+        && request.resource.data.postCount >= 0
+        && (request.resource.data.postCount - resource.data.postCount) in [-1, 0, 1];
+
+      allow delete: if isUser(uid);
+    }
+
+    // ---------- FiT Social: posts
+
+    match /posts/{postId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.caption is string
+        && request.resource.data.caption.size() <= 500
+        && request.resource.data.workout is map;
+
+      // Posts are immutable for now; edit = delete and repost.
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
+    }
+  }
+}
