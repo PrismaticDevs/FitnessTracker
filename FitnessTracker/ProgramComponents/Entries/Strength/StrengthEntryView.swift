@@ -100,7 +100,7 @@ struct StrengthEntryView: View {
                     .disabled(isCompleted)
                 }
                 .padding()
-                .background(Color.white.opacity(0.05))
+                .background(Color.fillSubtle)
                 .cornerRadius(20)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)

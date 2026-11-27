@@ -56,6 +56,7 @@ struct FitnessTrackerApp: App {
                             auth.requestBiometricUnlock()
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(ThemeManager.shared.currentTheme.accent)
                     }
                     .onAppear { auth.requestBiometricUnlock() }
                 } else {
@@ -63,6 +64,7 @@ struct FitnessTrackerApp: App {
                 }
             }
             .environmentObject(auth)
+            .onAppear { ThemeManager.shared.applyAppearance() }
             .onOpenURL { url in
                 GIDSignIn.sharedInstance.handle(url)
             }

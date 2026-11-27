@@ -37,10 +37,10 @@ struct ExerciseManagement: View {
         
         // Custom Segmented Control Appearance
         let appearance = UISegmentedControl.appearance()
-        appearance.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
-        appearance.setTitleTextAttributes([.foregroundColor: UIColor.white.withAlphaComponent(0.7)], for: .normal)
+        appearance.setTitleTextAttributes([.foregroundColor: UIColor.appTextPrimary], for: .selected)
+        appearance.setTitleTextAttributes([.foregroundColor: UIColor.appTextSecondary], for: .normal)
         appearance.selectedSegmentTintColor = UIColor(ThemeManager.shared.currentTheme.accent2)
-        appearance.backgroundColor = UIColor.white.withAlphaComponent(0.1)
+        appearance.backgroundColor = UIColor.appFillSubtle
     }
 
     var filteredResults: [ExerciseCategory] {
@@ -106,9 +106,9 @@ struct ExerciseManagement: View {
 extension ExerciseManagement {
     
     private var managementSection: some View {
-        Section(header: Text("Quick Actions").foregroundColor(.white.opacity(0.6))) {
+        Section(header: Text("Quick Actions").foregroundColor(.textSecondary)) {
             HStack {
-                TextField("", text: $newCategoryName, prompt: Text("New Category (e.g. Kettlebells)").foregroundColor(.white.opacity(0.6)))
+                TextField("", text: $newCategoryName, prompt: Text("New Category (e.g. Kettlebells)").foregroundColor(.textSecondary))
                     .focused($isFocused, equals: true)
                 
                 Button(action: createNewCategory) {
@@ -119,11 +119,11 @@ extension ExerciseManagement {
                 .disabled(newCategoryName.isEmpty)
             }
         }
-        .listRowBackground(theme.currentTheme.accent.opacity(0.8))
+        .listRowBackground(theme.currentTheme.accentSurface.opacity(0.8))
     }
 
     private var creationSection: some View {
-        Section(header: Text("Add New Exercise").foregroundColor(.white.opacity(0.6))) {
+        Section(header: Text("Add New Exercise").foregroundColor(.textSecondary)) {
             // Category Picker linked to ID
             Picker("Target Category", selection: $selectedCategoryID) {
                 Text("Select Category").tag(nil as PersistentIdentifier?)
@@ -134,7 +134,7 @@ extension ExerciseManagement {
             .pickerStyle(.menu)
             .tint(theme.currentTheme.accent)
 
-            TextField("", text: $searchText, prompt: Text("Exercise Name (e.g. Bench Press)").foregroundColor(.white.opacity(0.7)))
+            TextField("", text: $searchText, prompt: Text("Exercise Name (e.g. Bench Press)").foregroundColor(.textSecondary))
                 .focused($isFocused, equals: true)
 
             if !searchText.isEmpty && !exactMatchFound {
@@ -153,7 +153,7 @@ extension ExerciseManagement {
                             Spacer()
                             Image(systemName: "plus.circle.fill")
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                         .padding()
                         .background(selectedCategoryID == nil ? Color.gray.opacity(0.3) : theme.currentTheme.accent)
                         .cornerRadius(10)
@@ -163,11 +163,11 @@ extension ExerciseManagement {
                 .padding(.vertical, 8)
             }
         }
-        .listRowBackground(theme.currentTheme.accent)
+        .listRowBackground(theme.currentTheme.accentSurface)
     }
 
     private var librarySection: some View {
-        Section(header: Text("Exercise Library").foregroundColor(.white.opacity(0.6))) {
+        Section(header: Text("Exercise Library").foregroundColor(.textSecondary)) {
             ForEach(filteredResults) { category in
                 DisclosureGroup(
                     isExpanded: Binding(
@@ -184,8 +184,8 @@ extension ExerciseManagement {
                         ForEach(displayExercises) { exercise in
                             HStack {
                                 VStack(alignment: .leading) {
-                                    Text(exercise.name).foregroundColor(.white)
-                                    Text(exercise.type?.rawValue.capitalized ?? "Strength").font(.caption2).foregroundColor(.white.opacity(0.5))
+                                    Text(exercise.name).foregroundColor(.textPrimary)
+                                    Text(exercise.type?.rawValue.capitalized ?? "Strength").font(.caption2).foregroundColor(.textTertiary)
                                 }
                                 Spacer()
                                 Button {
@@ -202,7 +202,7 @@ extension ExerciseManagement {
                         }
                     },
                     label: {
-                        Text(category.name).fontWeight(.medium).foregroundColor(.white)
+                        Text(category.name).fontWeight(.medium).foregroundColor(.textPrimary)
                     }
                 )
             }

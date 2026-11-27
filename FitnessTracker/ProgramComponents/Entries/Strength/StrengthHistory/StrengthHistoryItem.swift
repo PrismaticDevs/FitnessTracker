@@ -24,10 +24,10 @@ struct StrengthHistoryItem: View {
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(Color.white.opacity(0.2))
+                    .background(Color.fillStrong)
                     .cornerRadius(5)
             }
-            .foregroundColor(.white)
+            .foregroundColor(.textPrimary)
 
             // Dynamic Sets Display
             ForEach(entry.sets.indices, id: \.self) { index in
@@ -45,18 +45,18 @@ struct StrengthHistoryItem: View {
                     if set.rest > 0 {
                         Text("(\(set.rest)s rest)")
                             .font(.caption2)
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(.textSecondary)
                     }
                 }
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.textSecondary)
             }
 
             if let note = entry.note, !note.isEmpty {
                 Text("Note: \(note)")
                     .font(.caption)
                     .italic()
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.textSecondary)
                     .padding(.top, 4)
             }
         }

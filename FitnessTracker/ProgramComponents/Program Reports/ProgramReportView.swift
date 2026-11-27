@@ -73,9 +73,9 @@ struct ProgramReportView: View {
                     VStack(spacing: 20) {
                         Picker("Report Range", selection: $reportRange) {
                             Text("Weekly").tag(ReportRange.weekly)
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                             Text("Monthly").tag(ReportRange.monthly)
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                         }
                         .pickerStyle(.segmented)
                         .padding()
@@ -92,7 +92,7 @@ struct ProgramReportView: View {
                         VStack(alignment: .leading) {
                             Text(reportRange == .weekly ? "Weekly Activity" : "Monthly Progress")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                                 .padding([.top, .leading])
                             
                             // Chart displaying sessions over time
@@ -113,7 +113,7 @@ struct ProgramReportView: View {
                                             x: .value("Day", session.date, unit: .day),
                                             y: .value("Value", getYValue(for: session))
                                         )
-                                        .foregroundStyle(theme.currentTheme.accent2)
+                                        .foregroundStyle(theme.currentTheme.chartBar)
                                         .cornerRadius(6)
                                     }
                                 }
@@ -121,35 +121,35 @@ struct ProgramReportView: View {
                                 .chartXAxisLabel(position: .bottom, alignment: .center) {
                                     Text(reportRange == .weekly ? "Past 7 Days" : "Past 30 Days")
                                         .font(.caption.bold())
-                                        .foregroundColor(.white.opacity(0.6))
+                                        .foregroundColor(.textSecondary)
                                 }
                                 .chartYAxisLabel(position: .top, alignment: .leading) {
                                     Text(selectedMetric == .strength ? "Sets" : (selectedMetric == .cardio ? "Miles" : "Minutes"))
                                         .font(.caption.bold())
-                                        .foregroundColor(.white.opacity(0.6))
+                                        .foregroundColor(.textSecondary)
                                 }
                                 .chartXAxis {
                                     if reportRange == .weekly {
                                         AxisMarks(values: .stride(by: .day)) { _ in
                                             AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(.textPrimary)
                                         }
                                     } else {
                                         // Only show a label every 7 days for monthly so it's readable
                                         AxisMarks(values: .stride(by: .day, count: 7)) { _ in
                                             AxisValueLabel(format: .dateTime.month().day(), centered: true)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(.textPrimary)
                                         }
                                     }
                                 }
                                 // Axis Values
                                 .chartYAxis {
                                     AxisMarks(position: .leading) { value in
-                                        AxisGridLine().foregroundStyle(.white.opacity(0.1))
+                                        AxisGridLine().foregroundStyle(.strokeSubtle)
                                         AxisValueLabel {
                                             if let val = value.as(Double.self) {
                                                 Text(formatYAxis(val))
-                                                    .foregroundStyle(.white.opacity(0.8))
+                                                    .foregroundStyle(.textSecondary)
                                             }
                                         }
                                     }
@@ -157,18 +157,18 @@ struct ProgramReportView: View {
                                 .chartXAxis {
                                     AxisMarks(values: .stride(by: .day)) { _ in
                                         AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                                            .foregroundStyle(.white)
+                                            .foregroundStyle(.textPrimary)
                                     }
                                 }
                                 .chartXScale(domain: Calendar.current.date(byAdding: .day, value: -6, to: .now)!...Date.now)
                                 .frame(height: 180)
                                 .padding([.horizontal, .bottom])
                             }
-                            .background(theme.currentTheme.accent)
+                            .background(theme.currentTheme.accentSurface)
                             .cornerRadius(15)
                             .padding(.horizontal)
                         }
-                        .background(theme.currentTheme.accent)
+                        .background(theme.currentTheme.accentSurface)
                         .cornerRadius(15)
                         .padding(.horizontal)
                         
@@ -204,16 +204,16 @@ struct ProgramReportView: View {
                     NavigationLink(destination: SessionDataView(programTitle: program.title)) {
                         Text("VEW SESSION DATA")
                             .font(.caption2.bold())
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(.textTertiary)
                         Image(systemName: "list.clipboard")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.textPrimary)
                     }
                     
                     Spacer()
                 }
                 .frame(height: 50)
-                .background(theme.currentTheme.accent)
+                .background(theme.currentTheme.accentSurface)
                 .cornerRadius(30)
                 .padding(.horizontal)
                 .padding(.bottom, 20)
@@ -256,12 +256,12 @@ struct ProgramReportView: View {
         VStack {
             DisclosureGroup {
                 VStack(spacing: 10) {
-                    Divider().background(Color.white.opacity(0.3)) // Subtle separator
+                    Divider().background(Color.strokeSubtle) // Subtle separator
                     
                     if content.isEmpty {
                         Text("No data recorded")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 5)
                     } else {
@@ -274,10 +274,10 @@ struct ProgramReportView: View {
             } label: {
                 MetricRow(label: label, value: value, icon: icon)
             }
-            .accentColor(.white) // The arrow color
+            .accentColor(.textPrimary) // The arrow color
         }
         .padding() // Padding inside the colored box
-        .background(theme.currentTheme.accent) // The unified background
+        .background(theme.currentTheme.accentSurface) // The unified background
         .cornerRadius(12)
     }
     

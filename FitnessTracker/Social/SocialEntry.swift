@@ -21,7 +21,7 @@ struct SocialEntry: View {
                     .foregroundColor(theme.currentTheme.accent)
             }
             .padding()
-            .foregroundColor(.white.opacity(0.1))
+            .foregroundColor(.textTertiary)
             .cornerRadius(8)
         }
         .onAppear {

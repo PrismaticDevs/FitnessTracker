@@ -23,13 +23,13 @@ struct SetRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline).padding(-4)
-            TextField(text: $text, prompt: Text(title).foregroundColor(.white.opacity(0.5))) {
+            TextField(text: $text, prompt: Text(title).foregroundColor(.textTertiary)) {
                 Text(title) // This is the label for accessibility
             }
                 .keyboardType(.numberPad)
                 .padding(8)
                 .submitLabel(.done)
-                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(8))
+                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(8))
                 .onChange(of: text) { oldValue, newValue in
                     defaults.set(newValue, forKey: actualKey)
                     if !newValue.isEmpty {

@@ -15,11 +15,11 @@ struct ExerciseSummaryRow: View {
         HStack {
             Text(name)
                 .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
             Spacer()
             Text(detail)
                 .font(.caption.bold())
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.textSecondary)
         }
         .padding(.vertical, 4)
     }

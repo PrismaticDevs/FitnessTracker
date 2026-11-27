@@ -30,7 +30,7 @@ struct AddWorkoutProgramView: View {
                     ScrollView {
                         Text("Add New Workout program")
                             .font(.title)
-                            .foregroundColor(.white)
+                            .foregroundColor(.textPrimary)
                             .padding()
                         Section {
                             Button(action: { showingPrebuiltSheet = true }) {
@@ -44,22 +44,22 @@ struct AddWorkoutProgramView: View {
                                         .font(.caption.bold())
                                 }
                                 .padding()
-                                .background(Color.white.opacity(0.15))
-                                .foregroundColor(.white)
+                                .background(Color.fillStrong)
+                                .foregroundColor(.textPrimary)
                                 .cornerRadius(12)
                             }
                         }
                         .padding(.horizontal)
                         
                         Divider()
-                            .background(Color.white.opacity(0.3))
+                            .background(Color.fillStrong)
                             .padding()
-                        Section(header: Text("Title").font(.headline).foregroundColor(.white)) {
-                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(.white.opacity(0.5)))
+                        Section(header: Text("Title").font(.headline).foregroundColor(.textPrimary)) {
+                            TextField("Program Title", text: $programTitle, prompt: Text("Program Title").foregroundColor(.textTertiary))
                                 .focused($isFocused)
                                 .padding()
-                                .background(theme.currentTheme.accent)
-                                .foregroundColor(.white)
+                                .background(theme.currentTheme.accentSurface)
+                                .foregroundColor(.textPrimary)
                                 .cornerRadius(8)
                                 .overlay(
                                     Button(action: {
@@ -68,33 +68,33 @@ struct AddWorkoutProgramView: View {
                                         Image(systemName: "xmark.circle.fill")
                                             .opacity(programTitle.isEmpty ? 0 : 1).padding()
                                     }
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                         .padding(),
                                     alignment: .trailing
                                 )
                         }
                         .padding(.horizontal)
                             ForEach(newSessions.indices, id: \.self) { index in
-                                Section(header: Text("Session").font(.headline).foregroundColor(.white)) {
+                                Section(header: Text("Session").font(.headline).foregroundColor(.textPrimary)) {
                                     if newSessions.isEmpty {
                                         ContentUnavailableView(label: {
                                             Label("No sessions yet", systemImage: "list.bullet.rectangle.portrait")
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.textPrimary)
                                         }, description: {
                                             Text("Start adding sessions")
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.textPrimary)
                                         },actions: {
                                         })
                                     }
                                 HStack {
-                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(.white.opacity(0.5)))
+                                    TextField("Session Name", text: $newSessions[index].name, prompt: Text("Session Name").foregroundColor(.textTertiary))
                                         .focused($isFocused)
                                         .onChange(of: newSessions[index].name) { newValue, oldValue in
                                             newSessions[index].name = newValue
                                         }
                                         .padding()
-                                        .background(theme.currentTheme.accent)
-                                        .foregroundColor(.white)
+                                        .background(theme.currentTheme.accentSurface)
+                                        .foregroundColor(.textPrimary)
                                         .cornerRadius(8)
                                     Button(action: {
                                         deleteSession(at: index)
@@ -105,13 +105,13 @@ struct AddWorkoutProgramView: View {
                                    }
                                 }
                                 if !newSessions[index].exercises.isEmpty {
-                                    Section(header: Text("Exercises").font(.headline).foregroundColor(.white)) {
+                                    Section(header: Text("Exercises").font(.headline).foregroundColor(.textPrimary)) {
                                         ForEach(newSessions[index].exercises) { exercise in
                                             HStack {
                                                 Text(exercise.name)
                                                     .padding()
-                                                    .background(theme.currentTheme.accent)
-                                                    .foregroundColor(.white)
+                                                    .background(theme.currentTheme.accentSurface)
+                                                    .foregroundColor(.textPrimary)
                                                     .cornerRadius(8)
                                                 
                                                 Button(action: {
@@ -145,9 +145,9 @@ struct AddWorkoutProgramView: View {
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.textPrimary)
                                 Text("Add Session")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.textPrimary)
                             }
                             .padding()
                         }
@@ -202,14 +202,14 @@ struct AddWorkoutProgramView: View {
             Spacer()
             Button(action: saveWorkoutProgram) {
                 HStack {
-                    Text("Ceate")
+                    Text("Create")
                     Image(systemName: "plus.circle.fill")
                 }
                 .font(.subheadline.bold())
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(canCreateProgram ? theme.currentTheme.accent : Color.gray.opacity(0.3))
-                .foregroundColor(canCreateProgram ? .white : .white.opacity(0.5))
+                .foregroundColor(canCreateProgram ? Color.onAccent : Color.textTertiary)
                 .cornerRadius(20)
             }
             .disabled(!canCreateProgram)

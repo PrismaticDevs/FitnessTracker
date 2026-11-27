@@ -29,7 +29,7 @@ struct UpdateEmailView: View {
                         TextField("Email", text: $newEmail)
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
-                            .foregroundColor(.white)
+                            .foregroundColor(.textPrimary)
                         
                         Text("Firebase will send a link to this address. Your account email won't change until you verify the new one.")
                             .font(.caption)

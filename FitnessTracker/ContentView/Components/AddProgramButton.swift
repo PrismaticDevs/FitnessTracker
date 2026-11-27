@@ -15,7 +15,7 @@ struct AddProgramButton: View {
     var body: some View {
         HStack(spacing: compact ? 0 : 6) {
             Image(systemName: "plus.circle.fill")
-                .foregroundColor(Color.white)
+                .foregroundColor(compact ? Color.onAccent : Color.textPrimary)
             if !compact {
                 Text("Add Program")
                     .font(.headline)

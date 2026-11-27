@@ -28,7 +28,7 @@ struct WorkoutPostCard: View {
         .cornerRadius(18)
         .overlay(
             RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                .stroke(Color.strokeSubtle, lineWidth: 1)
         )
     }
 
@@ -39,7 +39,7 @@ struct WorkoutPostCard: View {
                 Text(post.authorDisplayName).font(.subheadline.bold())
                 Text("@\(post.authorUsername) · \(timestamp)")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(.textSecondary)
             }
             Spacer()
             if isMine, let onDelete {
@@ -79,7 +79,7 @@ struct WorkoutSummaryView: View {
                 Text(workout.sessionName).font(.headline)
                 Text("\(workout.programTitle) · \(workout.date.formatted(.dateTime.month().day()))")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(.textSecondary)
             }
 
             HStack(spacing: 8) {
@@ -119,7 +119,7 @@ struct WorkoutSummaryView: View {
             .font(.caption.bold())
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Color.white.opacity(0.12))
+            .background(Color.fillSubtle)
             .clipShape(Capsule())
     }
 
@@ -129,7 +129,7 @@ struct WorkoutSummaryView: View {
             Spacer()
             Text(detail)
                 .font(.caption.bold())
-                .foregroundColor(.white.opacity(0.75))
+                .foregroundColor(.textSecondary)
         }
     }
 
@@ -160,6 +160,6 @@ struct AvatarView: View {
                 LinearGradient(colors: theme.currentTheme.gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
             )
             .clipShape(Circle())
-            .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 1))
+            .overlay(Circle().stroke(Color.strokeSubtle, lineWidth: 1))
     }
 }

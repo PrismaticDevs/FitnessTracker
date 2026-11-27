@@ -17,11 +17,31 @@ struct SocialPortal: View {
     @State private var postToDelete: WorkoutPost?
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottom) {
             content
                 .padding(.top, 100)
                 .offset(x: dragOffset)
                 .animation(.interactiveSpring(), value: dragOffset)
+
+            if social.myProfile != nil {
+                FloatingActionBar {
+                    Spacer()
+                    Button { showProfileEditor = true } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                    Spacer()
+                    Button { Task { await social.refreshFeed() } } label: {
+                        if social.isLoadingFeed {
+                            ProgressView().tint(.onAccent)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(social.isLoadingFeed)
+                    Spacer()
+                }
+                .padding(.bottom, 10)
+            }
 
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -48,7 +68,7 @@ struct SocialPortal: View {
                 }
         }
         .applyAppBranding()
-        .brandedBackButton(title: "", theme: theme.currentTheme, dismiss: dismiss)
+        .brandedBackButton(title: "FiT Social", theme: theme.currentTheme, dismiss: dismiss)
         .task(id: auth.user?.uid) {
             guard let uid = auth.user?.uid else {
                 social.reset()
@@ -66,12 +86,8 @@ struct SocialPortal: View {
             if old == nil, new != nil { Task { await social.refreshFeed() } }
         }
         .sheet(isPresented: $showProfileEditor) {
-            NavigationStack {
-                SocialProfileEditor()
-                    .navigationTitle("Edit Profile")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .applyAppBranding()
-            }
+            SocialProfileEditor()
+                .presentationDragIndicator(.visible)
         }
         .confirmationDialog(
             "Delete this post?",
@@ -112,7 +128,6 @@ struct SocialPortal: View {
     private var feedView: some View {
         ScrollView {
             VStack(spacing: 16) {
-                titleBar
                 if let profile = social.myProfile { profileHeader(profile) }
 
                 if let error = social.errorMessage {
@@ -139,19 +154,9 @@ struct SocialPortal: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, 40)
+            .padding(.bottom, 100) // room for the floating bar
         }
         .refreshable { await social.refreshFeed() }
-    }
-
-    private var titleBar: some View {
-        HStack {
-            Image(systemName: "bubble.left.and.bubble.right")
-            Text("FiT Social").font(.title2.bold())
-            Spacer()
-            if social.isLoadingFeed { ProgressView() }
-        }
-        .foregroundColor(.white)
     }
 
     private func profileHeader(_ profile: PublicProfile) -> some View {
@@ -161,11 +166,11 @@ struct SocialPortal: View {
                 Text(profile.displayName).font(.headline)
                 Text("@\(profile.username)")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.textSecondary)
                 if !profile.homeGym.isEmpty {
                     Label(profile.homeGym, systemImage: "mappin.and.ellipse")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundColor(.textSecondary)
                 }
                 if !profile.bio.isEmpty {
                     Text(profile.bio).font(.subheadline).padding(.top, 2)
@@ -191,7 +196,7 @@ struct SocialPortal: View {
     private func countLabel(_ value: Int, _ label: String) -> some View {
         HStack(spacing: 3) {
             Text("\(value)").font(.caption.bold())
-            Text(label).font(.caption).foregroundColor(.white.opacity(0.7))
+            Text(label).font(.caption).foregroundColor(.textSecondary)
         }
     }
 
@@ -201,7 +206,7 @@ struct SocialPortal: View {
             Text(title).font(.headline)
             Text(detail)
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.75))
+                .foregroundColor(.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(30)

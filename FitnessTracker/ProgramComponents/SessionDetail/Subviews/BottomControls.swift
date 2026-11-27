@@ -24,20 +24,21 @@ struct BottomControls: View {
         FloatingActionBar {
             Spacer()
             Button(action: onRename) {
-                Image(systemName: "pencil").foregroundColor(.white)
+                Image(systemName: "pencil").foregroundColor(.onAccent)
             }
             Spacer()
             ExerciseToolbar(
                 title: "",
                 exerciseName: .constant(""),
                 exercisesSelected: session.exercises.map { $0.name },
+                labelColor: .onAccent,
                 onExerciseSelected: onAdd
             )
             Spacer()
             Button(action: onSave) {
                 Image(systemName: isUploading ? "arrow.clockwise" : (hasSavedLocally ? "icloud.arrow.up" : "square.and.arrow.down"))
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(completedCount == 0 ? .white.opacity(0.3) : .white)
+                    .foregroundColor(completedCount == 0 ? Color.onAccent.opacity(0.3) : Color.onAccent)
             }
             .disabled(completedCount == 0)
             .opacity((hasSavedLocally && !isOnline) ? 0.5 : 1.0)

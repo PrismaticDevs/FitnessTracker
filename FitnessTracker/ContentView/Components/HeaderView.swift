@@ -16,6 +16,9 @@ struct HeaderView: View {
                 .font(.system(size: 18))
             Image("white-outline")
                 .resizable()
+                    // Tint the line-art logo so it's white in dark mode and dark in light mode.
+                    .renderingMode(.template)
+                    .foregroundColor(.textPrimary)
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 100, height: 100)
                     .clipped()

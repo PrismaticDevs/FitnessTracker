@@ -100,10 +100,10 @@ struct PrebuiltProgramsView: View {
                         ForEach(program.sessions, id: \.id) { session in
                             NavigationLink(destination: PrebuiltSessionDetailView(session: session)) {
                                 Text(session.name)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.textPrimary)
                             }
                         }
-                        .listRowBackground(theme.currentTheme.accent)
+                        .listRowBackground(theme.currentTheme.accentSurface)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -158,13 +158,13 @@ struct CustomSectionHeader: View {
         HStack {
             Text(title)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
             Spacer()
             // Using Image + TapGesture is often more reliable in nested List rows
             Image(systemName: "plus.circle.fill")
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
                 .onTapGesture {
                     addAction()
                 }
@@ -180,7 +180,7 @@ struct ProgramHeaderView: View {
     var body: some View {
         Text(title)
             .font(.headline)
-            .foregroundColor(.white)
+            .foregroundColor(.textPrimary)
             .padding()
             .background(Color.clear) // Ensure the background is clear
     }

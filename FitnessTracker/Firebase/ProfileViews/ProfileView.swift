@@ -78,9 +78,9 @@ struct ProfileView: View {
                             Button(action: { showEmailChange = true }) {
                                 HStack(spacing: 15) {
                                     Image(systemName: "envelope.fill")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                         .frame(width: 32, height: 32)
-                                        .background(theme.currentTheme.accent.opacity(0.6))
+                                        .background(theme.currentTheme.accentSurface.opacity(0.6))
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                     
                                     VStack(alignment: .leading, spacing: 2) {
@@ -89,14 +89,14 @@ struct ProfileView: View {
                                             .foregroundColor(.gray)
                                         Text(auth.user?.email ?? "Not Set")
                                             .font(.body)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.textPrimary)
                                     }
                                     
                                     Spacer()
                                     
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white.opacity(0.3))
+                                        .foregroundColor(.textTertiary)
                                 }
                                 .padding(.vertical, 4)
                             }
@@ -109,7 +109,7 @@ struct ProfileView: View {
                                 Button(action: { showPasswordChange = true }) {
                                     HStack(spacing: 15) {
                                         Image(systemName: "lock.fill")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.textPrimary)
                                             .frame(width: 32, height: 32)
                                             .background(Color.blue.opacity(0.6))
                                             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -120,14 +120,14 @@ struct ProfileView: View {
                                                 .foregroundColor(.gray)
                                             Text("••••••••••••")
                                                 .font(.body)
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.textPrimary)
                                         }
                                         
                                         Spacer()
                                         
                                         Image(systemName: "chevron.right")
                                             .font(.system(size: 14, weight: .semibold))
-                                            .foregroundColor(.white.opacity(0.3))
+                                            .foregroundColor(.textTertiary)
                                     }
                                     .padding(.vertical, 4)
                                 }
@@ -135,7 +135,7 @@ struct ProfileView: View {
                                 // Shown for Google/Social users
                                 HStack(spacing: 15) {
                                     Image(systemName: "person.badge.shield.checkmark.fill")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                         .frame(width: 32, height: 32)
                                         .background(Color.gray.opacity(0.4))
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -170,7 +170,7 @@ struct ProfileView: View {
                                             }
                                             .frame(width: 60)
                                             .padding(6)
-                                            .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                            .background(Color.fillSubtle, in: RoundedRectangle(cornerRadius: 6))
                                             
                                             HStack(spacing: 2) {
                                                 TextField("11", text: $inches)
@@ -180,27 +180,27 @@ struct ProfileView: View {
                                             }
                                             .frame(width: 60)
                                             .padding(6)
-                                            .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                            .background(Color.fillSubtle, in: RoundedRectangle(cornerRadius: 6))
                                         }
                                     } else {
                                         HStack(spacing: 4) {
                                             TextField("170", text: $height)
                                                 .keyboardType(.numberPad)
                                                 .multilineTextAlignment(.trailing)
-                                            Text("cm").foregroundColor(.white.opacity(0.5))
+                                            Text("cm").foregroundColor(.textTertiary)
                                         }
                                         .frame(maxWidth: 120)
                                         .padding(6)
-                                        .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                                        .background(Color.fillSubtle, in: RoundedRectangle(cornerRadius: 6))
                                     }
                                 } else {
                                     // View Mode: Display based on current local state
                                     if unitSystem == "Imperial" {
                                         Text("\(feet) ft \(inches) in")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.textPrimary)
                                     } else {
                                         Text("\(height) cm")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.textPrimary)
                                     }
                                 }
                                 Spacer()
@@ -300,20 +300,20 @@ struct ProfileView: View {
                     TextField(placeholder, text: value)
                         .keyboardType(keyboard)
                         .multilineTextAlignment(.trailing) // Keeps numbers next to the unit
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                     
                     if !suffix.isEmpty {
                         Text(suffix)
-                            .foregroundColor(.white.opacity(0.5)) // Faded unit label
+                            .foregroundColor(.textTertiary) // Faded unit label
                     }
                 }
                 .frame(maxWidth: 120) // Prevents the field from pushing the label off-screen
                 .padding(6)
-                .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                .background(Color.fillSubtle, in: RoundedRectangle(cornerRadius: 6))
             } else {
                 // View Mode
                 Text(value.wrappedValue == "0" || value.wrappedValue.isEmpty ? "Not Set" : "\(value.wrappedValue) \(suffix)")
-                    .foregroundColor(.white)
+                    .foregroundColor(.textPrimary)
                     .fontWeight(.medium)
             }
             

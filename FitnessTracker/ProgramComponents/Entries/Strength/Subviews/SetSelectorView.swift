@@ -21,9 +21,9 @@ struct SetSelectorView: View {
                     }) {
                         Text("Set \(idx + 1)")
                             .padding(8)
-                            .background(selectedSetIndex == idx ? theme.currentTheme.accent.opacity(0.8) : .white.opacity(0.2))
+                            .background(selectedSetIndex == idx ? theme.currentTheme.accent.opacity(0.8) : .fillStrong)
                             .cornerRadius(10)
-                            .foregroundColor(.white)
+                            .foregroundColor(selectedSetIndex == idx ? Color.onAccent : Color.textPrimary)
                             .cornerRadius(8)
                     }
                 }

@@ -10,7 +10,7 @@ struct AppBranding: ViewModifier {
             .onAppear {
                 theme.currentTheme.applyGlobalTint()
             }
-            .navigationBarTitleTextColor(.white)
+            .navigationBarTitleTextColor(.appTextPrimary)
     }
 }
 
@@ -50,46 +50,98 @@ enum AppTheme: String, CaseIterable, Identifiable {
     case coffee = "Rugged Brown"    // New
     
     var id: String { self.rawValue }
-    
-    var accent: Color {
+
+    // MARK: Base colors (UIKit, so they can be mixed and made light/dark adaptive)
+
+    private var accentUI: UIColor {
         switch self {
-        case .magenta: return Color(red: 0.78, green: 0.08, blue: 0.52)
-        case .blue:    return Color(red: 0.1, green: 0.3, blue: 0.6)
-        case .forest:  return Color(red: 0.1, green: 0.4, blue: 0.2)
-        case .crimson: return Color(red: 0.7, green: 0.0, blue: 0.0)
-        case .slate:   return Color(red: 0.2, green: 0.25, blue: 0.3)
-        case .coffee:  return Color(red: 0.35, green: 0.25, blue: 0.2)
+        case .magenta: return UIColor(red: 0.78, green: 0.08, blue: 0.52, alpha: 1)
+        case .blue:    return UIColor(red: 0.1, green: 0.3, blue: 0.6, alpha: 1)
+        case .forest:  return UIColor(red: 0.1, green: 0.4, blue: 0.2, alpha: 1)
+        case .crimson: return UIColor(red: 0.7, green: 0.0, blue: 0.0, alpha: 1)
+        case .slate:   return UIColor(red: 0.2, green: 0.25, blue: 0.3, alpha: 1)
+        case .coffee:  return UIColor(red: 0.35, green: 0.25, blue: 0.2, alpha: 1)
         }
     }
-    
+
+    private var darkAccent2UI: UIColor {
+        switch self {
+        case .magenta: return UIColor(red: 0.45, green: 0.01, blue: 0.35, alpha: 1)
+        case .blue:    return UIColor(red: 0.05, green: 0.15, blue: 0.4, alpha: 1)
+        case .forest:  return UIColor(red: 0.05, green: 0.2, blue: 0.1, alpha: 1)
+        case .crimson: return UIColor(red: 0.4, green: 0.0, blue: 0.0, alpha: 1)
+        case .slate:   return UIColor(red: 0.1, green: 0.12, blue: 0.15, alpha: 1)
+        case .coffee:  return UIColor(red: 0.2, green: 0.15, blue: 0.1, alpha: 1)
+        }
+    }
+
+    /// Lighter end of the dark-mode background gradient (unchanged from the original look).
+    private var darkGradientTopUI: UIColor {
+        switch self {
+        case .magenta: return UIColor(red: 1.0, green: 0.71, blue: 0.76, alpha: 1)
+        case .blue:    return UIColor.cyan.withAlphaComponent(0.5)
+        case .forest:  return UIColor.green.withAlphaComponent(0.4)
+        case .crimson: return UIColor.orange.withAlphaComponent(0.4)
+        case .slate:   return UIColor.gray.withAlphaComponent(0.5)
+        case .coffee:  return UIColor(red: 0.6, green: 0.5, blue: 0.4, alpha: 0.5)
+        }
+    }
+
+    // MARK: Public theme colors
+
+    /// Brand color for buttons, bars and highlights. Same in light and dark; put `.onAccent` content on it.
+    var accent: Color { Color(uiColor: accentUI) }
+
+    /// Card / row / sheet background. Deep tone in dark mode, pale tint of the accent in light mode.
     var accent2: Color {
-        switch self {
-        case .magenta: return Color(red: 0.45, green: 0.01, blue: 0.35)
-        case .blue:    return Color(red: 0.05, green: 0.15, blue: 0.4)
-        case .forest:  return Color(red: 0.05, green: 0.2, blue: 0.1)
-        case .crimson: return Color(red: 0.4, green: 0.0, blue: 0.0)
-        case .slate:   return Color(red: 0.1, green: 0.12, blue: 0.15)
-        case .coffee:  return Color(red: 0.2, green: 0.15, blue: 0.1)
-        }
+        Color(uiColor: UIColor(light: accentUI.mixed(with: .white, amount: 0.84), dark: darkAccent2UI))
     }
-    
+
+    /// Accent-colored text that stays readable on the background in both modes.
+    var accentText: Color {
+        Color(uiColor: UIColor(light: accentUI.mixed(with: .black, amount: 0.1), dark: accentUI.mixed(with: .white, amount: 0.35)))
+    }
+
+    /// Accent-tinted surface that holds regular text (inputs, list rows, report cards).
+    /// Identical to `accent` in dark mode; a lighter tint in light mode so `.textPrimary` stays readable.
+    /// For buttons and bars whose content is `.onAccent`, use `accent` instead.
+    var accentSurface: Color {
+        Color(uiColor: UIColor(light: accentUI.mixed(with: .white, amount: 0.72), dark: accentUI))
+    }
+
+    /// Chart bars: the original deep tone in dark mode, the full accent in light mode.
+    var chartBar: Color {
+        Color(uiColor: UIColor(light: accentUI, dark: darkAccent2UI))
+    }
+
+    /// Screen background gradient, ordered bottom → top.
     var gradientColors: [Color] {
-        switch self {
-        case .magenta: return [Color(red: 1.0, green: 0.71, blue: 0.76), accent]
-        case .blue:    return [Color.cyan.opacity(0.5), accent]
-        case .forest:  return [Color.green.opacity(0.4), accent]
-        case .crimson: return [Color.orange.opacity(0.4), accent]
-        case .slate:   return [Color.gray.opacity(0.5), accent]
-        case .coffee:  return [Color(red: 0.6, green: 0.5, blue: 0.4).opacity(0.5), accent]
-        }
+        [
+            Color(uiColor: UIColor(light: accentUI.mixed(with: .white, amount: 0.93), dark: darkGradientTopUI)),
+            Color(uiColor: UIColor(light: accentUI.mixed(with: .white, amount: 0.7), dark: accentUI))
+        ]
     }
 }
 
 // Global Theme Manager
 class ThemeManager: ObservableObject {
     @AppStorage("selectedTheme") var currentTheme: AppTheme = .magenta
-    
+    @AppStorage("appearance") var appearance: AppAppearance = .system {
+        didSet { applyAppearance() }
+    }
+
     static let shared = ThemeManager()
+
+    /// Forces light/dark (or follows the system) on every window, including sheets.
+    func applyAppearance() {
+        let style = appearance.interfaceStyle
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+    }
 }
 
 struct GradientBackground: ViewModifier {
@@ -105,7 +157,7 @@ struct GradientBackground: ViewModifier {
             .ignoresSafeArea()
             
             content
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
         }
     }
 }
@@ -118,10 +170,14 @@ extension View {
 
 extension View {
     func navigationBarTitleTextColor(_ color: Color) -> some View {
+        navigationBarTitleTextColor(UIColor(color))
+    }
+
+    /// Pass a dynamic UIColor (e.g. `.appTextPrimary`) so the title adapts to light/dark.
+    func navigationBarTitleTextColor(_ uiColor: UIColor) -> some View {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground() // Keeps your gradient visible
-        
-        let uiColor = UIColor(color)
+
         appearance.titleTextAttributes = [.foregroundColor: uiColor]
         appearance.largeTitleTextAttributes = [.foregroundColor: uiColor]
         
@@ -147,7 +203,7 @@ extension View {
                     // 2. Centered & Wrapping Title
                     Text(title)
                         .font(.subheadline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2) // Allows wrapping to 2 lines if needed
                         .minimumScaleFactor(0.8) // Shrinks slightly before wrapping
@@ -172,12 +228,12 @@ extension View {
         Button(action: { dismiss() }) {
             Image(systemName: "chevron.left")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(.onAccent)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 14)
                 .background(theme.accent)
                 .clipShape(Capsule())
-                .shadow(color: .black.opacity(0.3), radius: 5, y: 3)
+                .shadow(color: .shadowColor, radius: 5, y: 3)
         }
     }
 }

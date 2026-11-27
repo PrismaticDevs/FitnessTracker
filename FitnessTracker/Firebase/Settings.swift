@@ -24,18 +24,18 @@ struct SettingsView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(auth.profile?.display_name ?? auth.user?.displayName ?? "Fitness User")
                                     .font(.headline)
-                                    .foregroundColor(.white)
-                                
+                                    .foregroundColor(.textPrimary)
+
                                 Text(auth.user?.email ?? "No Email Found")
                                     .font(.subheadline)
-                                    .foregroundColor(Color.white.opacity(0.6))
+                                    .foregroundColor(.textSecondary)
                             }
                             Spacer()
                             NavigationLink(destination: ProfileView()) {
                                 HStack {
                                     Text("View")
                                         .font(.subheadline)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                 }
                             }
                             .fixedSize()
@@ -57,11 +57,28 @@ struct SettingsView: View {
                                     .lineLimit(1)
                                     .fixedSize(horizontal: true, vertical: false)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         }
                         .pickerStyle(.menu)
-                        .tint(.white)
+                        .tint(.textPrimary)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: theme.appearance.icon)
+                                    .imageScale(.small)
+                                Text("Appearance")
+                            }
+                            .foregroundColor(.textPrimary)
+
+                            Picker("Appearance", selection: $theme.appearance) {
+                                ForEach(AppAppearance.allCases) { option in
+                                    Text(option.rawValue).tag(option)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        .padding(.vertical, 4)
                     }
                     .listRowBackground(theme.currentTheme.accent2)
                     
@@ -95,11 +112,10 @@ struct SettingsView: View {
                 }
                 .padding(.top, 120)
                 .brandedBackButton(title: "Settings", theme: theme.currentTheme, dismiss: dismiss)
-                .navigationBarTitleTextColor(.white)
+                .navigationBarTitleTextColor(.appTextPrimary)
                 .scrollContentBackground(.hidden)
                 .applyGradientBackground()
-                .tint(theme.currentTheme.accent2)
-                .toolbarColorScheme(.dark, for: .navigationBar)
+                .tint(theme.currentTheme.accentText)
                 .sheet(isPresented: $showProfile) {
                     ProfileView()
                 }

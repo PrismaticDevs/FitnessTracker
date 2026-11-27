@@ -14,9 +14,9 @@ struct NotificationBadge: View {
             .frame(width: 10, height: 10)
             .overlay(
                 Circle()
-                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                    .stroke(Color.strokeSubtle, lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+            .shadow(color: .shadowColor, radius: 1, x: 0, y: 1)
     }
 }
 

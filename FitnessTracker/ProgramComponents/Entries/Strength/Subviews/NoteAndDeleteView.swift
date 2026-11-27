@@ -24,7 +24,7 @@ struct NoteAndDeleteView: View {
                     ZStack(alignment: .topLeading) {
                         if note.isEmpty {
                             Text("Note")
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(.textTertiary)
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
                         }
@@ -38,7 +38,7 @@ struct NoteAndDeleteView: View {
                     if !note.isEmpty {
                         Button(action: { note = "" }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                                 .padding(8)
                                 .contentShape(Rectangle())
                         }
@@ -46,7 +46,7 @@ struct NoteAndDeleteView: View {
                         .padding(.vertical, 2)
                     }
                 }
-                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                 .onAppear {
                     note = defaults.string(forKey: keyScope.scoped("note\(exercise)")) ?? ""
                 }

@@ -48,7 +48,7 @@ struct ExerciseListSection: View {
                         VStack(spacing: 8) {
                             Text("\(tab.rawValue) (\(tab == .unfinished ? unfinishedExercises.count : completedExercises.count))")
                                 .font(.subheadline.bold())
-                                .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.5))
+                                .foregroundColor(selectedTab == tab ? .textPrimary : .textTertiary)
                             
                             // Animated Selection Indicator
                             Rectangle()
@@ -60,7 +60,7 @@ struct ExerciseListSection: View {
                 }
             }
             .padding(.top, 10)
-            .background(Color.black.opacity(0.2))
+            .background(Color.fillSubtle)
 
             // --- THE LIST ---
             ScrollViewReader { proxy in
@@ -87,7 +87,7 @@ struct ExerciseListSection: View {
                                 }) {
                                     Text("Save to Workout History")
                                         .font(.headline)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                         .padding()
                                         .frame(maxWidth: .infinity)
                                         .background(ThemeManager.shared.currentTheme.accent)

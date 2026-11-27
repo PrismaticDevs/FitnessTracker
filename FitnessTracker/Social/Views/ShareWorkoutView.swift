@@ -23,7 +23,11 @@ struct ShareWorkoutView: View {
     private var snapshot: WorkoutSnapshot { WorkoutSnapshot(session: session) }
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 20) {
+            Text("Share Workout")
+                .font(.title3.bold())
+                .padding(.top)
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if auth.user == nil {
@@ -32,13 +36,17 @@ struct ShareWorkoutView: View {
                         notice("Create your FiT Social profile before posting.")
                         Button("Set Up Profile") { showProfileSetup = true }
                             .buttonStyle(.borderedProminent)
+                            .tint(theme.currentTheme.accent)
                     }
 
-                    TextField("Say something about this workout…", text: $caption, axis: .vertical)
+                    TextField("Say something about this workout…", text: $caption,
+                              prompt: Text("Say something about this workout…").foregroundColor(.textTertiary),
+                              axis: .vertical)
                         .lineLimit(3...6)
-                        .padding(12)
-                        .background(theme.currentTheme.accent2.opacity(0.8))
+                        .padding()
+                        .background(theme.currentTheme.accentSurface.opacity(0.8))
                         .cornerRadius(12)
+                        .foregroundColor(.textPrimary)
 
                     if snapshot.isEmpty {
                         notice(SocialError.emptyWorkout.localizedDescription)
@@ -52,33 +60,21 @@ struct ShareWorkoutView: View {
                             .foregroundColor(.orange)
                     }
                 }
-                .padding()
             }
-            .navigationTitle("Share Workout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    if isPosting {
-                        ProgressView()
-                    } else {
-                        Button("Post") { Task { await post() } }
-                            .bold()
-                            .disabled(!canPost)
-                    }
-                }
-            }
-            .applyAppBranding()
-            .sheet(isPresented: $showProfileSetup) {
-                NavigationStack {
-                    SocialProfileEditor()
-                        .navigationTitle("FiT Social Profile")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .applyAppBranding()
-                }
-            }
+
+            SheetActionButtons(
+                primaryTitle: "Post",
+                isPrimaryEnabled: canPost,
+                isWorking: isPosting,
+                onCancel: { dismiss() },
+                onPrimary: { Task { await post() } }
+            )
+        }
+        .padding(25)
+        .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showProfileSetup) {
+            SocialProfileEditor()
+                .presentationDragIndicator(.visible)
         }
         .task {
             if let uid = auth.user?.uid, !social.hasLoadedProfile {
@@ -96,7 +92,7 @@ struct ShareWorkoutView: View {
             .font(.callout)
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.1))
+            .background(Color.fillSubtle)
             .cornerRadius(10)
     }
 

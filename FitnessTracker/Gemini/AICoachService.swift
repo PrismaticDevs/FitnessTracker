@@ -266,9 +266,9 @@ struct FloatingChatView: View {
                     .fill(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 60, height: 60)
                 Image(systemName: isExpanded ? "chevron.down" : "sparkles")
-                    .font(.title2).foregroundColor(.white)
+                    .font(.title2).foregroundColor(.onAccent)
             }
-            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 4)
+            .shadow(color: .shadowColor, radius: 5, x: 0, y: 4)
         }
         .gesture(
             DragGesture()
@@ -327,7 +327,7 @@ struct FloatingChatView: View {
         .if(!isFullScreen) { view in
             view.frame(width: 280, height: 450) // Increased height for picker
                 .cornerRadius(20)
-                .shadow(color: .black.opacity(0.2), radius: 15)
+                .shadow(color: .shadowColor, radius: 15)
         }
     }
 
@@ -350,7 +350,7 @@ struct FloatingChatView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(vm.selectedDate == date ? Color.purple : Color.gray.opacity(0.1))
-                        .foregroundColor(vm.selectedDate == date ? .white : .primary)
+                        .foregroundColor(vm.selectedDate == date ? .onAccent : .primary)
                         .cornerRadius(15)
                     }
                 }
@@ -486,7 +486,7 @@ struct ChatBubble: View {
             Text(text)
                 .padding(10)
                 .background(isUser ? Color.blue : Color.gray.opacity(0.2))
-                .foregroundColor(isUser ? .white : .primary)
+                .foregroundColor(isUser ? .onAccent : .primary)
                 .cornerRadius(12)
             if !isUser { Spacer() }
         }

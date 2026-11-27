@@ -11,10 +11,10 @@ struct EmptyStateView: View {
     var body: some View {
         ContentUnavailableView(label: {
             Label("No programs to list", systemImage: "list.bullet.rectangle.portrait")
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
         }, description: {
             Text("Start by creating a program")
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
         }, actions: {
             NavigationLink(destination: AddWorkoutProgramView()) {
                 HStack {

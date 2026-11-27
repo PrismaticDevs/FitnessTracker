@@ -14,10 +14,12 @@ struct FloatingActionBar<Content: View>: View {
         HStack {
             content
         }
+        // Everything in the bar sits on the accent color, so it stays white in both modes.
+        .foregroundColor(.onAccent)
         .frame(width: UIScreen.main.bounds.width - 40, height: 60)
         .background(theme.currentTheme.accent)
         .cornerRadius(30)
-        .shadow(color: .black.opacity(0.4), radius: 10, y: 5)
+        .shadow(color: .shadowColor, radius: 10, y: 5)
     }
 }
 

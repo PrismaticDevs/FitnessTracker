@@ -34,30 +34,30 @@ struct AddSessionView: View {
                     VStack(spacing: 12) {
                         Text("\(program.title)")
                             .font(.title).bold()
-                            .foregroundColor(.white)
+                            .foregroundColor(.textPrimary)
 
                         // Section for the New Session Name
                         VStack(alignment: .leading) {
-                            Text("Session Name").font(.headline).foregroundColor(.white)
+                            Text("Session Name").font(.headline).foregroundColor(.textPrimary)
                             TextField("e.g. Upper Body A", text: $sessionName)
                                 .focused($isFocused, equals: true)
                                 .padding()
-                                .background(theme.currentTheme.accent)
+                                .background(theme.currentTheme.accentSurface)
                                 .cornerRadius(8)
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                         }
 
                         // Section for Exercises in this new session
                         VStack(alignment: .leading) {
-                            Text("Exercises").font(.headline).foregroundColor(.white)
+                            Text("Exercises").font(.headline).foregroundColor(.textPrimary)
                             
                             if selectedExercises.isEmpty {
                                 ContentUnavailableView(label: {
                                     Label("No exercises added yet", systemImage: "list.bullet.rectangle.portrait")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                 }, description: {
                                     Text("Start adding exercises")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
                                 })
                             } else {
                                 ForEach(selectedExercises) { exercise in
@@ -71,7 +71,7 @@ struct AddSessionView: View {
                                         }
                                     }
                                     .padding()
-                                    .background(Color.white.opacity(0.1))
+                                    .background(Color.fillSubtle)
                                     .cornerRadius(8)
                                 }
                             }
@@ -102,14 +102,14 @@ struct AddSessionView: View {
                         Image(systemName: "xmark.circle")
                         Text("Cancel")
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.onAccent)
                 }
                 
                 Spacer()
                 
                 // Divider
                 Rectangle()
-                    .fill(Color.white.opacity(0.3))
+                    .fill(Color.onAccent.opacity(0.3))
                     .frame(width: 1, height: 30)
                 
                 Spacer()
@@ -121,7 +121,7 @@ struct AddSessionView: View {
                         Text("Save Session")
                     }
                     .bold()
-                    .foregroundColor(.white)
+                    .foregroundColor(.onAccent)
                 }
                 .disabled(sessionName.isEmpty)
                 .opacity(sessionName.isEmpty ? 0.5 : 1.0)

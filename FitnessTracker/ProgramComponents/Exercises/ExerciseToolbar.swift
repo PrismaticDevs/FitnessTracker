@@ -14,6 +14,8 @@ struct ExerciseToolbar: View {
     var exercisesSelected: [String]
     var onExerciseSelected: (Exercise) -> Void
     let title: String
+    /// Use `.onAccent` when the toolbar sits inside an accent-colored bar.
+    var labelColor: Color = .textPrimary
     @State private var exerciseList = ExerciseList()
     @ObservedObject var theme = ThemeManager.shared
     @EnvironmentObject var auth: AuthManager
@@ -23,8 +25,10 @@ struct ExerciseToolbar: View {
     init(title: String,
              exerciseName: Binding<String>,
              exercisesSelected: [String],
+             labelColor: Color = .textPrimary,
              onExerciseSelected: @escaping (Exercise) -> Void) {
             self.title = title
+            self.labelColor = labelColor
             self._exerciseName = exerciseName
             self.exercisesSelected = exercisesSelected
             self.onExerciseSelected = onExerciseSelected
@@ -58,7 +62,7 @@ struct ExerciseToolbar: View {
             }
         } label: {
             Label(title, systemImage: "plus.circle.fill")
-                .foregroundColor(.white)
+                .foregroundColor(labelColor)
         }
     }
 }

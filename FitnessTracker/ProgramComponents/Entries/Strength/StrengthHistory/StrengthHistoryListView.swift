@@ -35,17 +35,17 @@ struct StrengthHistoryListView: View {
             if history.isEmpty {
                 ContentUnavailableView(label: {
                     Label("No history for \(exerciseName)", systemImage: "list.bullet.rectangle.portrait")
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                 }, description: {
                     Text("Complete a session to see your progress here.")
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.textSecondary)
                 })
             } else {
                 List {
                     ForEach(history) { entry in
                         StrengthHistoryItem(entry: entry) 
                             .listRowBackground(theme.currentTheme.accent.opacity(0.3))
-                            .listRowSeparatorTint(.white.opacity(0.2))
+                            .listRowSeparatorTint(.strokeSubtle)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button {
                                     entryToDelete = entry

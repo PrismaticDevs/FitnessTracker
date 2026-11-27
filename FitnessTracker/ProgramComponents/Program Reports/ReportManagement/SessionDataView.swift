@@ -44,7 +44,7 @@ struct SessionDataView: View {
                                     HStack {
                                         Text(session.date.formatted(.dateTime.month().day().hour().minute()))
                                             .font(.caption)
-                                            .foregroundColor(.white.opacity(0.7))
+                                            .foregroundColor(.textSecondary)
                                         Text("Swipe to delete")
                                             .font(.caption)
                                             .foregroundColor(.red.opacity(0.5))
@@ -58,7 +58,7 @@ struct SessionDataView: View {
                                         .font(.caption.bold())
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(Color.white.opacity(0.15))
+                                        .background(Color.fillStrong)
                                         .clipShape(Capsule())
                                 }
                                 .buttonStyle(.plain)
@@ -85,14 +85,14 @@ struct SessionDataView: View {
                                                 Spacer()
                                                 let currentDefault = defaults.double(forKey: "\(entry.exercise)_last_weight")
                                                 Text("Current Default: \(currentDefault, specifier: "%.1f")")
-                                                    .font(.caption2).padding(4).background(.white.opacity(0.1)).cornerRadius(4)
+                                                    .font(.caption2).padding(4).background(.fillSubtle).cornerRadius(4)
                                             }
                                             // Raw recorded set data
                                             ForEach(entry.sets.indices, id: \.self) { i in
                                                 let set = entry.sets[i]
                                                 Text("Set \(i+1) → C: \(set.combined) L: \(set.left) R: \(set.right) | Reps: \(set.reps)")
                                                     .font(.system(.caption2, design: .monospaced))
-                                                    .foregroundColor(.white.opacity(0.7))
+                                                    .foregroundColor(.textSecondary)
                                             }
                                         }
                                         .padding(.vertical, 4)
@@ -106,7 +106,7 @@ struct SessionDataView: View {
                                         }
                                     }
                                 }
-                                .listRowBackground(theme.currentTheme.accent)
+                                .listRowBackground(theme.currentTheme.accentSurface)
                             }
 
                             // 2. CARDIO SECTION
@@ -133,7 +133,7 @@ struct SessionDataView: View {
                                         }
                                     }
                                 }
-                                .listRowBackground(theme.currentTheme.accent)
+                                .listRowBackground(theme.currentTheme.accentSurface)
                             }
 
                             // 3. MOBILITY SECTION
@@ -160,7 +160,7 @@ struct SessionDataView: View {
                                         }
                                     }
                                 }
-                                .listRowBackground(theme.currentTheme.accent)
+                                .listRowBackground(theme.currentTheme.accentSurface)
                             }
                         }
                     }

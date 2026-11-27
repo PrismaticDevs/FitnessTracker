@@ -179,7 +179,7 @@ struct InputField: View {
         }
         .padding(.horizontal, 12)
         .frame(height: height)
-        .background(theme.currentTheme.accent.opacity(0.8))
+        .background(theme.currentTheme.accentSurface.opacity(0.8))
         .cornerRadius(corner)
     }
 }
@@ -223,8 +223,8 @@ struct AuthActionButton: View {
             RoundedRectangle(cornerRadius: corner)
                 .stroke(isPrimary ? Color.clear : theme.currentTheme.accent, lineWidth: 1)
         )
-        .foregroundColor(isPrimary ? .accent : .white)
-        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .foregroundColor(isPrimary ? .accent : .textPrimary)
+        .shadow(color: .shadowColor, radius: 4, x: 0, y: 2)
     }
 }
 private let buttonHeight: CGFloat = 48
@@ -247,14 +247,14 @@ struct AppleSignInButton: View {
 
                 Text("Sign in with Apple")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.textPrimary)
             }
             .padding(.horizontal, 16)
         }
         .frame(height: buttonHeight)
         .frame(maxWidth: .infinity)                // makes it expand to available width
         .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(theme.currentTheme.accent, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .shadow(color: .shadowColor, radius: 4, x: 0, y: 2)
         .cornerRadius(buttonCorner)
         .buttonStyle(PlainButtonStyle())
         .onTapGesture(perform: handleAppleSignIn)
@@ -281,12 +281,12 @@ struct GoogleSignInButton: View {
 
                     Text("Sign in with Google")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                 }
                 .opacity(isSigningIn ? 0.5 : 1.0)
 
                 if isSigningIn {
-                    SpinningRing(size: 20, lineWidth: 3, color: .white)
+                    SpinningRing(size: 20, lineWidth: 3, color: .onAccent)
                 }
             }
             .padding(.horizontal, 16)
@@ -294,7 +294,7 @@ struct GoogleSignInButton: View {
         .frame(height: buttonHeight)
         .frame(maxWidth: .infinity)                // same width as Apple button when placed in a VStack/HStack
         .overlay(RoundedRectangle(cornerRadius: buttonCorner).stroke(theme.currentTheme.accent, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .shadow(color: .shadowColor, radius: 4, x: 0, y: 2)
         .cornerRadius(buttonCorner)
         .buttonStyle(PlainButtonStyle())
         .disabled(isSigningIn)
@@ -377,7 +377,7 @@ struct SpinningRing: View {
     @State private var rotate = false
     var size: CGFloat = 22
     var lineWidth: CGFloat = 3
-    var color: Color = .white
+    var color: Color = .textPrimary
     
     var body: some View {
         Circle()

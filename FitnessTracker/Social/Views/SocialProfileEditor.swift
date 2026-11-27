@@ -29,6 +29,27 @@ struct SocialProfileEditor: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            if !isFirstRun {
+                Text(social.myProfile == nil ? "Create Profile" : "Edit Profile")
+                    .font(.title3.bold())
+                    .padding(.top, 25)
+            }
+            form
+            SheetActionButtons(
+                primaryTitle: isFirstRun ? "Create Profile" : "Save",
+                isPrimaryEnabled: !normalizedUsername.isEmpty && usernameProblem == nil,
+                isWorking: isSaving,
+                onCancel: isFirstRun ? nil : { dismiss() },
+                onPrimary: { Task { await save() } }
+            )
+            .padding(.horizontal, 25)
+            .padding(.bottom, 25)
+        }
+        .onAppear(perform: prefill)
+    }
+
+    private var form: some View {
         Form {
             if isFirstRun {
                 Section {
@@ -37,7 +58,7 @@ struct SocialProfileEditor: View {
                             .font(.headline)
                         Text("Your profile is public to other FiT Social users. Your private stats (age, weight, height) are never shown.")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.75))
+                            .foregroundColor(.textSecondary)
                     }
                     .padding(.vertical, 4)
                 }
@@ -46,7 +67,7 @@ struct SocialProfileEditor: View {
 
             Section {
                 HStack(spacing: 2) {
-                    Text("@").foregroundColor(.white.opacity(0.6))
+                    Text("@").foregroundColor(.textSecondary)
                     TextField("username", text: $username)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -63,7 +84,7 @@ struct SocialProfileEditor: View {
                     Text(usernameProblem).foregroundColor(.orange)
                 }
             }
-            .listRowBackground(theme.currentTheme.accent.opacity(0.6))
+            .listRowBackground(theme.currentTheme.accentSurface.opacity(0.6))
 
             Section("About") {
                 TextField("Bio (optional)", text: $bio, axis: .vertical)
@@ -73,7 +94,7 @@ struct SocialProfileEditor: View {
                     }
                 TextField("Home gym (optional)", text: $homeGym)
             }
-            .listRowBackground(theme.currentTheme.accent.opacity(0.6))
+            .listRowBackground(theme.currentTheme.accentSurface.opacity(0.6))
 
             if let errorMessage {
                 Section {
@@ -81,30 +102,8 @@ struct SocialProfileEditor: View {
                 }
                 .listRowBackground(theme.currentTheme.accent2)
             }
-
-            Section {
-                Button {
-                    Task { await save() }
-                } label: {
-                    HStack {
-                        Spacer()
-                        if isSaving { ProgressView() } else { Text(isFirstRun ? "Create Profile" : "Save").bold() }
-                        Spacer()
-                    }
-                }
-                .disabled(isSaving || normalizedUsername.isEmpty || usernameProblem != nil)
-            }
-            .listRowBackground(theme.currentTheme.accent2)
         }
         .scrollContentBackground(.hidden)
-        .toolbar {
-            if !isFirstRun {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-        }
-        .onAppear(perform: prefill)
     }
 
     private func prefill() {

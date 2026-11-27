@@ -29,14 +29,14 @@ struct ProgramRowView: View {
             
             NavigationLink(destination: SessionsView(program: program)) {
                 Text(program.title)
-                    .foregroundColor(.white) // Optional: Set text color for better visibility
+                    .foregroundColor(.textPrimary) // Optional: Set text color for better visibility
             }
             .buttonStyle(PlainButtonStyle()) // Prevents the link from changing appearance
         
         }
         .listRowBackground(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.1)) // Subtle glass effect
+                    .fill(Color.fillSubtle) // Subtle glass effect
                     .padding(.vertical, 4)
             )
         .padding()

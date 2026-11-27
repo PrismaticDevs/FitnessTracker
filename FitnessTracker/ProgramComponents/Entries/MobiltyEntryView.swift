@@ -28,10 +28,10 @@ struct MobilityEntryView: View {
                 VStack(alignment: .leading) {
                     Text(exercise.name)
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                     Text("\(exercise.type?.rawValue ?? "Type") exercise")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(.textTertiary)
                 }
                 Spacer()
                 Button(action: {
@@ -44,10 +44,10 @@ struct MobilityEntryView: View {
                         Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                             .font(.title2)
                     }
-                    .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                    .foregroundColor(isCompleted ? .green : .textSecondary)
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                    .background(isCompleted ? Color.green.opacity(0.15) : Color.fillSubtle)
                     .cornerRadius(10)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -113,9 +113,9 @@ struct MobilityTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding(10)
-            .background(Color.white.opacity(0.1))
+            .background(Color.fillSubtle)
             .cornerRadius(8)
-            .foregroundColor(.white)
+            .foregroundColor(.textPrimary)
             .multilineTextAlignment(.center)
             .font(.system(.body, design: .monospaced))
     }

@@ -24,11 +24,11 @@ struct WorkoutHeaderView: View {
                 // Left Side: Exercise Info
                 VStack(alignment: .leading, spacing: 2) {
                     Text(exercise.name)
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                         .font(.title2.bold()) // Slightly smaller than .title for better fit
                     Text("\(exercise.type?.rawValue ?? "Type") exercise")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(.textTertiary)
                     HStack {
                         Spacer()
                         Button(action: {
@@ -44,10 +44,10 @@ struct WorkoutHeaderView: View {
                                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                                     .font(.title2)
                             }
-                            .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                            .foregroundColor(isCompleted ? .green : .textSecondary)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 12)
-                            .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                            .background(isCompleted ? Color.green.opacity(0.15) : Color.fillSubtle)
                             .cornerRadius(10)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -55,13 +55,13 @@ struct WorkoutHeaderView: View {
                 }
             }
             
-            Divider().background(Color.white.opacity(0.2))
+            Divider().background(Color.strokeSubtle)
             
             // Bottom Row: Sets Input
             HStack {
                 Text("Total Sets")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.textPrimary)
                 
                 Spacer()
                 
@@ -133,7 +133,7 @@ struct WorkoutHeaderView: View {
                         isFocused: $isFocused
                     )
                     .padding()
-                    .background(Color.white.opacity(0.05))
+                    .background(Color.fillSubtle)
                     .cornerRadius(15)
                 }
                 .padding()

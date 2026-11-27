@@ -53,21 +53,21 @@ struct StatCard: View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: icon)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
             
             Text(value)
                 .font(.headline)
                 .bold()
                 .minimumScaleFactor(0.8) // Prevents text clipping
-                .foregroundColor(.white)
+                .foregroundColor(.textPrimary)
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding()
-        .background(theme.currentTheme.accent)
+        .background(theme.currentTheme.accentSurface)
         .cornerRadius(12)
     }
 }
@@ -83,10 +83,10 @@ struct MetricRow: View {
             // Label bundles the icon and text
             Label {
                 Text(label)
-                    .foregroundColor(.white) // Forced White
+                    .foregroundColor(.textPrimary) // Forced White
             } icon: {
                 Image(systemName: icon)
-                    .foregroundColor(.white) // Forced White
+                    .foregroundColor(.textPrimary) // Forced White
             }
             .font(.subheadline)
             
@@ -94,7 +94,7 @@ struct MetricRow: View {
             
             Text(value)
                 .font(.subheadline.bold())
-                .foregroundColor(.white) // Forced White
+                .foregroundColor(.textPrimary) // Forced White
         }
         .padding()
         .cornerRadius(10)

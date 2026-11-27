@@ -18,9 +18,9 @@ struct RenameSheet: View {
                 .font(.headline)
                 .padding()
 
-            TextField("New Session Name", text: $newName, prompt: Text("New Session Name").foregroundColor(.white.opacity(0.5)))
+            TextField("New Session Name", text: $newName, prompt: Text("New Session Name").foregroundColor(.textTertiary))
                 .padding()
-                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
 
             Button("Rename") {
                 onRename()

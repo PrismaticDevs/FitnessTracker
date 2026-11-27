@@ -26,14 +26,14 @@ struct SessionsView: View {
                             NavigationLink(destination: SessionDetailView(session: session, workoutProgram: program, exercises: session.exercises)) {
                                 Text(session.name)
                                     .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.textPrimary)
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .tint(.white)
+                            .tint(.textPrimary)
                         }
                         .listRowBackground(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.1)) // Subtle glass effect
+                                    .fill(Color.fillSubtle) // Subtle glass effect
                                     .padding(.vertical, 4)
                             )
                         .listRowSeparator(.hidden) // Removes the thin lines between rows
@@ -68,27 +68,27 @@ struct SessionsView: View {
                     showRenameSheet = true
                 }) {
                     Image(systemName: "pencil")
-                        .foregroundColor(.white)
+                        .foregroundColor(.onAccent)
                 }
                 Spacer()
                 // Add Session
                 NavigationLink(destination: AddSessionView(program: program).environmentObject(theme)) {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(.onAccent)
                 }
                 Spacer()
                 // Navigation to Reports
                 NavigationLink(destination: ProgramReportView(program: program)) {
                     Image(systemName: "chart.bar.xaxis")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white) // Or .white depending on your background
+                        .foregroundColor(.onAccent) // Or .onAccent depending on your background
                 }
                 Spacer()
             }
             .frame(width: UIScreen.main.bounds.width - 40, height: 50)
             .background(theme.currentTheme.accent) // Themed bar color
             .cornerRadius(30)
-            .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+            .shadow(color: .shadowColor, radius: 10, y: 5)
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .leading) {
@@ -144,8 +144,8 @@ struct SessionsView: View {
                         .padding()
                         .background(theme.currentTheme.accent.opacity(0.8))
                         .cornerRadius(12)
-                        .foregroundColor(.white)
-                        .tint(.white)
+                        .foregroundColor(.onAccent)
+                        .tint(.onAccent)
 
                     HStack(spacing: 15) {
                         // Cancel Button: Secondary style
@@ -170,7 +170,7 @@ struct SessionsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(theme.currentTheme.accent)
-                                .foregroundColor(.white)
+                                .foregroundColor(.onAccent)
                                 .cornerRadius(12)
                         }
                         .shadow(color: theme.currentTheme.accent.opacity(0.3), radius: 5, y: 3)

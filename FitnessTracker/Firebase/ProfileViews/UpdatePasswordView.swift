@@ -37,7 +37,7 @@ struct UpdatePasswordView: View {
                         Button(action: submitPassword) {
                             Text("Update Password")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
                                 .frame(maxWidth: .infinity)
                                 .padding() // This creates the "height" of your button
                                 .background(

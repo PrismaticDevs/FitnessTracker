@@ -30,7 +30,7 @@ struct CardioEntryView: View {
             Section {
                 HStack {
                     Text(exercise)
-                        .foregroundColor(.white)
+                        .foregroundColor(.textPrimary)
                         .font(.headline)
                     Spacer()
                     Button(action: {
@@ -43,10 +43,10 @@ struct CardioEntryView: View {
                             Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                                 .font(.title2)
                         }
-                        .foregroundColor(isCompleted ? .green : .white.opacity(0.6))
+                        .foregroundColor(isCompleted ? .green : .textSecondary)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
-                        .background(isCompleted ? Color.green.opacity(0.15) : Color.white.opacity(0.05))
+                        .background(isCompleted ? Color.green.opacity(0.15) : Color.fillSubtle)
                         .cornerRadius(10)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -59,7 +59,7 @@ struct CardioEntryView: View {
                             TextField("Duration", text: $duration)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                                 .onChange(of: duration) { _, newValue in
                                     defaults.set(newValue, forKey: keyScope.scoped("cardioDuration\(exercise)"))
                                     calculateCaloriesBurned()
@@ -71,7 +71,7 @@ struct CardioEntryView: View {
                             TextField("Distance", text: $distance)
                                 .keyboardType(.decimalPad)
                                 .padding()
-                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                                 .onChange(of: distance) { _, newValue in
                                     defaults.set(newValue, forKey: keyScope.scoped("cardioDistance\(exercise)"))
                                     calculateCaloriesBurned()
@@ -83,7 +83,7 @@ struct CardioEntryView: View {
                             TextField("Heart Rate", text: $heartRate)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                                 .onChange(of: heartRate) { _, _ in
                                     calculateCaloriesBurned()
                                 }
@@ -95,14 +95,14 @@ struct CardioEntryView: View {
                                 .font(.subheadline)
                             Text("\(caloriesBurned, specifier: "%.1f") cal")
                                 .padding()
-                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                         }
                         VStack {
                             Text("Note")
                                 .font(.subheadline)
                             TextField("Note", text: $note)
                                 .padding()
-                                .background(theme.currentTheme.accent.opacity(0.8).cornerRadius(10))
+                                .background(theme.currentTheme.accentSurface.opacity(0.8).cornerRadius(10))
                                 .onChange(of: note) { _, newValue in
                                     defaults.set(newValue, forKey: keyScope.scoped("cardioNote\(exercise)"))
                                 }

@@ -28,29 +28,29 @@ struct ProgramMenuView: View {
                 Text("Select a Program")
                     .font(.system(size: 24, weight: .bold))
                     .padding(0)
-                    .foregroundColor(.white)
+                    .foregroundColor(.textPrimary)
                 if let uid = auth.user?.uid {
                     ProgramListView(userId: uid)
                 } else {
                     ProgressView("Loading your programs...")
-                        .tint(.white)
+                        .tint(.textPrimary)
                 }
                 FloatingActionBar {
                     Spacer()
                     NavigationLink(destination: SocialPortal()) {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .foregroundColor(.white)
+                            .foregroundColor(.onAccent)
                             .notificationBadge(show: auth.profile?.preferences.hasSocialUpdate ?? false)
                     }
                     Spacer()
                     NavigationLink(destination: AddWorkoutProgramView()) {
                         AddProgramButton(compact: true)
-                            .foregroundColor(.white) // Ensure the "+" is white on the accent
+                            .foregroundColor(.onAccent) // Ensure the "+" is white on the accent
                     }
                     Spacer()
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gearshape.fill")
-                            .foregroundColor(.white)
+                            .foregroundColor(.onAccent)
                             .notificationBadge(show: auth.profile?.preferences.hasSettingsUpdate ?? false)
                     }
                     Spacer()
@@ -58,7 +58,7 @@ struct ProgramMenuView: View {
                 .frame(width: UIScreen.main.bounds.width - 40, height: 50)
                 .background(theme.currentTheme.accent)
                 .cornerRadius(30)
-                .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+                .shadow(color: .shadowColor, radius: 10, y: 5)
             }
         }
         .navigationTitle("")
