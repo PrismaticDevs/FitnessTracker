@@ -16,11 +16,6 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
-    // Only the listed fields changed between the old and new document.
-    function onlyChanged(fields) {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
-    }
-
     // ---------- Private data (profile stats, chat history, workout entries, preferences)
 
     match /users/{uid} {
