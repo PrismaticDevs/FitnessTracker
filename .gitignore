@@ -33,3 +33,8 @@ Carthage/Build/
 *.log
 *.lock
 *.tmp
+
+# Firebase CLI
+firebase-debug.log
+firestore-debug.log
+.firebase/
