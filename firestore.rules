@@ -59,8 +59,20 @@ service cloud.firestore {
         ));
     }
 
+    // Privacy opt-ins. "Show me at my gym" only works with a public profile.
+    function validPrivacy(data) {
+      return (!('isPublic' in data) || data.isPublic is bool)
+        && (!('showAtGym' in data) || data.showAtGym is bool)
+        && (data.get('showAtGym', false) == false || data.get('isPublic', false) == true);
+    }
+
+    function profileIsPublic(uid) {
+      return get(/databases/$(database)/documents/profiles/$(uid)).data.get('isPublic', false) == true;
+    }
+
     match /profiles/{uid} {
-      allow read: if signedIn();
+      // Private profiles (the default) are visible only to their owner.
+      allow read: if isUser(uid) || (signedIn() && resource.data.get('isPublic', false) == true);
 
       allow create: if isUser(uid)
         && request.resource.data.username is string
@@ -69,6 +81,7 @@ service cloud.firestore {
         && request.resource.data.displayName.size() <= 50
         && request.resource.data.bio.size() <= 160
         && validGym(request.resource.data)
+        && validPrivacy(request.resource.data)
         && request.resource.data.followerCount == 0
         && request.resource.data.followingCount == 0
         && request.resource.data.postCount == 0;
@@ -78,6 +91,7 @@ service cloud.firestore {
         && request.resource.data.displayName.size() <= 50
         && request.resource.data.bio.size() <= 160
         && validGym(request.resource.data)
+        && validPrivacy(request.resource.data)
         // Follow counts can't be edited by the client (they'll be maintained server-side later).
         && request.resource.data.followerCount == resource.data.followerCount
         && request.resource.data.followingCount == resource.data.followingCount
@@ -91,17 +105,29 @@ service cloud.firestore {
     // ---------- FiT Social: posts
 
     match /posts/{postId} {
-      allow read: if signedIn();
+      // Public posts are visible to signed-in users; private ones (and older posts
+      // without a visibility) only to their author.
+      allow read: if signedIn()
+        && (resource.data.authorId == request.auth.uid
+            || resource.data.get('visibility', 'private') == 'public');
 
       allow create: if signedIn()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.caption is string
         && request.resource.data.caption.size() <= 500
-        && request.resource.data.workout is map;
+        && request.resource.data.workout is map
+        && request.resource.data.visibility in ['public', 'private']
+        // Only a public profile can publish a public post.
+        && (request.resource.data.visibility == 'private' || profileIsPublic(request.auth.uid));
 
-      // Posts are immutable for now; edit = delete and repost.
-      allow update: if false;
+      // The only edit allowed: the author changing visibility when their profile goes public/private.
+      allow update: if signedIn()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['visibility'])
+        && request.resource.data.visibility in ['public', 'private']
+        && (request.resource.data.visibility == 'private' || profileIsPublic(request.auth.uid));
+
       allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
     }
   }

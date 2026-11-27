@@ -17,7 +17,12 @@ struct WorkoutPost: Codable, Identifiable, Equatable {
     var authorDisplayName: String
     var caption: String
     var workout: WorkoutSnapshot
+    /// Follows the author's profile: public posts are visible to everyone, private ones only to the author.
+    /// Missing (older posts) is treated as private.
+    var visibility: PostVisibility? = nil
     @ServerTimestamp var createdAt: Date?
+
+    var isPublic: Bool { visibility == .public }
 }
 
 struct WorkoutSnapshot: Codable, Equatable {

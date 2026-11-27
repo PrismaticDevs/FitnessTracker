@@ -20,14 +20,45 @@ struct PublicProfile: Codable, Identifiable, Equatable {
     var followerCount: Int = 0
     var followingCount: Int = 0
     var postCount: Int = 0
+    /// Opt-in: other users can see this profile and its posts. Missing = private.
+    var isPublic: Bool? = nil
+    /// Opt-in: list this person among the members of their home gym. Only applies when public.
+    var showAtGym: Bool? = nil
     @ServerTimestamp var createdAt: Date?
     @ServerTimestamp var updatedAt: Date?
+
+    /// Profiles are private unless the user turned this on.
+    var isPubliclyVisible: Bool { isPublic == true }
+
+    /// Shown in "Members at this gym" only with both opt-ins and a gym picked from Apple Maps.
+    var isListedAtGym: Bool { isPublic == true && showAtGym == true && homeGymPlace != nil }
 
     /// Initials for the avatar placeholder (no photo upload yet).
     var initials: String {
         let parts = displayName.split(separator: " ").prefix(2)
         let letters = parts.compactMap { $0.first }.map(String.init).joined()
         return letters.isEmpty ? String(username.prefix(1)).uppercased() : letters.uppercased()
+    }
+}
+
+enum SocialPrivacyRules {
+    /// Minimum age for a public profile. Under this, profiles stay private.
+    static let minimumPublicAge = 18
+
+    /// Whether someone may turn on a public profile, given the age from their private profile.
+    /// Unknown age is allowed, but the toggle asks them to confirm they're old enough.
+    static func canBePublic(age: Int?) -> Bool {
+        guard let age else { return true }
+        return age >= minimumPublicAge
+    }
+}
+
+enum PostVisibility: String, Codable {
+    case `public`
+    case `private`
+
+    static func forAuthor(_ profile: PublicProfile) -> PostVisibility {
+        profile.isPubliclyVisible ? .public : .private
     }
 }
 

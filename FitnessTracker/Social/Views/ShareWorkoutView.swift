@@ -48,6 +48,15 @@ struct ShareWorkoutView: View {
                         .cornerRadius(12)
                         .foregroundColor(.textPrimary)
 
+                    if let profile = social.myProfile {
+                        Label(profile.isPubliclyVisible
+                              ? "Public: anyone on FiT Social can see this post."
+                              : "Private: only you can see this post. Make your profile public to share it.",
+                              systemImage: profile.isPubliclyVisible ? "globe" : "lock.fill")
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                    }
+
                     if snapshot.isEmpty {
                         notice(SocialError.emptyWorkout.localizedDescription)
                     } else {

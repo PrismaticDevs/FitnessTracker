@@ -19,6 +19,7 @@ enum SocialError: LocalizedError {
     case invalidUsername(String)
     case noProfile
     case emptyWorkout
+    case tooYoungForPublic
 
     var errorDescription: String? {
         switch self {
@@ -27,6 +28,8 @@ enum SocialError: LocalizedError {
         case .invalidUsername(let message): return message
         case .noProfile: return "Set up your FiT Social profile first."
         case .emptyWorkout: return "This session has no exercises to share."
+        case .tooYoungForPublic:
+            return "Public profiles are for people \(SocialPrivacyRules.minimumPublicAge) and older. Your profile will stay private."
         }
     }
 }
@@ -62,13 +65,18 @@ final class SocialService: ObservableObject {
 
     /// Creates or updates the signed-in user's profile, claiming the username atomically.
     func saveProfile(uid: String, username rawUsername: String, displayName: String, bio: String,
-                     homeGym: String, homeGymPlace: GymPlace? = nil) async throws {
+                     homeGym: String, homeGymPlace: GymPlace? = nil,
+                     isPublic: Bool = false, showAtGym: Bool = false, age: Int? = nil) async throws {
         let username = UsernameRules.normalize(rawUsername)
         if let message = UsernameRules.validationMessage(for: username) {
             throw SocialError.invalidUsername(message)
         }
+        if isPublic && !SocialPrivacyRules.canBePublic(age: age) {
+            throw SocialError.tooYoungForPublic
+        }
 
         let previousUsername = myProfile?.username
+        let wasPublic = myProfile?.isPubliclyVisible ?? false
         let profileRef = profiles.document(uid)
         let usernameRef = usernames.document(username)
         let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -78,6 +86,9 @@ final class SocialService: ObservableObject {
             "displayName": trimmedName.isEmpty ? username : trimmedName,
             "bio": String(bio.prefix(160)),
             "homeGym": String(homeGym.trimmingCharacters(in: .whitespacesAndNewlines).prefix(100)),
+            "isPublic": isPublic,
+            // Listing at a gym requires a public profile.
+            "showAtGym": isPublic && showAtGym,
             "updatedAt": FieldValue.serverTimestamp()
         ]
         if let homeGymPlace {
@@ -115,7 +126,61 @@ final class SocialService: ObservableObject {
             throw SocialError.usernameTaken
         }
 
+        // Going public or private changes who can see existing posts too.
+        if wasPublic != isPublic {
+            try await setVisibilityOfMyPosts(isPublic ? .public : .private, uid: uid)
+        }
+
         await loadMyProfile(uid: uid)
+    }
+
+    private func myPostRefs(uid: String) async throws -> [DocumentReference] {
+        try await posts.whereField("authorId", isEqualTo: uid).getDocuments().documents.map(\.reference)
+    }
+
+    private func setVisibilityOfMyPosts(_ visibility: PostVisibility, uid: String) async throws {
+        for chunk in try await myPostRefs(uid: uid).chunked(into: 450) {
+            let batch = db.batch()
+            chunk.forEach { batch.updateData(["visibility": visibility.rawValue], forDocument: $0) }
+            try await batch.commit()
+        }
+    }
+
+    // MARK: - Gyms
+
+    /// People who chose to be listed at this gym (public profile + "show me at my gym").
+    /// Only name, @username and gym are shown. Never when they're there or where they are.
+    func membersAtGym(_ gymID: String, excluding uid: String?, limit: Int = 50) async throws -> [PublicProfile] {
+        let snapshot = try await profiles
+            .whereField("homeGymPlace.id", isEqualTo: gymID)
+            .whereField("isPublic", isEqualTo: true)
+            .whereField("showAtGym", isEqualTo: true)
+            .limit(to: limit)
+            .getDocuments()
+        return snapshot.documents
+            .compactMap { try? $0.data(as: PublicProfile.self) }
+            .filter { $0.id != uid }
+            .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+    }
+
+    // MARK: - Delete
+
+    /// Removes everything FiT Social stores for this user: posts, username claim and profile.
+    /// Private workout history (users/{uid}) is not touched.
+    func deleteMySocialData(uid: String) async throws {
+        for chunk in try await myPostRefs(uid: uid).chunked(into: 450) {
+            let batch = db.batch()
+            chunk.forEach { batch.deleteDocument($0) }
+            try await batch.commit()
+        }
+        let batch = db.batch()
+        if let username = myProfile?.username {
+            batch.deleteDocument(usernames.document(username))
+        }
+        batch.deleteDocument(profiles.document(uid))
+        try await batch.commit()
+        reset()
+        hasLoadedProfile = true
     }
 
     // MARK: - Posts
@@ -130,7 +195,8 @@ final class SocialService: ObservableObject {
             authorUsername: profile.username,
             authorDisplayName: profile.displayName,
             caption: String(caption.trimmingCharacters(in: .whitespacesAndNewlines).prefix(500)),
-            workout: snapshot
+            workout: snapshot,
+            visibility: PostVisibility.forAuthor(profile)
         )
 
         let batch = db.batch()
@@ -153,24 +219,55 @@ final class SocialService: ObservableObject {
         await loadMyProfile(uid: uid)
     }
 
-    /// Latest posts from everyone. Becomes "people you follow" once follows exist.
+    /// Public posts from everyone plus your own posts (including private ones).
+    /// Becomes "people you follow" once follows exist.
     func refreshFeed(limit: Int = 50) async {
         isLoadingFeed = true
         defer { isLoadingFeed = false }
         do {
-            let snapshot = try await posts
+            let publicPosts = try await posts
+                .whereField("visibility", isEqualTo: PostVisibility.public.rawValue)
                 .order(by: "createdAt", descending: true)
                 .limit(to: limit)
                 .getDocuments()
-            feed = snapshot.documents.compactMap { try? $0.data(as: WorkoutPost.self) }
+                .documents.compactMap { try? $0.data(as: WorkoutPost.self) }
+
+            var mine: [WorkoutPost] = []
+            if let uid = myProfile?.id {
+                mine = try await posts
+                    .whereField("authorId", isEqualTo: uid)
+                    .limit(to: limit)
+                    .getDocuments()
+                    .documents.compactMap { try? $0.data(as: WorkoutPost.self) }
+            }
+            feed = Self.mergeFeed(publicPosts, mine, limit: limit)
         } catch {
             errorMessage = "Couldn't load the feed: \(error.localizedDescription)"
         }
+    }
+
+    /// Combines public posts and your own, without duplicates, newest first.
+    nonisolated static func mergeFeed(_ a: [WorkoutPost], _ b: [WorkoutPost], limit: Int) -> [WorkoutPost] {
+        var seen = Set<String>()
+        let combined = (a + b).filter { post in
+            guard let id = post.id else { return true }
+            return seen.insert(id).inserted
+        }
+        // Posts still being written have no server timestamp yet; treat them as newest.
+        return Array(combined.sorted { ($0.createdAt ?? .distantFuture) > ($1.createdAt ?? .distantFuture) }.prefix(limit))
     }
 
     func reset() {
         myProfile = nil
         hasLoadedProfile = false
         feed = []
+    }
+}
+
+extension Array {
+    /// Splits into consecutive pieces of at most `size` elements (Firestore batches max out at 500 writes).
+    func chunked(into size: Int) -> [[Element]] {
+        guard size > 0 else { return [self] }
+        return stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) }
     }
 }

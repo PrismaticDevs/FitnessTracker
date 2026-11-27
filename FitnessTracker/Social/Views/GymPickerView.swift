@@ -28,11 +28,19 @@ enum GymChoice: Equatable {
 }
 
 struct GymPickerView: View {
+    enum Mode {
+        /// Choose a home gym for the profile.
+        case pick
+        /// Look around: tapping a gym shows who trains there.
+        case browse
+    }
+
+    var mode: Mode = .pick
     /// Text to start with (e.g. what's already in the profile's gym field).
     var initialQuery: String = ""
     /// The gym already saved on the profile, shown as selected.
     var initialPlace: GymPlace?
-    let onChoose: (GymChoice) -> Void
+    var onChoose: (GymChoice) -> Void = { _ in }
 
     @ObservedObject var theme = ThemeManager.shared
     @StateObject private var location = LocationManager()
@@ -44,12 +52,13 @@ struct GymPickerView: View {
     @State private var choice: GymChoice?
     @State private var mapSelection: String?
     @State private var camera: MapCameraPosition = .userLocation(fallback: .automatic)
+    @State private var gymToShow: GymPlace?
 
     private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
         VStack(spacing: 14) {
-            Text("Choose Your Gym")
+            Text(mode == .pick ? "Choose Your Gym" : "Browse Gyms")
                 .font(.title3.bold())
                 .padding(.top)
 
@@ -59,20 +68,30 @@ struct GymPickerView: View {
 
             ScrollView {
                 VStack(spacing: 8) {
-                    manualEntryRow
+                    if mode == .pick { manualEntryRow }
                     resultsList
                 }
             }
 
-            SheetActionButtons(
-                primaryTitle: "Use This Gym",
-                isPrimaryEnabled: choice != nil,
-                onCancel: { dismiss() },
-                onPrimary: {
-                    if let choice { onChoose(choice) }
-                    dismiss()
-                }
-            )
+            if mode == .pick {
+                SheetActionButtons(
+                    primaryTitle: "Use This Gym",
+                    isPrimaryEnabled: choice != nil,
+                    onCancel: { dismiss() },
+                    onPrimary: {
+                        if let choice { onChoose(choice) }
+                        dismiss()
+                    }
+                )
+            } else {
+                SheetActionButtons(primaryTitle: "Done", onPrimary: { dismiss() })
+            }
+        }
+        .sheet(item: $gymToShow, onDismiss: {
+            // Let the same map pin be tapped again after closing its details.
+            if mode == .browse { mapSelection = nil }
+        }) { gym in
+            GymDetailView(gym: gym)
         }
         .padding(.horizontal, 25)
         .padding(.bottom, 25)
@@ -98,7 +117,7 @@ struct GymPickerView: View {
         }
         .onChange(of: mapSelection) { _, id in
             if let id, let place = search.results.first(where: { $0.id == id }) {
-                choice = .place(place)
+                if mode == .browse { gymToShow = place } else { choice = .place(place) }
             }
         }
         .onChange(of: search.results) { _, results in
@@ -244,38 +263,63 @@ struct GymPickerView: View {
 
     private func gymRow(_ place: GymPlace) -> some View {
         let isChosen = choice?.place?.id == place.id
-        return Button {
-            choice = .place(place)
-            mapSelection = place.id
-            camera = .region(MKCoordinateRegion(center: place.coordinate,
-                                                latitudinalMeters: 1_500, longitudinalMeters: 1_500))
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "dumbbell.fill")
-                    .frame(width: 28)
-                    .foregroundColor(theme.currentTheme.accentText)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(place.name).font(.subheadline.bold())
-                    if !place.address.isEmpty {
-                        Text(place.address)
-                            .font(.caption)
+        // Two sibling buttons (not nested) so each has its own tap target and VoiceOver element.
+        return HStack(spacing: 4) {
+            Button {
+                if mode == .browse {
+                    gymToShow = place
+                    return
+                }
+                choice = .place(place)
+                mapSelection = place.id
+                camera = .region(MKCoordinateRegion(center: place.coordinate,
+                                                    latitudinalMeters: 1_500, longitudinalMeters: 1_500))
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "dumbbell.fill")
+                        .frame(width: 28)
+                        .foregroundColor(theme.currentTheme.accentText)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(place.name).font(.subheadline.bold())
+                        if !place.address.isEmpty {
+                            Text(place.address)
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer()
+                    if let distance = GymPlace.distanceText(miles: place.miles(from: location.location)) {
+                        Text(distance)
+                            .font(.caption.bold())
                             .foregroundColor(.textSecondary)
-                            .lineLimit(1)
+                    }
+                    if isChosen { Image(systemName: "checkmark.circle.fill").foregroundColor(theme.currentTheme.accentText) }
+                    if mode == .browse {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                            .foregroundColor(.textTertiary)
                     }
                 }
-                Spacer()
-                if let distance = GymPlace.distanceText(miles: place.miles(from: location.location)) {
-                    Text(distance)
-                        .font(.caption.bold())
-                        .foregroundColor(.textSecondary)
-                }
-                if isChosen { Image(systemName: "checkmark.circle.fill").foregroundColor(theme.currentTheme.accentText) }
+                .contentShape(Rectangle())
             }
-            .padding(12)
-            .background(isChosen ? theme.currentTheme.accentSurface.opacity(0.6) : Color.fillSubtle)
-            .cornerRadius(12)
+            .buttonStyle(.plain)
+
+            if mode == .pick {
+                // See who trains here before choosing it.
+                Button { gymToShow = place } label: {
+                    Image(systemName: "person.2.fill")
+                        .foregroundColor(.textSecondary)
+                        .frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("See members at \(place.name)")
+            }
         }
-        .buttonStyle(.plain)
+        .padding(12)
+        .background(isChosen ? theme.currentTheme.accentSurface.opacity(0.6) : Color.fillSubtle)
+        .cornerRadius(12)
     }
 
     private var emptyMessage: String {

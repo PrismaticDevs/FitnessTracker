@@ -14,6 +14,8 @@ struct SocialPortal: View {
     @Environment(\.dismiss) var dismiss
     @State private var dragOffset: CGFloat = 0
     @State private var showProfileEditor = false
+    @State private var showGymBrowser = false
+    @State private var gymToShow: GymPlace?
     @State private var postToDelete: WorkoutPost?
 
     var body: some View {
@@ -29,6 +31,12 @@ struct SocialPortal: View {
                     Button { showProfileEditor = true } label: {
                         Image(systemName: "person.crop.circle")
                     }
+                    .accessibilityLabel("Edit profile")
+                    Spacer()
+                    Button { showGymBrowser = true } label: {
+                        Image(systemName: "mappin.and.ellipse")
+                    }
+                    .accessibilityLabel("Browse gyms")
                     Spacer()
                     Button { Task { await social.refreshFeed() } } label: {
                         if social.isLoadingFeed {
@@ -79,6 +87,8 @@ struct SocialPortal: View {
                 await social.loadMyProfile(uid: uid)
             }
             if social.myProfile != nil { await social.refreshFeed() }
+            // The private profile holds the age used to decide who may go public.
+            if auth.profile == nil { await auth.fetchUser() }
             await auth.clearNotification(for: .social)
         }
         .onChange(of: social.myProfile) { old, new in
@@ -88,6 +98,12 @@ struct SocialPortal: View {
         .sheet(isPresented: $showProfileEditor) {
             SocialProfileEditor()
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showGymBrowser) {
+            GymPickerView(mode: .browse)
+        }
+        .sheet(item: $gymToShow) { gym in
+            GymDetailView(gym: gym)
         }
         .confirmationDialog(
             "Delete this post?",
@@ -164,13 +180,26 @@ struct SocialPortal: View {
             AvatarView(text: profile.initials, size: 60)
             VStack(alignment: .leading, spacing: 4) {
                 Text(profile.displayName).font(.headline)
-                Text("@\(profile.username)")
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-                if !profile.homeGym.isEmpty {
-                    Label(profile.homeGym, systemImage: "mappin.and.ellipse")
+                HStack(spacing: 6) {
+                    Text("@\(profile.username)")
                         .font(.caption)
                         .foregroundColor(.textSecondary)
+                    visibilityChip(profile)
+                }
+                if !profile.homeGym.isEmpty {
+                    if let place = profile.homeGymPlace {
+                        // Tap to see who else trains there.
+                        Button { gymToShow = place } label: {
+                            Label(profile.homeGym, systemImage: "mappin.and.ellipse")
+                                .font(.caption)
+                                .foregroundColor(theme.currentTheme.accentText)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Label(profile.homeGym, systemImage: "mappin.and.ellipse")
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                    }
                 }
                 if !profile.bio.isEmpty {
                     Text(profile.bio).font(.subheadline).padding(.top, 2)
@@ -191,6 +220,17 @@ struct SocialPortal: View {
         .padding()
         .background(theme.currentTheme.accent2.opacity(0.85))
         .cornerRadius(18)
+    }
+
+    private func visibilityChip(_ profile: PublicProfile) -> some View {
+        Label(profile.isPubliclyVisible ? "Public" : "Private",
+              systemImage: profile.isPubliclyVisible ? "globe" : "lock.fill")
+            .font(.caption2.bold())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(Color.fillStrong)
+            .clipShape(Capsule())
+            .accessibilityLabel(profile.isPubliclyVisible ? "Public profile" : "Private profile")
     }
 
     private func countLabel(_ value: Int, _ label: String) -> some View {
