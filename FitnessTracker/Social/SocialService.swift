@@ -61,7 +61,8 @@ final class SocialService: ObservableObject {
     }
 
     /// Creates or updates the signed-in user's profile, claiming the username atomically.
-    func saveProfile(uid: String, username rawUsername: String, displayName: String, bio: String, homeGym: String) async throws {
+    func saveProfile(uid: String, username rawUsername: String, displayName: String, bio: String,
+                     homeGym: String, homeGymPlace: GymPlace? = nil) async throws {
         let username = UsernameRules.normalize(rawUsername)
         if let message = UsernameRules.validationMessage(for: username) {
             throw SocialError.invalidUsername(message)
@@ -76,9 +77,14 @@ final class SocialService: ObservableObject {
             "username": username,
             "displayName": trimmedName.isEmpty ? username : trimmedName,
             "bio": String(bio.prefix(160)),
-            "homeGym": homeGym.trimmingCharacters(in: .whitespacesAndNewlines),
+            "homeGym": String(homeGym.trimmingCharacters(in: .whitespacesAndNewlines).prefix(100)),
             "updatedAt": FieldValue.serverTimestamp()
         ]
+        if let homeGymPlace {
+            fields["homeGymPlace"] = try Firestore.Encoder().encode(homeGymPlace)
+        } else if myProfile?.homeGymPlace != nil {
+            fields["homeGymPlace"] = FieldValue.delete()
+        }
         if myProfile == nil {
             fields["createdAt"] = FieldValue.serverTimestamp()
             fields["followerCount"] = 0

@@ -20,6 +20,8 @@ struct SocialProfileEditor: View {
     @State private var displayName = ""
     @State private var bio = ""
     @State private var homeGym = ""
+    @State private var homeGymPlace: GymPlace?
+    @State private var showGymPicker = false
     @State private var isSaving = false
     @State private var errorMessage: String?
 
@@ -47,6 +49,12 @@ struct SocialProfileEditor: View {
             .padding(.bottom, 25)
         }
         .onAppear(perform: prefill)
+        .sheet(isPresented: $showGymPicker) {
+            GymPickerView(initialQuery: homeGymPlace == nil ? homeGym : "", initialPlace: homeGymPlace) { choice in
+                homeGymPlace = choice.place
+                homeGym = choice.name
+            }
+        }
     }
 
     private var form: some View {
@@ -92,7 +100,28 @@ struct SocialProfileEditor: View {
                     .onChange(of: bio) { _, newValue in
                         if newValue.count > 160 { bio = String(newValue.prefix(160)) }
                     }
-                TextField("Home gym (optional)", text: $homeGym)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("Home gym (optional)", text: $homeGym)
+                            .onChange(of: homeGym) { _, newValue in
+                                // Typing over a gym picked from the map turns it back into plain text.
+                                if let place = homeGymPlace, newValue != place.name { homeGymPlace = nil }
+                            }
+                        Button { showGymPicker = true } label: {
+                            Image(systemName: "map.fill")
+                                .foregroundColor(.textPrimary)
+                                .padding(6)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Find gym on map")
+                    }
+                    if let place = homeGymPlace {
+                        Label(place.address.isEmpty ? "From Apple Maps" : place.address, systemImage: "mappin.and.ellipse")
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                            .lineLimit(1)
+                    }
+                }
             }
             .listRowBackground(theme.currentTheme.accentSurface.opacity(0.6))
 
@@ -112,6 +141,7 @@ struct SocialProfileEditor: View {
             displayName = profile.displayName
             bio = profile.bio
             homeGym = profile.homeGym
+            homeGymPlace = profile.homeGymPlace
         } else if let privateProfile = auth.profile {
             displayName = privateProfile.display_name
             let gym = privateProfile.preferences.home_gym
@@ -128,7 +158,8 @@ struct SocialProfileEditor: View {
         errorMessage = nil
         defer { isSaving = false }
         do {
-            try await social.saveProfile(uid: uid, username: normalizedUsername, displayName: displayName, bio: bio, homeGym: homeGym)
+            try await social.saveProfile(uid: uid, username: normalizedUsername, displayName: displayName, bio: bio,
+                                          homeGym: homeGym, homeGymPlace: homeGymPlace)
             if !isFirstRun { dismiss() }
         } catch {
             errorMessage = error.localizedDescription

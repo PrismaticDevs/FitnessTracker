@@ -45,6 +45,20 @@ service cloud.firestore {
 
     // ---------- FiT Social: public profiles
 
+    // Home gym: free text, plus an optional Apple Maps place (the gym's public location only).
+    function validGym(data) {
+      return (!('homeGym' in data) || (data.homeGym is string && data.homeGym.size() <= 100))
+        && (!('homeGymPlace' in data) || (
+          data.homeGymPlace is map
+          && data.homeGymPlace.keys().hasOnly(['id', 'name', 'address', 'latitude', 'longitude'])
+          && data.homeGymPlace.id is string && data.homeGymPlace.id.size() <= 200
+          && data.homeGymPlace.name is string && data.homeGymPlace.name.size() <= 100
+          && data.homeGymPlace.address is string && data.homeGymPlace.address.size() <= 200
+          && data.homeGymPlace.latitude is number && data.homeGymPlace.latitude >= -90 && data.homeGymPlace.latitude <= 90
+          && data.homeGymPlace.longitude is number && data.homeGymPlace.longitude >= -180 && data.homeGymPlace.longitude <= 180
+        ));
+    }
+
     match /profiles/{uid} {
       allow read: if signedIn();
 
@@ -54,6 +68,7 @@ service cloud.firestore {
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() <= 50
         && request.resource.data.bio.size() <= 160
+        && validGym(request.resource.data)
         && request.resource.data.followerCount == 0
         && request.resource.data.followingCount == 0
         && request.resource.data.postCount == 0;
@@ -62,6 +77,7 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid
         && request.resource.data.displayName.size() <= 50
         && request.resource.data.bio.size() <= 160
+        && validGym(request.resource.data)
         // Follow counts can't be edited by the client (they'll be maintained server-side later).
         && request.resource.data.followerCount == resource.data.followerCount
         && request.resource.data.followingCount == resource.data.followingCount

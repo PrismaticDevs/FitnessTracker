@@ -15,6 +15,8 @@ struct PublicProfile: Codable, Identifiable, Equatable {
     var displayName: String
     var bio: String
     var homeGym: String
+    /// Set when the gym was picked from Apple Maps; nil when typed by hand.
+    var homeGymPlace: GymPlace? = nil
     var followerCount: Int = 0
     var followingCount: Int = 0
     var postCount: Int = 0

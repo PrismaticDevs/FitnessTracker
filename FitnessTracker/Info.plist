@@ -15,5 +15,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FiT Social uses your location to find gyms near you. Your location is only used for the search and is never shared or saved.</string>
 </dict>
 </plist>
